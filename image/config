@@ -1,0 +1,37 @@
+# pi-gen configuration for the little-internet node image.
+#
+# This file is copied into the pi-gen checkout by ./build.sh. See pi-gen's
+# README for the full list of supported variables:
+# https://github.com/RPi-Distro/pi-gen#config
+
+IMG_NAME='little-internet'
+
+# Raspberry Pi OS release to base the image on.
+RELEASE='bookworm'
+
+# Build a headless (Lite) image plus our custom networking stage. We stop after
+# stage2 (Lite) — no desktop. build.sh adds SKIP_IMAGES to stage2 so only the
+# final little-internet image is exported.
+STAGE_LIST='stage0 stage1 stage2 stage-little-internet'
+
+# Compress the exported image so it's smaller to move around / flash.
+DEPLOY_COMPRESSION='xz'
+
+# --- First-boot defaults -----------------------------------------------------
+# All nodes ship with the same hostname; rename per-node after flashing (or via
+# Raspberry Pi Imager's customization). See image/README.md.
+TARGET_HOSTNAME='pi-node'
+
+# Default login. CHANGE THIS for anything beyond a closed lab network — the
+# password is baked into the image in plaintext.
+FIRST_USER_NAME='pi'
+FIRST_USER_PASS='little-internet'
+
+# Enable SSH so nodes are reachable headless out of the box.
+ENABLE_SSH=1
+
+# --- Locale ------------------------------------------------------------------
+LOCALE_DEFAULT='en_US.UTF-8'
+KEYBOARD_KEYMAP='us'
+KEYBOARD_LAYOUT='English (US)'
+TIMEZONE_DEFAULT='America/Phoenix'

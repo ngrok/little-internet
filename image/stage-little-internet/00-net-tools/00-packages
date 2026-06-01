@@ -1,0 +1,22 @@
+# Packet capture & inspection
+tcpdump
+tshark
+
+# Layer-2 / ARP tooling
+iputils-arping
+ethtool
+
+# Classic networking utilities the lessons lean on
+net-tools
+mtr-tiny
+nmap
+iperf3
+
+# VLAN + bridge tooling for later Phase 1 lessons
+vlan
+bridge-utils
+
+# I2C tooling + Python for the SSD1306 OLED displays in the Phase 1 BOM
+i2c-tools
+python3
+python3-pip
