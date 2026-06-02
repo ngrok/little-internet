@@ -81,14 +81,17 @@ builds. Expect roughly 20–40 minutes.
 
 The finished, compressed image lands in
 `~/little-internet/image/build/pi-gen/deploy/` (named like
-`little-internet-YYYY-MM-DD.img.xz`). The whole `build/` tree is gitignored.
-Hand the image back to the Mac through Lima's writable shared mount:
+`image_YYYY-MM-DD-little-internet.img.xz`). The whole `build/` tree is
+gitignored. Lima mounts your Mac home **read-only**, so you can't copy the
+image straight into a Mac folder from inside the VM — hand it back through
+Lima's **writable** shared mount instead:
 
 ```bash
-cp build/pi-gen/deploy/little-internet-*.img.xz /tmp/lima/
+cp build/pi-gen/deploy/*.img.xz /tmp/lima/
 ```
 
-On the Mac it's now at `/tmp/lima/little-internet-*.img.xz`, ready to flash.
+On the Mac it's now in `/tmp/lima/`, ready to move and flash. (Or pull it
+directly from the Mac with `limactl copy '<instance>:<path-to-img>' ~/Downloads/`.)
 
 ### Alternatives
 
@@ -151,7 +154,7 @@ macOS:
 ```bash
 # Unmount (not eject) the card first; replace diskN with your card.
 diskutil unmountDisk /dev/diskN
-xzcat little-internet-YYYY-MM-DD.img.xz | sudo dd of=/dev/rdiskN bs=4m
+xzcat image_YYYY-MM-DD-little-internet.img.xz | sudo dd of=/dev/rdiskN bs=4m
 diskutil eject /dev/diskN
 ```
 
@@ -159,7 +162,7 @@ Linux:
 
 ```bash
 # Replace sdX with your card.
-xzcat little-internet-YYYY-MM-DD.img.xz | sudo dd of=/dev/sdX bs=4M conv=fsync status=progress
+xzcat image_YYYY-MM-DD-little-internet.img.xz | sudo dd of=/dev/sdX bs=4M conv=fsync status=progress
 sudo sync
 ```
 
