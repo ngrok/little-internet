@@ -59,7 +59,19 @@ cp -R "${HERE}/${STAGE_NAME}" "${PIGEN_DIR}/${STAGE_NAME}"
 # 4. Only export our final image, not the intermediate Lite image.
 touch "${PIGEN_DIR}/stage2/SKIP_IMAGES"
 
-# 5. Build.
+# 5. Ensure debian-archive-keyring lands in the bootstrapped chroot. pi-gen
+#    debootstraps with only --include gnupg,ca-certificates, and on current
+#    Debian the archive keyring no longer comes in by default — so the chroot
+#    can't verify deb.debian.org and stage0's apt-get update dies with
+#    "NO_PUBKEY ... bookworm" / "repository ... is not signed". (debootstrap
+#    itself is verified by the host keyring, so it can still fetch it.)
+if grep -q -- '--include=ca-certificates)' "${PIGEN_DIR}/scripts/common"; then
+	echo ">> Patching pi-gen to include debian-archive-keyring in the bootstrap"
+	sed -i 's/--include=ca-certificates)/--include=ca-certificates,debian-archive-keyring)/' \
+		"${PIGEN_DIR}/scripts/common"
+fi
+
+# 6. Build.
 cd "${PIGEN_DIR}"
 if [ "${USE_DOCKER:-0}" = "1" ]; then
 	echo ">> Building with pi-gen's Docker wrapper"

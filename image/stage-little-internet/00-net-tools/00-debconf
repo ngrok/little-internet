@@ -1,0 +1,8 @@
+# Don't start iperf3 as a daemon at boot — lessons run `iperf3 -s` on demand.
+# Preseeded so the build never stops on iperf3's interactive prompt.
+iperf3 iperf3/start_daemon boolean false
+
+# Don't make dumpcap setuid for non-root capture — lessons capture with sudo,
+# consistently for tcpdump and tshark. (Debian's default; suppresses the
+# wireshark-common prompt during the build.)
+wireshark-common wireshark-common/install-setuid boolean false

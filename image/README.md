@@ -21,61 +21,82 @@ image/
     ├── prerun.sh                 Seeds the stage rootfs from the previous stage.
     ├── EXPORT_IMAGE              Marks this stage as exporting the final image.
     └── 00-net-tools/
+        ├── 00-debconf            Preseeds iperf3 to not autostart (keeps the build non-interactive).
         ├── 00-packages           apt packages to install (capture, ARP, VLAN, I2C…).
         └── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays.
 ```
 
 ## Building the image
 
-> **pi-gen needs Linux.** It runs on a Debian-based host (Bookworm recommended)
-> or through its Docker wrapper. It does **not** run natively on macOS. Pick one
-> of the environments below.
+pi-gen needs a **Debian-based Linux** environment — it does **not** run natively
+on macOS. And it's worth building Bookworm pi-gen *on a Debian Bookworm host*
+specifically: on a non-Debian host (Ubuntu, etc.) `debootstrap` can't populate
+Debian's archive keys into the build chroot, and the build dies inside the
+chroot with `NO_PUBKEY ... bookworm` / `repository ... is not signed` errors.
 
-### Option A — A Debian/Ubuntu host (simplest, most reliable)
+So on an Apple Silicon Mac, the clean path is a small **Debian VM** via
+[Lima](https://lima-vm.io/). Because the VM is arm64, the arm64 image builds
+**natively — no emulation**.
 
-On a Debian Bookworm or recent Ubuntu machine (a VM, a spare box, or a cloud
-instance):
+### 1. Create a Debian VM (run on the Mac)
 
 ```bash
-cd image
+brew install lima        # if you don't already have it
+limactl start --name=pigen --cpus=4 --memory=6 --disk=40 template://debian
+limactl shell pigen      # drop into the VM — everything below runs *inside* it
+```
+
+Lima auto-mounts your Mac home **read-only** inside the VM at the same path, so
+the repo is already visible from in there.
+
+### 2. Get the repo onto the VM's own disk
+
+pi-gen does loop-mounts during the build and needs a real local filesystem (not
+the read-only host mount), so copy the repo in:
+
+```bash
+cp -r ~/path/to/little-internet ~/little-internet
+cd ~/little-internet/image
+```
+
+### 3. Install the build dependencies
+
+```bash
+sudo apt update
+sudo apt install -y git
+sudo apt install -y quilt parted qemu-user-static qemu-user-binfmt debootstrap \
+  zerofree zip dosfstools libarchive-tools rsync xxd bc gpg pigz arch-test
+```
+
+### 4. Build
+
+```bash
 ./build.sh
 ```
 
-pi-gen needs a handful of host packages; if the build complains, install them:
+This clones pi-gen's `bookworm-arm64` branch, applies our config and stage, and
+builds. Expect roughly 20–40 minutes.
+
+### 5. Copy the image back to the Mac
+
+The finished, compressed image lands in
+`~/little-internet/image/build/pi-gen/deploy/` (named like
+`little-internet-YYYY-MM-DD.img.xz`). The whole `build/` tree is gitignored.
+Hand the image back to the Mac through Lima's writable shared mount:
 
 ```bash
-sudo apt install -y quilt qemu-user-static debootstrap zerofree zip \
-  dosfstools libarchive-tools libcap2-bin grep rsync xz-utils file git curl bc \
-  binfmt-support ca-certificates qemu-utils kpartx fdisk gpg pigz
+cp build/pi-gen/deploy/little-internet-*.img.xz /tmp/lima/
 ```
 
-### Option B — Docker (works on Linux; finicky on macOS)
+On the Mac it's now at `/tmp/lima/little-internet-*.img.xz`, ready to flash.
 
-```bash
-cd image
-USE_DOCKER=1 ./build.sh
-```
+### Alternatives
 
-This uses pi-gen's own `build-docker.sh`. On Linux it Just Works. On macOS the
-Docker build is unreliable (it needs privileged mode + binfmt/qemu that Docker
-Desktop's VM doesn't expose cleanly) — prefer Option A or C from a Mac.
-
-### Option C — GitHub Actions / a cloud Linux runner
-
-Run `build.sh` on a Linux CI runner and upload `build/pi-gen/deploy/*` as an
-artifact. Good for reproducible, hands-off builds. (A workflow may be added to
-this repo later.)
-
-### Output
-
-The finished, compressed image lands in:
-
-```
-image/build/pi-gen/deploy/
-```
-
-as something like `little-internet-YYYY-MM-DD.img.xz`. The whole `build/`
-directory is gitignored.
+- **Docker:** `USE_DOCKER=1 ./build.sh` runs pi-gen's container build (a Debian
+  image with the correct keyrings, so it dodges the trap above). Reliable on a
+  Linux host/VM; finicky through Docker Desktop on macOS.
+- **A real Debian/Ubuntu box or cloud instance:** clone the repo and run
+  `./build.sh`. On a non-Debian host, prefer the Docker path.
 
 ### Notes & knobs
 
@@ -100,6 +121,12 @@ directory is gitignored.
 - **Defaults to change.** The image ships with user `pi` / password
   `little-internet` and hostname `pi-node`, baked in via `config`. Fine for a
   closed lab; change the password for anything else.
+- **Keyring patch (automatic).** pi-gen debootstraps the chroot with only
+  `gnupg` + `ca-certificates`, and on current Debian that leaves out
+  `debian-archive-keyring` — so the build fails with `NO_PUBKEY ... bookworm` /
+  `repository ... is not signed` during stage0's `apt-get update`. `build.sh`
+  patches the freshly cloned pi-gen to add `debian-archive-keyring` to the
+  bootstrap, which fixes it. Nothing to do by hand.
 
 ## Flashing the image
 
