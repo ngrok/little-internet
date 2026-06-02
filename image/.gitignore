@@ -1,2 +1,5 @@
 # pi-gen checkout + build artifacts created by build.sh
 build/
+
+# local-only build overrides (Wi-Fi credentials, etc.)
+config.local

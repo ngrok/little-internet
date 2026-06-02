@@ -19,7 +19,13 @@
 # If you switch to a *-arm64/master/arm64 branch, set RELEASE in ./config to match.
 #
 # Env overrides:
-#   PIGEN_REF   pi-gen branch/tag to build from (default: bookworm-arm64)
+#   PIGEN_REF      pi-gen branch/tag to build from (default: bookworm-arm64)
+#   LI_BUILD_DIR   where pi-gen's checkout + build artifacts go (default:
+#                  ./build). pi-gen loop-mounts the image during the build, so
+#                  this MUST be a real local, writable filesystem. When running
+#                  the repo straight from a read-only host mount (e.g. Lima on
+#                  macOS), point this at writable local storage in the VM, e.g.
+#                  LI_BUILD_DIR=~/pigen-build ./build.sh
 
 set -euo pipefail
 
@@ -27,7 +33,7 @@ PIGEN_REPO="https://github.com/RPi-Distro/pi-gen.git"
 PIGEN_REF="${PIGEN_REF:-bookworm-arm64}"
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-WORK="${HERE}/build"
+WORK="${LI_BUILD_DIR:-${HERE}/build}"
 PIGEN_DIR="${WORK}/pi-gen"
 STAGE_NAME="stage-little-internet"
 
@@ -49,12 +55,49 @@ else
 	echo ">> Reusing existing pi-gen checkout at ${PIGEN_DIR} (${PIGEN_REF})"
 fi
 
-# 2. Drop our config into the pi-gen tree.
+# 2. Drop our config into the pi-gen tree, plus any untracked local overrides
+#    (e.g. Wi-Fi credentials in image/config.local — see config.local.example).
 cp "${HERE}/config" "${PIGEN_DIR}/config"
+if [ -f "${HERE}/config.local" ]; then
+	echo ">> Applying image/config.local overrides"
+	cat "${HERE}/config.local" >> "${PIGEN_DIR}/config"
+	# shellcheck disable=SC1091
+	. "${HERE}/config.local"
+fi
 
 # 3. Sync our custom stage into the pi-gen tree.
 rm -rf "${PIGEN_DIR:?}/${STAGE_NAME}"
 cp -R "${HERE}/${STAGE_NAME}" "${PIGEN_DIR}/${STAGE_NAME}"
+
+# 3b. Optionally pre-provision Wi-Fi so nodes are reachable headless over Wi-Fi
+#     on first boot. Credentials come only from image/config.local (never
+#     committed); without LI_WIFI_SSID set, no Wi-Fi is baked in. The radio is
+#     unblocked by WPA_COUNTRY in ./config.
+if [ -n "${LI_WIFI_SSID:-}" ]; then
+	echo ">> Baking in Wi-Fi connection for SSID '${LI_WIFI_SSID}'"
+	wifi_files="${PIGEN_DIR}/${STAGE_NAME}/00-net-tools/files"
+	mkdir -p "${wifi_files}"
+	cat > "${wifi_files}/preconfigured.nmconnection" <<EOF
+[connection]
+id=preconfigured
+type=wifi
+autoconnect=true
+
+[wifi]
+mode=infrastructure
+ssid=${LI_WIFI_SSID}
+
+[wifi-security]
+key-mgmt=wpa-psk
+psk=${LI_WIFI_PSK}
+
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto
+EOF
+fi
 
 # 4. Only export our final image, not the intermediate Lite image.
 touch "${PIGEN_DIR}/stage2/SKIP_IMAGES"

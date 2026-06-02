@@ -1,0 +1,15 @@
+# image/config.local — untracked, local-only build overrides.
+#
+# Copy this file to image/config.local (which is gitignored) and fill in your
+# values. NEVER commit real credentials. build.sh appends config.local to the
+# pi-gen config and uses the LI_WIFI_* values below to pre-provision Wi-Fi.
+#
+# Pre-provision a Wi-Fi connection so nodes join your network headless on first
+# boot (handy when a node lives on the isolated lab switch with no other route
+# in). The radio is unblocked by WPA_COUNTRY in image/config.
+#LI_WIFI_SSID='YourNetwork'
+#LI_WIFI_PSK='YourPassword'
+
+# You can also override any pi-gen config variable here, e.g. a stronger
+# default password than the one baked into image/config:
+#FIRST_USER_PASS='something-better'

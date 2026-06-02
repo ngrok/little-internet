@@ -15,7 +15,8 @@ drops our config and stage in, and runs the build.
 ```
 image/
 ├── README.md                     This file.
-├── config                        pi-gen config: release, hostname, user, SSH, stages.
+├── config                        pi-gen config: release, hostname, user, SSH, WLAN country, stages.
+├── config.local.example          Template for untracked local overrides (Wi-Fi creds, etc.).
 ├── build.sh                      Clones pi-gen, applies our config + stage, builds.
 └── stage-little-internet/        Our custom pi-gen stage.
     ├── prerun.sh                 Seeds the stage rootfs from the previous stage.
@@ -23,7 +24,8 @@ image/
     └── 00-net-tools/
         ├── 00-debconf            Preseeds iperf3 to not autostart (keeps the build non-interactive).
         ├── 00-packages           apt packages to install (capture, ARP, VLAN, I2C…).
-        └── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays.
+        ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays.
+        └── 02-run.sh             Installs a pre-provisioned Wi-Fi connection, if one was generated.
 ```
 
 ## Building the image
@@ -49,45 +51,42 @@ limactl shell pigen      # drop into the VM — everything below runs *inside* i
 Lima auto-mounts your Mac home **read-only** inside the VM at the same path, so
 the repo is already visible from in there.
 
-### 2. Get the repo onto the VM's own disk
-
-pi-gen does loop-mounts during the build and needs a real local filesystem (not
-the read-only host mount), so copy the repo in:
-
-```bash
-cp -r ~/path/to/little-internet ~/little-internet
-cd ~/little-internet/image
-```
-
-### 3. Install the build dependencies
+### 2. Install the build dependencies (inside the VM)
 
 ```bash
 sudo apt update
-sudo apt install -y git
 sudo apt install -y quilt parted qemu-user-static qemu-user-binfmt debootstrap \
   zerofree zip dosfstools libarchive-tools rsync xxd bc gpg pigz arch-test
 ```
 
-### 4. Build
+### 3. Build — straight from the mounted repo
+
+No need to copy or clone the repo into the VM. Run `build.sh` directly from the
+read-only host mount and send pi-gen's build directory to the VM's **local**
+disk via `LI_BUILD_DIR` (pi-gen loop-mounts the image, which a read-only/virtio
+mount can't do). This way you edit any file on your Mac with your normal editor
+and the change is picked up on the next run — no re-copy, no in-VM editor:
 
 ```bash
-./build.sh
+cd /Users/<you>/path/to/little-internet/image    # the Lima-mounted repo
+LI_BUILD_DIR=~/pigen-build ./build.sh
 ```
 
-This clones pi-gen's `bookworm-arm64` branch, applies our config and stage, and
-builds. Expect roughly 20–40 minutes.
+This clones pi-gen's `bookworm-arm64` branch into `~/pigen-build`, applies our
+config and stage, and builds. Expect roughly 20–40 minutes.
 
-### 5. Copy the image back to the Mac
+To start fresh, note the build artifacts are **root-owned** (pi-gen builds as
+root), so clearing them needs sudo: `sudo rm -rf ~/pigen-build`.
 
-The finished, compressed image lands in
-`~/little-internet/image/build/pi-gen/deploy/` (named like
-`image_YYYY-MM-DD-little-internet.img.xz`). The whole `build/` tree is
-gitignored. Lima mounts your Mac home **read-only**, so you can't copy the
-image straight into a Mac folder from inside the VM — hand it back through
-Lima's **writable** shared mount instead:
+### 4. Copy the image back to the Mac
+
+The finished, compressed image lands in `~/pigen-build/pi-gen/deploy/` (named
+like `image_YYYY-MM-DD-little-internet.img.xz`). Hand it back to the Mac through
+Lima's **writable** shared mount (the home mount is read-only, so you can't
+write straight into a Mac folder from the VM):
 
 ```bash
-cp build/pi-gen/deploy/*.img.xz /tmp/lima/
+cp ~/pigen-build/pi-gen/deploy/*.img.xz /tmp/lima/
 ```
 
 On the Mac it's now in `/tmp/lima/`, ready to move and flash. (Or pull it
@@ -100,6 +99,28 @@ directly from the Mac with `limactl copy '<instance>:<path-to-img>' ~/Downloads/
   Linux host/VM; finicky through Docker Desktop on macOS.
 - **A real Debian/Ubuntu box or cloud instance:** clone the repo and run
   `./build.sh`. On a non-Debian host, prefer the Docker path.
+
+### Optional: pre-provision Wi-Fi
+
+Raspberry Pi Imager's "OS customisation" is unreliable for *custom* images —
+it'll show the screen but silently skip applying the settings — so don't rely
+on it to set up Wi-Fi. Instead, bake the connection into the build. On your Mac
+(where you have an editor), set up credentials once, then rebuild (step 3):
+
+```bash
+cp config.local.example config.local     # config.local is gitignored
+# edit config.local on your Mac: set LI_WIFI_SSID / LI_WIFI_PSK
+LI_BUILD_DIR=~/pigen-build ./build.sh     # run in the VM as in step 3
+```
+
+`build.sh` writes a NetworkManager connection into the image from those values,
+and `WPA_COUNTRY` in `config` unblocks the radio. Every card flashed from that
+build joins your Wi-Fi headless on first boot. Credentials live only in
+`config.local` (never committed), so the public image stays Wi-Fi-free.
+
+Already flashed a card without Wi-Fi? Bring it up on Ethernet (SSH is enabled),
+then `sudo nmcli device wifi connect "SSID" password "PASS"` — NetworkManager
+persists it, so it auto-joins on later boots.
 
 ### Notes & knobs
 
@@ -138,11 +159,13 @@ directly from the Mac with `limactl copy '<instance>:<path-to-img>' ~/Downloads/
 1. Open [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
 2. **Choose OS → Use custom** and select the `.img.xz` from `deploy/`.
 3. **Choose Storage** and pick your microSD card.
-4. Click the gear / **Edit settings** to customize this card before flashing —
-   this is the easy way to give each node a **unique hostname** (e.g.
-   `pi-a`, `pi-b`), set Wi-Fi (if used), and configure SSH. Do this per card so
-   the nodes don't collide on the network.
-5. **Write**, then move the card to the Pi.
+4. **Write**, then move the card to the Pi.
+
+> Imager's "OS customisation" / Edit-settings step doesn't reliably apply to
+> custom images, so don't depend on it. SSH is already enabled in the image;
+> bake Wi-Fi in at build time (see *Optional: pre-provision Wi-Fi* above); and
+> give each card a **unique hostname at first boot** (next section) so multiple
+> nodes don't collide on `pi-node.local`.
 
 ### With the command line (`dd`)
 
