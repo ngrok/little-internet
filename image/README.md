@@ -6,9 +6,9 @@ already installed (`tcpdump`, `tshark`, `arping`, `ethtool`, VLAN/bridge
 tooling, and I2C enabled for the OLED displays).
 
 The image is built with [pi-gen](https://github.com/RPi-Distro/pi-gen), the same
-tool the Raspberry Pi Foundation uses to build the official images. This
-directory holds our pi-gen config and a custom stage; `build.sh` clones pi-gen,
-drops our config and stage in, and runs the build.
+tool the Raspberry Pi Foundation uses for its official images. This directory
+holds our pi-gen config and a custom stage; `build.sh` clones pi-gen, drops our
+config and stage in, and runs the build.
 
 ## What's here
 
@@ -34,19 +34,19 @@ image/
         └── files/                The script, systemd unit, and little-internet-hostname.txt.example.
 ```
 
-Two separate Wi-Fi paths, for two separate audiences:
+There are two Wi-Fi paths, for two audiences:
 
-- **Building from source** (you): set `LI_WIFI_*` in `config.local` and the
+- If you're building from source, set `LI_WIFI_*` in `config.local` and the
   credentials are baked in at build time (`00-net-tools/02-run.sh`).
-- **Flashing a released image** (anyone): the image ships credential-free; the
+- If you're flashing a released image, the image ships credential-free; the
   flasher drops a `little-internet-wifi.txt` on the boot partition and the
   first-boot service (`01-firstboot-wifi/`) provisions Wi-Fi on first boot. See
   *Customizing a flashed image* below.
 
-The **hostname** works the same boot-partition way: every card defaults to
-`pi-node`, so drop a `little-internet-hostname.txt` and the first-boot service
+Hostnames work the same boot-partition way. Every card defaults to `pi-node`, so
+drop a `little-internet-hostname.txt` and the first-boot service
 (`02-firstboot-hostname/`) renames the card to `<name>.local` before mDNS
-advertises — see *Customizing a flashed image* below.
+advertises. See *Customizing a flashed image* below.
 
 ## Getting the image
 
@@ -59,42 +59,42 @@ A GitHub Actions workflow (`.github/workflows/build-image.yml`) builds the image
 with pi-gen and publishes the compressed `.img.xz` two ways:
 
 - **From a Release (recommended).** Tagged builds (`v*`) attach the `.img.xz` to
-  a [GitHub Release](../../releases) as a plain asset — you download the
-  `.img.xz` exactly as-is and hand it straight to Raspberry Pi Imager (it
-  flashes `.xz` without unpacking). This is the path to point people at.
+  a [GitHub Release](../../releases) as a plain asset. Download it as-is and hand
+  it straight to Raspberry Pi Imager, which flashes `.xz` without unpacking.
+  Point people here.
 - **From a workflow run's artifact.** Every run also uploads the image under the
-  **Actions** tab → a run → *Artifacts*. Handy for testing an unreleased build,
-  but GitHub **always wraps artifacts in a `.zip`** on download (there's no way
-  around it), so you have to unzip it to get the `.img.xz` before flashing.
-  Unzip *once* to the `.img.xz` and stop there — Imager wants the `.img.xz`, not
-  the ~3 GB raw `.img` you'd get by decompressing further.
+  **Actions** tab (a run → *Artifacts*). Handy for testing an unreleased build,
+  but GitHub always wraps artifacts in a `.zip` on download, so unzip it to get
+  the `.img.xz` before flashing. Unzip *once* to the `.img.xz` and stop there:
+  Imager wants the `.img.xz`, not the ~3 GB raw `.img` you'd get by decompressing
+  further.
 
-The published image is **credential-free** — no Wi-Fi, the default `pi` login.
-Customize Wi-Fi (and anything else) *after* flashing; see *Customizing a flashed
-image* below.
+The published image is credential-free: no Wi-Fi, the default `pi` login.
+Customize Wi-Fi and anything else after flashing (see *Customizing a flashed
+image* below).
 
 To cut a release: `git tag v1.0.0 && git push origin v1.0.0`. To test the build
 without releasing, trigger the workflow manually (**Actions → Build node image →
 Run workflow**) and grab the artifact.
 
-> **Build host.** The workflow uses pi-gen's **Docker** path, which builds inside
-> a Debian container — so it dodges the non-Debian-host keyring trap described
-> below even though GitHub's runners are Ubuntu. While this repo is **private**
-> it runs on an x86 runner and emulates arm64 (slower). Once it's **public**,
-> flip `runs-on` to `ubuntu-24.04-arm` (a one-line change, noted in the
-> workflow) for free, native, no-emulation arm64 builds.
+> **Build host.** The workflow uses pi-gen's Docker path, which builds inside a
+> Debian container, so it dodges the non-Debian-host keyring trap described below
+> even though GitHub's runners are Ubuntu. While this repo is private it runs on
+> an x86 runner and emulates arm64 (slower). Once it's public, flip `runs-on` to
+> `ubuntu-24.04-arm` (a one-line change, noted in the workflow) for free, native
+> arm64 builds.
 
 ## Building the image yourself
 
-pi-gen needs a **Debian-based Linux** environment — it does **not** run natively
-on macOS. And it's worth building Bookworm pi-gen *on a Debian Bookworm host*
-specifically: on a non-Debian host (Ubuntu, etc.) `debootstrap` can't populate
-Debian's archive keys into the build chroot, and the build dies inside the
-chroot with `NO_PUBKEY ... bookworm` / `repository ... is not signed` errors.
+pi-gen needs a Debian-based Linux environment; it doesn't run natively on macOS.
+Build Bookworm pi-gen on a Debian Bookworm host specifically: on a non-Debian
+host (Ubuntu, etc.) `debootstrap` can't populate Debian's archive keys into the
+build chroot, and the build dies with `NO_PUBKEY ... bookworm` /
+`repository ... is not signed` errors.
 
-So on an Apple Silicon Mac, the clean path is a small **Debian VM** via
+On an Apple Silicon Mac, the clean path is a small Debian VM via
 [Lima](https://lima-vm.io/). Because the VM is arm64, the arm64 image builds
-**natively — no emulation**.
+natively, with no emulation.
 
 ### 1. Create a Debian VM (run on the Mac)
 
@@ -104,8 +104,8 @@ limactl start --name=pigen --cpus=4 --memory=6 --disk=40 template://debian
 limactl shell pigen      # drop into the VM — everything below runs *inside* it
 ```
 
-Lima auto-mounts your Mac home **read-only** inside the VM at the same path, so
-the repo is already visible from in there.
+Lima auto-mounts your Mac home read-only inside the VM at the same path, so the
+repo is already visible in there.
 
 ### 2. Install the build dependencies (inside the VM)
 
@@ -115,13 +115,13 @@ sudo apt install -y quilt parted qemu-user-static qemu-user-binfmt debootstrap \
   zerofree zip dosfstools libarchive-tools rsync xxd bc gpg pigz arch-test
 ```
 
-### 3. Build — straight from the mounted repo
+### 3. Build straight from the mounted repo
 
 No need to copy or clone the repo into the VM. Run `build.sh` directly from the
-read-only host mount and send pi-gen's build directory to the VM's **local**
-disk via `LI_BUILD_DIR` (pi-gen loop-mounts the image, which a read-only/virtio
-mount can't do). This way you edit any file on your Mac with your normal editor
-and the change is picked up on the next run — no re-copy, no in-VM editor:
+read-only host mount and send pi-gen's build directory to the VM's local disk via
+`LI_BUILD_DIR` (pi-gen loop-mounts the image, which a read-only/virtio mount
+can't do). Edit any file on your Mac with your normal editor and the next run
+picks up the change, with no re-copy and no in-VM editor:
 
 ```bash
 cd /Users/<you>/path/to/little-internet/image    # the Lima-mounted repo
@@ -131,15 +131,15 @@ LI_BUILD_DIR=~/pigen-build ./build.sh
 This clones pi-gen's `bookworm-arm64` branch into `~/pigen-build`, applies our
 config and stage, and builds. Expect roughly 20–40 minutes.
 
-To start fresh, note the build artifacts are **root-owned** (pi-gen builds as
-root), so clearing them needs sudo: `sudo rm -rf ~/pigen-build`.
+To start fresh, clear the build artifacts. They're root-owned (pi-gen builds as
+root), so it needs sudo: `sudo rm -rf ~/pigen-build`.
 
 ### 4. Copy the image back to the Mac
 
 The finished, compressed image lands in `~/pigen-build/pi-gen/deploy/` (named
 like `image_YYYY-MM-DD-little-internet.img.xz`). Hand it back to the Mac through
-Lima's **writable** shared mount (the home mount is read-only, so you can't
-write straight into a Mac folder from the VM):
+Lima's writable shared mount; the home mount is read-only, so you can't write
+straight into a Mac folder from the VM:
 
 ```bash
 cp ~/pigen-build/pi-gen/deploy/*.img.xz /tmp/lima/
@@ -158,10 +158,10 @@ directly from the Mac with `limactl copy '<instance>:<path-to-img>' ~/Downloads/
 
 ### Optional: pre-provision Wi-Fi
 
-Raspberry Pi Imager's "OS customisation" is unreliable for *custom* images —
-it'll show the screen but silently skip applying the settings — so don't rely
-on it to set up Wi-Fi. Instead, bake the connection into the build. On your Mac
-(where you have an editor), set up credentials once, then rebuild (step 3):
+Raspberry Pi Imager's "OS customisation" is unreliable for custom images: it
+shows the screen but silently skips applying the settings, so don't rely on it
+for Wi-Fi. Bake the connection into the build instead. On your Mac, set up
+credentials once, then rebuild (step 3):
 
 ```bash
 cp config.local.example config.local     # config.local is gitignored
@@ -175,15 +175,15 @@ build joins your Wi-Fi headless on first boot. Credentials live only in
 `config.local` (never committed), so the public image stays Wi-Fi-free.
 
 Already flashed a card without Wi-Fi? Bring it up on Ethernet (SSH is enabled),
-then `sudo nmcli device wifi connect "SSID" password "PASS"` — NetworkManager
+then `sudo nmcli device wifi connect "SSID" password "PASS"`. NetworkManager
 persists it, so it auto-joins on later boots.
 
 ### Notes & knobs
 
-- **Architecture.** This builds **64-bit (arm64) Raspberry Pi OS Lite** by
-  default — it runs great on the Pi 3 Model B+ and, on an Apple Silicon Mac,
-  builds natively (no slow emulation). Both 32-bit and 64-bit flash and boot
-  identically on the Pi 3 B+, so this is purely a build-host convenience.
+- **Architecture.** Builds 64-bit (arm64) Raspberry Pi OS Lite by default. It
+  runs well on the Pi 3 Model B+ and, on an Apple Silicon Mac, builds natively
+  without emulation. Both 32-bit and 64-bit flash and boot identically on the Pi
+  3 B+, so this is purely a build-host convenience.
 - **pi-gen branch must match the release.** pi-gen pairs each Debian release
   with its own branch, and the branch must match `RELEASE` in `config` or pi-gen
   warns (`RELEASE does not match the intended option for this branch`) and may
@@ -203,10 +203,10 @@ persists it, so it auto-joins on later boots.
   closed lab; change the password for anything else.
 - **Keyring patch (automatic).** pi-gen debootstraps the chroot with only
   `gnupg` + `ca-certificates`, and on current Debian that leaves out
-  `debian-archive-keyring` — so the build fails with `NO_PUBKEY ... bookworm` /
+  `debian-archive-keyring`, so the build fails with `NO_PUBKEY ... bookworm` /
   `repository ... is not signed` during stage0's `apt-get update`. `build.sh`
   patches the freshly cloned pi-gen to add `debian-archive-keyring` to the
-  bootstrap, which fixes it. Nothing to do by hand.
+  bootstrap. Nothing to do by hand.
 
 ## Flashing the image
 
@@ -215,20 +215,20 @@ persists it, so it auto-joins on later boots.
 1. Open [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
 2. **Choose OS → Use custom** and select the `.img.xz` (from a Release, from
    `deploy/` if you built it, or unzipped from a workflow artifact). Imager
-   decompresses `.xz` as it writes — feed it the `.img.xz`, not a raw `.img`.
+   decompresses `.xz` as it writes, so feed it the `.img.xz`, not a raw `.img`.
 3. **Choose Storage** and pick your microSD card.
 4. **Write**, then move the card to the Pi.
 
 > Imager's "OS customisation" / Edit-settings step doesn't reliably apply to
-> custom images, so don't depend on it. SSH is already enabled in the image; and
-> set up both Wi-Fi *and* a unique per-node hostname via boot-partition files
-> instead (see *Customizing a flashed image* below) — give each card its own
-> hostname so multiple nodes don't collide on `pi-node.local`.
+> custom images, so don't depend on it. SSH is already enabled in the image. Set
+> up Wi-Fi and a unique per-node hostname via boot-partition files instead (see
+> *Customizing a flashed image* below), and give each card its own hostname so
+> multiple nodes don't collide on `pi-node.local`.
 
 ### With the command line (`dd`)
 
 Find your SD card device first (`diskutil list` on macOS, `lsblk` on Linux) and
-be **certain** you've got the right one — `dd` to the wrong disk will wipe it.
+be certain you've got the right one: `dd` to the wrong disk will wipe it.
 
 macOS:
 
@@ -249,22 +249,21 @@ sudo sync
 
 ## Customizing a flashed image
 
-The published image is **credential-free** and ships with SSH enabled — so a
-freshly flashed card is reachable over Ethernet (`ssh pi@pi-node.local`,
-password `little-internet`) with no further setup. Two things you'll usually
-want to set per card — **Wi-Fi** and a **unique hostname** — are configured the
-same way: you don't rebuild and you don't use Imager's customization screen, you
-just drop a small text file on the FAT boot partition. Both files ship as
-`.example` templates right on that partition, so they're discoverable the moment
-you flash.
+The published image is credential-free and ships with SSH enabled, so a freshly
+flashed card is reachable over Ethernet (`ssh pi@pi-node.local`, password
+`little-internet`) with no further setup. The two things you'll usually set per
+card, Wi-Fi and a unique hostname, are configured the same way: don't rebuild and
+don't use Imager's customization screen, just drop a small text file on the FAT
+boot partition. Both ship as `.example` templates on that partition, so you'll
+find them the moment you flash.
 
 ### Wi-Fi
 
 To get a card onto Wi-Fi headless:
 
-1. Flash the card (above). The FAT **boot partition** stays mounted afterward
-   and shows up as a removable drive named **`bootfs`** (macOS/Windows/Linux —
-   FAT mounts everywhere; if it's not mounted, re-insert the card).
+1. Flash the card (above). The FAT boot partition stays mounted afterward and
+   shows up as a removable drive named **`bootfs`** (FAT mounts on macOS,
+   Windows, and Linux; if it's not mounted, re-insert the card).
 2. On it you'll find **`little-internet-wifi.txt.example`**. Copy it to
    **`little-internet-wifi.txt`** (drop the `.example`) and set all three lines:
 
@@ -276,23 +275,22 @@ To get a card onto Wi-Fi headless:
 
    `COUNTRY` is the two-letter ISO code for where the Pi runs (US, GB, DE, …).
    It's **required**: it sets the WLAN regulatory domain and unblocks the radio,
-   and the right value is region-specific, so the image can't guess it. All
-   three must be filled in — if any is missing, the Pi logs the problem (visible
-   via `systemctl status little-internet-wifi`), leaves the file so you can fix
-   it, and stays Wi-Fi-free for that boot.
+   and the right value is region-specific, so the image can't guess it. Fill in
+   all three. If any is missing, the Pi logs the problem (visible via
+   `systemctl status little-internet-wifi`), leaves the file so you can fix it,
+   and stays Wi-Fi-free for that boot.
 3. Eject the card and boot the Pi. On first boot it reads the file, sets the
-   country, creates the Wi-Fi connection, and **deletes the file** so your
-   password doesn't linger in plaintext on the card. The node joins your Wi-Fi
-   headless.
+   country, creates the Wi-Fi connection, and deletes the file so your password
+   doesn't linger in plaintext on the card. The node joins your Wi-Fi headless.
 
 To switch networks later, drop a fresh `little-internet-wifi.txt` on the boot
-partition and reboot. Leave the file out entirely and the card simply boots
-Wi-Fi-free — use Ethernet, or `sudo nmcli device wifi connect "SSID" password
-"PASS"` once it's up.
+partition and reboot. Leave the file out entirely and the card boots Wi-Fi-free:
+use Ethernet, or `sudo nmcli device wifi connect "SSID" password "PASS"` once
+it's up.
 
-> Building from source instead? You can bake Wi-Fi straight into the image at
-> build time with `config.local` — see *Optional: pre-provision Wi-Fi* above.
-> The boot-partition file here is the path for images you didn't build yourself.
+> Building from source instead? Bake Wi-Fi straight into the image at build time
+> with `config.local` (see *Optional: pre-provision Wi-Fi* above). The
+> boot-partition file here is the path for images you didn't build yourself.
 
 ### Hostname
 
@@ -304,20 +302,20 @@ stable `<name>.local`:
 1. On the **boot partition** (the `bootfs` drive from the Wi-Fi steps above)
    you'll find **`little-internet-hostname.txt.example`**. Copy it to
    **`little-internet-hostname.txt`** (drop the `.example`).
-2. Replace the placeholder line with this node's name — a short DNS label:
+2. Replace the placeholder line with this node's name, a short DNS label:
    letters, digits, and hyphens only; no spaces, dots, or underscores; starting
    and ending with a letter or digit; 63 characters max (e.g. `pi-a`). An
    invalid name is logged (via `systemctl status little-internet-hostname`) and
    ignored, leaving the card on its previous name.
-3. Eject the card and boot the Pi. On first boot — **before** mDNS advertises —
-   it sets `/etc/hostname` and the `127.0.1.1` line in `/etc/hosts`, so the node
+3. Eject the card and boot the Pi. On first boot, before mDNS advertises, it
+   sets `/etc/hostname` and the `127.0.1.1` line in `/etc/hosts`, so the node
    comes up as `<name>.local` (e.g. `ssh pi@pi-a.local`).
 
-Unlike the Wi-Fi file, this one is **not** deleted on first boot: a hostname
-isn't secret, the file is read every boot so it stays authoritative, and it
-doubles as a physical label for the card. To rename later, edit the file and
-reboot. Leave it out (or unedited) and the card simply keeps the default
-`pi-node` — fine if it's the only node on the network.
+Unlike the Wi-Fi file, this one isn't deleted on first boot: a hostname isn't
+secret, the file is read every boot so it stays authoritative, and it doubles as
+a physical label for the card. To rename later, edit the file and reboot. Leave
+it out (or unedited) and the card keeps the default `pi-node`, fine if it's the
+only node on the network.
 
 ## First boot
 
@@ -328,7 +326,7 @@ reboot. Leave it out (or unedited) and the card simply keeps the default
   a `little-internet-hostname.txt` on the boot partition and reboot (see
   *Customizing a flashed image* above). On a running node you can also do it live
   with `sudo raspi-config` → System Options → Hostname, or `sudo hostnamectl
-  set-hostname pi-a` — but if the boot-partition file is present it wins on the
+  set-hostname pi-a`. But if the boot-partition file is present it wins on the
   next boot, so edit that file to make a rename stick.
 - Confirm the networking tools are present: `which tcpdump tshark arping`.
 - Check the I2C bus (for the OLED): `i2cdetect -y 1`.

@@ -3,7 +3,7 @@
 Every part needed to build the little internet, organized by phase. Each phase
 builds on the one before it.
 
-## Phase 1 — A network (~$198)
+## Phase 1: a network (~$198)
 
 | Item | Qty | Unit | Subtotal | Vendor |
 | --- | --- | --- | --- | --- |
@@ -16,7 +16,7 @@ builds on the one before it.
 | Female-to-female jumper wires (40-pack) | 1 | $4 | $4 | Adafruit / Amazon |
 | **Phase 1 total** | | | **~$198** | |
 
-## Phase 2 — Two networks (+~$112, running ~$310)
+## Phase 2: two networks (+~$112, running ~$310)
 
 | Item | Qty | Unit | Subtotal | Vendor |
 | --- | --- | --- | --- | --- |
@@ -29,7 +29,7 @@ builds on the one before it.
 | **Phase 2 added** | | | **~$112** | |
 | **Running total** | | | **~$310** | |
 
-## Phase 3 — The little internet (+~$148, running ~$458)
+## Phase 3: the little internet (+~$148, running ~$458)
 
 | Item | Qty | Unit | Subtotal | Vendor |
 | --- | --- | --- | --- | --- |
