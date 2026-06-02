@@ -10,13 +10,21 @@
 #   ./build.sh              # native build (Debian host); uses sudo
 #   USE_DOCKER=1 ./build.sh # build via pi-gen's Docker wrapper
 #
+# pi-gen ties each Debian release to its own branch, and the branch must match
+# the RELEASE set in ./config or pi-gen warns and may break on packages. We
+# default to bookworm-arm64 (64-bit Bookworm) to match config's RELEASE=bookworm
+# and to build natively/fast on Apple Silicon. Other useful branches:
+#   bookworm-arm64  64-bit Bookworm (default)   bookworm  32-bit Bookworm
+#   arm64           64-bit Trixie (newest)      master    32-bit Trixie (newest)
+# If you switch to a *-arm64/master/arm64 branch, set RELEASE in ./config to match.
+#
 # Env overrides:
-#   PIGEN_REF   pi-gen branch/tag to build from (default: master)
+#   PIGEN_REF   pi-gen branch/tag to build from (default: bookworm-arm64)
 
 set -euo pipefail
 
 PIGEN_REPO="https://github.com/RPi-Distro/pi-gen.git"
-PIGEN_REF="${PIGEN_REF:-master}"
+PIGEN_REF="${PIGEN_REF:-bookworm-arm64}"
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORK="${HERE}/build"
@@ -25,12 +33,20 @@ STAGE_NAME="stage-little-internet"
 
 mkdir -p "${WORK}"
 
-# 1. Fetch pi-gen (shallow clone of the requested ref).
+# 1. Fetch pi-gen (shallow clone of the requested ref). If an existing checkout
+#    is on a different branch (e.g. from an earlier run), re-clone it.
+if [ -d "${PIGEN_DIR}/.git" ]; then
+	current_ref="$(git -C "${PIGEN_DIR}" rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+	if [ "${current_ref}" != "${PIGEN_REF}" ]; then
+		echo ">> Existing pi-gen checkout is on '${current_ref}', want '${PIGEN_REF}' — re-cloning"
+		rm -rf "${PIGEN_DIR}"
+	fi
+fi
 if [ ! -d "${PIGEN_DIR}/.git" ]; then
 	echo ">> Cloning pi-gen (${PIGEN_REF}) into ${PIGEN_DIR}"
 	git clone --depth 1 --branch "${PIGEN_REF}" "${PIGEN_REPO}" "${PIGEN_DIR}"
 else
-	echo ">> Reusing existing pi-gen checkout at ${PIGEN_DIR}"
+	echo ">> Reusing existing pi-gen checkout at ${PIGEN_DIR} (${PIGEN_REF})"
 fi
 
 # 2. Drop our config into the pi-gen tree.

@@ -79,11 +79,24 @@ directory is gitignored.
 
 ### Notes & knobs
 
-- **Architecture.** This builds 32-bit (armhf) Raspberry Pi OS Lite, which runs
-  on every Pi in the BOM (the Pi 3 Model B+). To build 64-bit instead, point at
-  pi-gen's arm64 branch: `PIGEN_REF=arm64 ./build.sh`.
-- **pi-gen version.** `build.sh` clones pi-gen's `master` by default. Override
-  with `PIGEN_REF` (a branch or tag) for a pinned, reproducible build.
+- **Architecture.** This builds **64-bit (arm64) Raspberry Pi OS Lite** by
+  default — it runs great on the Pi 3 Model B+ and, on an Apple Silicon Mac,
+  builds natively (no slow emulation). Both 32-bit and 64-bit flash and boot
+  identically on the Pi 3 B+, so this is purely a build-host convenience.
+- **pi-gen branch must match the release.** pi-gen pairs each Debian release
+  with its own branch, and the branch must match `RELEASE` in `config` or pi-gen
+  warns (`RELEASE does not match the intended option for this branch`) and may
+  hit package errors. `build.sh` defaults to the `bookworm-arm64` branch to
+  match `RELEASE='bookworm'`. Other options (set both together):
+
+  | Want | `PIGEN_REF` | `RELEASE` in `config` |
+  | -- | -- | -- |
+  | 64-bit Bookworm (default) | `bookworm-arm64` | `bookworm` |
+  | 32-bit Bookworm | `bookworm` | `bookworm` |
+  | 64-bit Trixie (newest) | `arm64` | `trixie` |
+  | 32-bit Trixie (newest) | `master` | `trixie` |
+
+  e.g. `PIGEN_REF=bookworm ./build.sh` (after setting `RELEASE='bookworm'`).
 - **Defaults to change.** The image ships with user `pi` / password
   `little-internet` and hostname `pi-node`, baked in via `config`. Fine for a
   closed lab; change the password for anything else.
