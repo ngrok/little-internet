@@ -46,9 +46,11 @@ the next set of ideas tangible.
 ## Getting started
 
 1. Gather the hardware. See [`BOM.md`](./BOM.md) for the full parts list by phase.
-2. Build the node image. See [`image/`](./image/) for how to build the Raspberry
-   Pi OS image with [pi-gen](https://github.com/RPi-Distro/pi-gen) and flash it
-   to your microSD cards.
+2. Get the node image. Download a prebuilt image from
+   [Releases](../../releases), or build your own — either way, see
+   [`image/`](./image/) for getting the Raspberry Pi OS image (built with
+   [pi-gen](https://github.com/RPi-Distro/pi-gen)) and flashing it to your
+   microSD cards.
 3. Follow the lessons. (Coming soon — start with lesson 00, "why can't these two
    Pis just talk to each other?")
 

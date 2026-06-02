@@ -1,0 +1,123 @@
+#!/bin/bash
+#
+# Provision a NetworkManager Wi-Fi connection at boot from a file the user
+# dropped onto the FAT boot partition. This is how a node flashed from a
+# *released* image — where the flasher never ran the build, so the build-time
+# config.local path was never an option — joins Wi-Fi headless without a rebuild.
+#
+# Looks for /boot/firmware/little-internet-wifi.txt of the form:
+#
+#     SSID=YourNetwork
+#     PSK=YourPassword
+#     COUNTRY=US
+#
+# All three are required to bring up Wi-Fi. COUNTRY is the two-letter ISO
+# regulatory domain (US, GB, DE, …): it sets the WLAN region and unblocks the
+# radio, and the right value is region-specific (and legally required), so the
+# image can't guess it — the flasher must supply it. If the file is absent, or
+# Wi-Fi isn't fully specified, this does nothing and the image stays Wi-Fi-free.
+#
+# On success it removes the file so the plaintext password doesn't linger on the
+# FAT partition. On a configuration error it leaves the file in place so you can
+# fix it and reboot. Drop a fresh file and reboot to change networks later.
+
+set -eu
+
+BOOT_CREDS="/boot/firmware/little-internet-wifi.txt"
+NM_CONN="/etc/NetworkManager/system-connections/preconfigured.nmconnection"
+
+log() { echo "little-internet-wifi: $*"; }
+
+[ -f "$BOOT_CREDS" ] || exit 0
+
+SSID=""
+PSK=""
+COUNTRY=""
+while IFS= read -r line || [ -n "$line" ]; do
+	# Strip a trailing CR so files edited on Windows still parse.
+	line="${line%$'\r'}"
+	case "$line" in
+		\#*|"") continue ;;
+		SSID=*)    SSID="${line#SSID=}" ;;
+		PSK=*)     PSK="${line#PSK=}" ;;
+		COUNTRY=*) COUNTRY="${line#COUNTRY=}" ;;
+	esac
+done < "$BOOT_CREDS"
+
+# Allow optional surrounding quotes in the file.
+SSID="${SSID%\"}";       SSID="${SSID#\"}"
+PSK="${PSK%\"}";         PSK="${PSK#\"}"
+COUNTRY="${COUNTRY%\"}"; COUNTRY="${COUNTRY#\"}"
+COUNTRY="$(echo "$COUNTRY" | tr '[:lower:]' '[:upper:]')"
+
+# No SSID at all — the file was left blank/commented. Treat as "no Wi-Fi
+# wanted", not an error, and leave the image credential-free.
+if [ -z "$SSID" ]; then
+	exit 0
+fi
+
+# The user copied the template but never edited it. Don't try to join a network
+# called "YourNetwork"; tell them what to fix and leave the file.
+if [ "$SSID" = "YourNetwork" ]; then
+	log "file still has the example placeholders — edit SSID/PSK/COUNTRY in $BOOT_CREDS, then reboot. Leaving Wi-Fi unconfigured."
+	exit 0
+fi
+
+# SSID is set, so the user wants Wi-Fi: now PSK and COUNTRY are both required.
+# Bail without provisioning (and without deleting the file) so the mistake is
+# visible and fixable.
+if [ -z "$PSK" ]; then
+	log "ERROR: SSID is set but PSK is empty in $BOOT_CREDS. Wi-Fi NOT configured. Add the password and reboot."
+	exit 1
+fi
+if [ -z "$COUNTRY" ]; then
+	log "ERROR: SSID is set but COUNTRY is empty in $BOOT_CREDS. Wi-Fi NOT configured. Add a two-letter country code (e.g. US, GB, DE) and reboot."
+	exit 1
+fi
+if ! echo "$COUNTRY" | grep -Eq '^[A-Z]{2}$'; then
+	log "ERROR: COUNTRY='$COUNTRY' in $BOOT_CREDS is not a two-letter ISO code (e.g. US, GB, DE). Wi-Fi NOT configured. Fix it and reboot."
+	exit 1
+fi
+
+# Set the WLAN regulatory domain and unblock the radio. raspi-config is the
+# release-agnostic, NetworkManager-aware way to do this on Raspberry Pi OS; the
+# explicit unblock is belt-and-suspenders.
+log "setting Wi-Fi country to $COUNTRY"
+raspi-config nonint do_wifi_country "$COUNTRY"
+rfkill unblock wifi || true
+
+umask 077
+install -d -m 700 /etc/NetworkManager/system-connections
+cat > "$NM_CONN" <<EOF
+[connection]
+id=preconfigured
+type=wifi
+autoconnect=true
+
+[wifi]
+mode=infrastructure
+ssid=$SSID
+
+[wifi-security]
+key-mgmt=wpa-psk
+psk=$PSK
+
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto
+EOF
+chmod 600 "$NM_CONN"
+log "wrote Wi-Fi connection for SSID '$SSID' (country $COUNTRY)"
+
+# Success — don't leave the plaintext password sitting on the FAT partition.
+rm -f "$BOOT_CREDS"
+
+# We're ordered before NetworkManager.service so it'll autoconnect on its own,
+# but if NM is somehow already up (e.g. a re-provision on a later boot), reload
+# and bring the connection up now.
+if systemctl is-active --quiet NetworkManager; then
+	nmcli connection reload || true
+	nmcli connection up preconfigured || true
+fi

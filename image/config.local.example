@@ -10,6 +10,12 @@
 #LI_WIFI_SSID='YourNetwork'
 #LI_WIFI_PSK='YourPassword'
 
+# Set the WLAN regulatory domain for your region. image/config defaults this to
+# the author's; override it here if you build (and bake Wi-Fi in) elsewhere.
+# Two-letter ISO code (US, GB, DE, …). This appends after image/config, so the
+# value here wins.
+#WPA_COUNTRY='GB'
+
 # You can also override any pi-gen config variable here, e.g. a stronger
 # default password than the one baked into image/config:
 #FIRST_USER_PASS='something-better'

@@ -33,7 +33,12 @@ ENABLE_SSH=1
 
 # Set the WLAN regulatory domain. This also unblocks the Wi-Fi radio (rfkill),
 # which is required before any Wi-Fi will work — including a connection
-# pre-provisioned via image/config.local (see config.local.example).
+# pre-provisioned via image/config.local (see config.local.example). Defaults to
+# the author's region; override it in config.local if you build elsewhere (e.g.
+# WPA_COUNTRY='GB'). Note this only applies to images you build yourself — a
+# released image carries this value, but anyone flashing it sets their own
+# country in the boot-partition file (see image/README.md → Customizing a
+# flashed image).
 WPA_COUNTRY='US'
 
 # --- Locale ------------------------------------------------------------------

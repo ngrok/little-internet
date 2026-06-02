@@ -1,0 +1,104 @@
+name: Build node image
+
+# Builds the little-internet Raspberry Pi OS image with pi-gen and publishes the
+# compressed .img.xz — as a downloadable workflow artifact for every run, and as
+# a GitHub Release asset when you push a version tag (e.g. v1.0.0).
+#
+# Run it manually from the Actions tab (workflow_dispatch) to test, or push a
+# tag to cut a release.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+  # Build on PRs, but only when the image itself changes — these builds are long
+  # and (while the repo is private) emulated, so we don't want to fire one on
+  # every PR push across the repo.
+  pull_request:
+    paths:
+      - 'image/**'
+      - '.github/workflows/build-image.yml'
+      # ...but a docs-only change to the image shouldn't trigger a ~37-min build.
+      # A later '!' pattern overrides an earlier match, so a PR touching only
+      # Markdown under image/ is excluded; one touching real image files still
+      # builds.
+      - '!image/**/*.md'
+
+# pi-gen builds are long and disk-heavy; don't run two at once for the same ref.
+# On a PR, cancel an in-flight build when a newer commit is pushed so rapid
+# pushes don't stack hour-long runs; leave tag/release builds to finish.
+concurrency:
+  group: build-image-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: write   # needed to attach the image to a Release on tag pushes
+
+jobs:
+  build:
+    # x86 runner + qemu emulation works on a private repo today. Once this repo
+    # is public, switch to the free native-arm64 runner for a big speed-up — no
+    # other change needed (the QEMU step below becomes a harmless no-op):
+    #     runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v6
+
+      # pi-gen's Lite build plus the xz output needs a few GB of scratch space.
+      # GitHub's runners ship with a lot of preinstalled SDKs we don't use;
+      # reclaim that headroom so a long build never dies on a full disk.
+      - name: Free up disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            /opt/hostedtoolcache/CodeQL || true
+          df -h /
+
+      # pi-gen's Docker build cross-builds arm64 on this x86 runner, and its
+      # preflight check requires the qemu-aarch64-static *binary* on PATH —
+      # binfmt-only registration (e.g. docker/setup-qemu-action) isn't enough.
+      # The qemu-user-static package provides that binary AND registers the
+      # binfmt handlers with the fix-binary (F) flag, so the emulator works
+      # inside the build's chroot. On a native arm64 runner there's no
+      # cross-build, so pi-gen skips this requirement and the install is a
+      # harmless no-op.
+      - name: Install QEMU for arm64 emulation
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-user-static binfmt-support
+
+      # Build inside pi-gen's own Debian container. That sidesteps the
+      # debootstrap keyring trap you hit building Bookworm on a non-Debian host
+      # (the runner is Ubuntu), and means we don't need the native build deps.
+      - name: Build the image
+        working-directory: image
+        env:
+          USE_DOCKER: '1'
+        run: ./build.sh
+
+      - name: Locate the built image
+        id: image
+        run: |
+          img="$(ls image/build/pi-gen/deploy/*.img.xz | head -n1)"
+          echo "Found image: $img"
+          echo "path=$img" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$img")" >> "$GITHUB_OUTPUT"
+
+      - name: Upload image as a workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.image.outputs.name }}
+          path: ${{ steps.image.outputs.path }}
+          if-no-files-found: error
+          # The image is already xz-compressed; don't waste time re-zipping it.
+          compression-level: 0
+
+      - name: Attach image to the Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: ${{ steps.image.outputs.path }}
+          fail_on_unmatched_files: true

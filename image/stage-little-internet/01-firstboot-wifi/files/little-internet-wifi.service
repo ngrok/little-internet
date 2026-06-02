@@ -1,0 +1,16 @@
+[Unit]
+Description=Provision Wi-Fi from a boot-partition file (little-internet)
+# The FAT boot partition (/boot/firmware) must be mounted before we read it,
+# and we must write the connection before NetworkManager tries to connect so
+# it autoconnects on this same boot.
+After=local-fs.target
+Before=NetworkManager.service
+ConditionPathExists=/usr/local/sbin/little-internet-provision-wifi
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/little-internet-provision-wifi
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target

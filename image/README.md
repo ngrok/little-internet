@@ -21,14 +21,62 @@ image/
 └── stage-little-internet/        Our custom pi-gen stage.
     ├── prerun.sh                 Seeds the stage rootfs from the previous stage.
     ├── EXPORT_IMAGE              Marks this stage as exporting the final image.
-    └── 00-net-tools/
-        ├── 00-debconf            Preseeds iperf3 to not autostart (keeps the build non-interactive).
-        ├── 00-packages           apt packages to install (capture, ARP, VLAN, I2C…).
-        ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays.
-        └── 02-run.sh             Installs a pre-provisioned Wi-Fi connection, if one was generated.
+    ├── 00-net-tools/
+    │   ├── 00-debconf            Preseeds iperf3 to not autostart (keeps the build non-interactive).
+    │   ├── 00-packages           apt packages to install (capture, ARP, VLAN, I2C…).
+    │   ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays.
+    │   └── 02-run.sh             Installs a pre-provisioned Wi-Fi connection, if one was generated.
+    └── 01-firstboot-wifi/        First-boot Wi-Fi provisioner for flashed (released) images.
+        ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
+        └── files/                The script, systemd unit, and little-internet-wifi.txt.example.
 ```
 
-## Building the image
+Two separate Wi-Fi paths, for two separate audiences:
+
+- **Building from source** (you): set `LI_WIFI_*` in `config.local` and the
+  credentials are baked in at build time (`00-net-tools/02-run.sh`).
+- **Flashing a released image** (anyone): the image ships credential-free; the
+  flasher drops a `little-internet-wifi.txt` on the boot partition and the
+  first-boot service (`01-firstboot-wifi/`) provisions Wi-Fi on first boot. See
+  *Customizing a flashed image* below.
+
+## Getting the image
+
+You don't have to build it yourself. Each tagged release publishes a ready-to-flash
+image; building from source is for changing what's in the image.
+
+### Download a prebuilt image (easiest)
+
+A GitHub Actions workflow (`.github/workflows/build-image.yml`) builds the image
+with pi-gen and publishes the compressed `.img.xz` two ways:
+
+- **From a Release (recommended).** Tagged builds (`v*`) attach the `.img.xz` to
+  a [GitHub Release](../../releases) as a plain asset — you download the
+  `.img.xz` exactly as-is and hand it straight to Raspberry Pi Imager (it
+  flashes `.xz` without unpacking). This is the path to point people at.
+- **From a workflow run's artifact.** Every run also uploads the image under the
+  **Actions** tab → a run → *Artifacts*. Handy for testing an unreleased build,
+  but GitHub **always wraps artifacts in a `.zip`** on download (there's no way
+  around it), so you have to unzip it to get the `.img.xz` before flashing.
+  Unzip *once* to the `.img.xz` and stop there — Imager wants the `.img.xz`, not
+  the ~3 GB raw `.img` you'd get by decompressing further.
+
+The published image is **credential-free** — no Wi-Fi, the default `pi` login.
+Customize Wi-Fi (and anything else) *after* flashing; see *Customizing a flashed
+image* below.
+
+To cut a release: `git tag v1.0.0 && git push origin v1.0.0`. To test the build
+without releasing, trigger the workflow manually (**Actions → Build node image →
+Run workflow**) and grab the artifact.
+
+> **Build host.** The workflow uses pi-gen's **Docker** path, which builds inside
+> a Debian container — so it dodges the non-Debian-host keyring trap described
+> below even though GitHub's runners are Ubuntu. While this repo is **private**
+> it runs on an x86 runner and emulates arm64 (slower). Once it's **public**,
+> flip `runs-on` to `ubuntu-24.04-arm` (a one-line change, noted in the
+> workflow) for free, native, no-emulation arm64 builds.
+
+## Building the image yourself
 
 pi-gen needs a **Debian-based Linux** environment — it does **not** run natively
 on macOS. And it's worth building Bookworm pi-gen *on a Debian Bookworm host*
@@ -157,15 +205,17 @@ persists it, so it auto-joins on later boots.
 ### With Raspberry Pi Imager (recommended)
 
 1. Open [Raspberry Pi Imager](https://www.raspberrypi.com/software/).
-2. **Choose OS → Use custom** and select the `.img.xz` from `deploy/`.
+2. **Choose OS → Use custom** and select the `.img.xz` (from a Release, from
+   `deploy/` if you built it, or unzipped from a workflow artifact). Imager
+   decompresses `.xz` as it writes — feed it the `.img.xz`, not a raw `.img`.
 3. **Choose Storage** and pick your microSD card.
 4. **Write**, then move the card to the Pi.
 
 > Imager's "OS customisation" / Edit-settings step doesn't reliably apply to
-> custom images, so don't depend on it. SSH is already enabled in the image;
-> bake Wi-Fi in at build time (see *Optional: pre-provision Wi-Fi* above); and
-> give each card a **unique hostname at first boot** (next section) so multiple
-> nodes don't collide on `pi-node.local`.
+> custom images, so don't depend on it. SSH is already enabled in the image; set
+> up Wi-Fi via the boot-partition file instead (see *Customizing a flashed image*
+> below); and give each card a **unique hostname at first boot** (next section)
+> so multiple nodes don't collide on `pi-node.local`.
 
 ### With the command line (`dd`)
 
@@ -188,6 +238,46 @@ Linux:
 xzcat image_YYYY-MM-DD-little-internet.img.xz | sudo dd of=/dev/sdX bs=4M conv=fsync status=progress
 sudo sync
 ```
+
+## Customizing a flashed image
+
+The published image is **credential-free** and ships with SSH enabled — so a
+freshly flashed card is reachable over Ethernet (`ssh pi@pi-node.local`,
+password `little-internet`) with no further setup. To get it onto **Wi-Fi**
+headless, you don't rebuild and you don't use Imager's customization screen —
+you drop one file on the boot partition:
+
+1. Flash the card (above). The FAT **boot partition** stays mounted afterward
+   and shows up as a removable drive named **`bootfs`** (macOS/Windows/Linux —
+   FAT mounts everywhere; if it's not mounted, re-insert the card).
+2. On it you'll find **`little-internet-wifi.txt.example`**. Copy it to
+   **`little-internet-wifi.txt`** (drop the `.example`) and set all three lines:
+
+   ```
+   SSID=YourNetwork
+   PSK=YourPassword
+   COUNTRY=US
+   ```
+
+   `COUNTRY` is the two-letter ISO code for where the Pi runs (US, GB, DE, …).
+   It's **required**: it sets the WLAN regulatory domain and unblocks the radio,
+   and the right value is region-specific, so the image can't guess it. All
+   three must be filled in — if any is missing, the Pi logs the problem (visible
+   via `systemctl status little-internet-wifi`), leaves the file so you can fix
+   it, and stays Wi-Fi-free for that boot.
+3. Eject the card and boot the Pi. On first boot it reads the file, sets the
+   country, creates the Wi-Fi connection, and **deletes the file** so your
+   password doesn't linger in plaintext on the card. The node joins your Wi-Fi
+   headless.
+
+To switch networks later, drop a fresh `little-internet-wifi.txt` on the boot
+partition and reboot. Leave the file out entirely and the card simply boots
+Wi-Fi-free — use Ethernet, or `sudo nmcli device wifi connect "SSID" password
+"PASS"` once it's up.
+
+> Building from source instead? You can bake Wi-Fi straight into the image at
+> build time with `config.local` — see *Optional: pre-provision Wi-Fi* above.
+> The boot-partition file here is the path for images you didn't build yourself.
 
 ## First boot
 
