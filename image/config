@@ -18,9 +18,12 @@ STAGE_LIST='stage0 stage1 stage2 stage-little-internet'
 DEPLOY_COMPRESSION='xz'
 
 # --- First-boot defaults -----------------------------------------------------
-# All nodes ship with the same hostname; give each card a unique one at first
-# boot (see image/README.md → First boot). Don't rely on Raspberry Pi Imager's
-# customization for this — it's unreliable for custom images.
+# All nodes ship with this same default hostname, so multiple cards collide on
+# pi-node.local. Give each card a unique name by dropping a
+# little-internet-hostname.txt on the boot partition; a first-boot service
+# (stage-little-internet/02-firstboot-hostname) reads it before mDNS advertises.
+# See image/README.md → Customizing a flashed image. Don't rely on Raspberry Pi
+# Imager's customization for this — it's unreliable for custom images.
 TARGET_HOSTNAME='pi-node'
 
 # Default login. CHANGE THIS for anything beyond a closed lab network — the

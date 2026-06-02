@@ -26,9 +26,12 @@ image/
     │   ├── 00-packages           apt packages to install (capture, ARP, VLAN, I2C…).
     │   ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays.
     │   └── 02-run.sh             Installs a pre-provisioned Wi-Fi connection, if one was generated.
-    └── 01-firstboot-wifi/        First-boot Wi-Fi provisioner for flashed (released) images.
+    ├── 01-firstboot-wifi/        First-boot Wi-Fi provisioner for flashed (released) images.
+    │   ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
+    │   └── files/                The script, systemd unit, and little-internet-wifi.txt.example.
+    └── 02-firstboot-hostname/    First-boot hostname provisioner for flashed (released) images.
         ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
-        └── files/                The script, systemd unit, and little-internet-wifi.txt.example.
+        └── files/                The script, systemd unit, and little-internet-hostname.txt.example.
 ```
 
 Two separate Wi-Fi paths, for two separate audiences:
@@ -39,6 +42,11 @@ Two separate Wi-Fi paths, for two separate audiences:
   flasher drops a `little-internet-wifi.txt` on the boot partition and the
   first-boot service (`01-firstboot-wifi/`) provisions Wi-Fi on first boot. See
   *Customizing a flashed image* below.
+
+The **hostname** works the same boot-partition way: every card defaults to
+`pi-node`, so drop a `little-internet-hostname.txt` and the first-boot service
+(`02-firstboot-hostname/`) renames the card to `<name>.local` before mDNS
+advertises — see *Customizing a flashed image* below.
 
 ## Getting the image
 
@@ -212,10 +220,10 @@ persists it, so it auto-joins on later boots.
 4. **Write**, then move the card to the Pi.
 
 > Imager's "OS customisation" / Edit-settings step doesn't reliably apply to
-> custom images, so don't depend on it. SSH is already enabled in the image; set
-> up Wi-Fi via the boot-partition file instead (see *Customizing a flashed image*
-> below); and give each card a **unique hostname at first boot** (next section)
-> so multiple nodes don't collide on `pi-node.local`.
+> custom images, so don't depend on it. SSH is already enabled in the image; and
+> set up both Wi-Fi *and* a unique per-node hostname via boot-partition files
+> instead (see *Customizing a flashed image* below) — give each card its own
+> hostname so multiple nodes don't collide on `pi-node.local`.
 
 ### With the command line (`dd`)
 
@@ -243,9 +251,16 @@ sudo sync
 
 The published image is **credential-free** and ships with SSH enabled — so a
 freshly flashed card is reachable over Ethernet (`ssh pi@pi-node.local`,
-password `little-internet`) with no further setup. To get it onto **Wi-Fi**
-headless, you don't rebuild and you don't use Imager's customization screen —
-you drop one file on the boot partition:
+password `little-internet`) with no further setup. Two things you'll usually
+want to set per card — **Wi-Fi** and a **unique hostname** — are configured the
+same way: you don't rebuild and you don't use Imager's customization screen, you
+just drop a small text file on the FAT boot partition. Both files ship as
+`.example` templates right on that partition, so they're discoverable the moment
+you flash.
+
+### Wi-Fi
+
+To get a card onto Wi-Fi headless:
 
 1. Flash the card (above). The FAT **boot partition** stays mounted afterward
    and shows up as a removable drive named **`bootfs`** (macOS/Windows/Linux —
@@ -279,13 +294,41 @@ Wi-Fi-free — use Ethernet, or `sudo nmcli device wifi connect "SSID" password
 > build time with `config.local` — see *Optional: pre-provision Wi-Fi* above.
 > The boot-partition file here is the path for images you didn't build yourself.
 
+### Hostname
+
+Every card flashed from the same image defaults to the hostname `pi-node`, so a
+second node collides on `pi-node.local` and mDNS renames it unpredictably
+(`pi-node-2.local`, …). Give each card a unique name so you can reach it at a
+stable `<name>.local`:
+
+1. On the **boot partition** (the `bootfs` drive from the Wi-Fi steps above)
+   you'll find **`little-internet-hostname.txt.example`**. Copy it to
+   **`little-internet-hostname.txt`** (drop the `.example`).
+2. Replace the placeholder line with this node's name — a short DNS label:
+   letters, digits, and hyphens only; no spaces, dots, or underscores; starting
+   and ending with a letter or digit; 63 characters max (e.g. `pi-a`). An
+   invalid name is logged (via `systemctl status little-internet-hostname`) and
+   ignored, leaving the card on its previous name.
+3. Eject the card and boot the Pi. On first boot — **before** mDNS advertises —
+   it sets `/etc/hostname` and the `127.0.1.1` line in `/etc/hosts`, so the node
+   comes up as `<name>.local` (e.g. `ssh pi@pi-a.local`).
+
+Unlike the Wi-Fi file, this one is **not** deleted on first boot: a hostname
+isn't secret, the file is read every boot so it stays authoritative, and it
+doubles as a physical label for the card. To rename later, edit the file and
+reboot. Leave it out (or unedited) and the card simply keeps the default
+`pi-node` — fine if it's the only node on the network.
+
 ## First boot
 
 - SSH is enabled. From another machine on the same network:
-  `ssh pi@<hostname>.local` (or `ssh pi@pi-node.local`), password
-  `little-internet`.
-- If you didn't set a unique hostname while flashing, set one now so multiple
-  nodes don't clash: `sudo raspi-config` → System Options → Hostname, or
-  `sudo hostnamectl set-hostname pi-a`.
+  `ssh pi@<hostname>.local` (or `ssh pi@pi-node.local` if you didn't set a
+  hostname while flashing), password `little-internet`.
+- If you didn't set a unique hostname while flashing, the easiest fix is to drop
+  a `little-internet-hostname.txt` on the boot partition and reboot (see
+  *Customizing a flashed image* above). On a running node you can also do it live
+  with `sudo raspi-config` → System Options → Hostname, or `sudo hostnamectl
+  set-hostname pi-a` — but if the boot-partition file is present it wins on the
+  next boot, so edit that file to make a rename stick.
 - Confirm the networking tools are present: `which tcpdump tshark arping`.
 - Check the I2C bus (for the OLED): `i2cdetect -y 1`.

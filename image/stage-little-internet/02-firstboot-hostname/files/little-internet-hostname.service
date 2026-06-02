@@ -1,0 +1,17 @@
+[Unit]
+Description=Set the hostname from a boot-partition file (little-internet)
+# The FAT boot partition (/boot/firmware) must be mounted before we read it, and
+# we must set the hostname before avahi-daemon advertises it over mDNS (and
+# before NetworkManager hands it to DHCP) so the node comes up as <name>.local
+# on this same boot rather than the default pi-node.local.
+After=local-fs.target
+Before=avahi-daemon.service NetworkManager.service
+ConditionPathExists=/usr/local/sbin/little-internet-provision-hostname
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/little-internet-provision-hostname
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target
