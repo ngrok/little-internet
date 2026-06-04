@@ -1,0 +1,20 @@
+[Unit]
+Description=Isolate wlan0 to management-only (little-internet)
+# WiFi is the operator's out-of-band path (your SSH); nodes must never reach each
+# other over it. This loads an nftables ruleset that blocks a node from
+# initiating any WiFi connection except to the router, while leaving eth0 (the
+# lab) untouched. It runs once at boot as a best effort, but the rule depends on
+# wlan0's DHCP-assigned gateway/subnet, so the real work happens when the
+# NetworkManager dispatcher (50-little-internet-wlan0-isolate) re-runs the script
+# as wlan0 comes up. If wlan0 isn't up yet here, the script fails open.
+After=local-fs.target
+Wants=network.target
+ConditionPathExists=/usr/local/sbin/little-internet-wlan0-isolate
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/little-internet-wlan0-isolate
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

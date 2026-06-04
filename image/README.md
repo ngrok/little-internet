@@ -95,6 +95,12 @@ file in place so you can fix it and reboot.
   hostname in step 3), password `little-internet`.
 - Confirm the networking tools are present: `which tcpdump tshark arping`.
 - Check the I2C bus (for the OLED): `i2cdetect -y 1`.
+- Wi-Fi is management-only by design: you can SSH in and the node reaches the
+  internet, but two nodes **can't reach each other over Wi-Fi** — the lessons run
+  on a wired link instead. So if a second node seems unreachable *from the first
+  node* over Wi-Fi, that's expected, not a fault. The rule (an nftables ruleset
+  scoped to `wlan0`, applied by the `02-wlan0-isolation` stage) lives in
+  `sudo nft list table inet little_internet_mgmt`.
 
 > The image ships with user `pi` / password `little-internet`. Fine for a closed
 > lab; change the password for anything exposed.
@@ -127,9 +133,12 @@ image/
     │   ├── 00-packages           apt packages to install (capture, ARP, VLAN, I2C…).
     │   ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays.
     │   └── 02-run.sh             Installs a pre-provisioned Wi-Fi connection, if one was generated.
-    └── 01-firstboot-config/      First-boot hostname + Wi-Fi provisioner for flashed (released) images.
-        ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
-        └── files/                The script, systemd unit, and little-internet.txt.example.
+    ├── 01-firstboot-config/      First-boot hostname + Wi-Fi provisioner for flashed (released) images.
+    │   ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
+    │   └── files/                The script, systemd unit, and little-internet.txt.example.
+    └── 02-wlan0-isolation/       Keeps Wi-Fi management-only: nodes can't reach each other over it.
+        ├── 00-run.sh             Installs the firewall generator, systemd oneshot, and NM dispatcher.
+        └── files/                The generator script, systemd unit, and dispatcher hook.
 ```
 
 There are two Wi-Fi paths, for two audiences:

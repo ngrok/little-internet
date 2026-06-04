@@ -1,0 +1,110 @@
+#!/bin/bash
+#
+# Keep WiFi (wlan0) for *management only*: you SSH into a node over WiFi, but a
+# node must never reach another node over WiFi. The lessons happen on the wired
+# lab network (eth0); WiFi is the out-of-band path the operator uses to drive
+# them. Without this, two nodes flashed onto the same home WiFi can ping and SSH
+# each other out of the box, which contaminates lesson 00's "why can't they
+# talk?" and blurs the management/data-plane split the whole project leans on.
+#
+# The rule, applied to wlan0 only (eth0 and lo are left wide open — the lessons
+# need eth0 fully unrestricted for ARP, broadcast, captures, and spoofing):
+#
+#   - The node may INITIATE WiFi traffic only to the router (DNS, internet, DHCP)
+#     and to anything off-link (the internet, which reaches it via the router).
+#   - The node may not initiate to any other on-link WiFi host — that's the other
+#     node(s). So node-to-node over WiFi is dead in both directions, because both
+#     nodes run this and neither can start the conversation.
+#   - Inbound is limited to replies (conntrack), plus the few things management
+#     and discovery need: SSH, ping, mDNS/.local, DHCP, and multicast/ND. So your
+#     laptop — which always *initiates* — keeps full SSH/ping access, while the
+#     other node (which would have to initiate to reach us) is dropped.
+#
+# The router's address and the WiFi subnet are DHCP-assigned, so we read them
+# live every run rather than baking them in. This runs once at boot (best effort)
+# and again from a NetworkManager dispatcher every time wlan0 gets an address —
+# which is the moment the rule can actually be built correctly.
+
+set -eu
+
+WLAN_IF="wlan0"
+TABLE="inet little_internet_mgmt"
+
+log() { echo "little-internet-wlan0-isolate: $*"; }
+
+# Discover wlan0's current IPv4 subnet (e.g. 192.168.1.0/24) and default gateway.
+# A failed `ip` leaves these empty (awk is last in the pipe, so the assignment
+# still succeeds) — handled by the fail-open check below.
+WIFI_SUBNET="$(ip -4 -o addr show dev "$WLAN_IF" 2>/dev/null | awk '{print $4}' | head -n1)"
+GATEWAY="$(ip -4 route show default dev "$WLAN_IF" 2>/dev/null \
+	| awk '{for (i = 1; i <= NF; i++) if ($i == "via") { print $(i + 1); exit }}')"
+
+# Fail OPEN, never closed. If wlan0 has no address or no gateway yet (this ran
+# before WiFi associated, or the card has no WiFi at all), we can't identify the
+# router — and guessing would risk dropping management SSH. So tear our table
+# down, leave WiFi unrestricted, and bail. The NetworkManager dispatcher re-runs
+# us the moment wlan0 comes up with a lease, and the rule gets built then.
+if [ -z "$WIFI_SUBNET" ] || [ -z "$GATEWAY" ]; then
+	log "$WLAN_IF has no IPv4 address/gateway yet — leaving WiFi unrestricted for now"
+	nft delete table $TABLE 2>/dev/null || true
+	exit 0
+fi
+
+log "policing $WLAN_IF: allow router $GATEWAY, block other hosts on $WIFI_SUBNET"
+
+# Load atomically. The leading `table; delete table` makes the reload idempotent:
+# ensure the table exists, delete it, then recreate — so re-runs never stack
+# duplicate rules. Policy stays `accept` and every drop is scoped to wlan0, so a
+# mistake here can never silently lock down eth0 or lo.
+nft -f - <<EOF
+table $TABLE
+delete table $TABLE
+table $TABLE {
+	chain input {
+		type filter hook input priority filter; policy accept;
+
+		# Only police WiFi — eth0 (the lab) and lo stay completely open.
+		iifname != "$WLAN_IF" accept
+
+		ct state established,related accept
+		ct state invalid drop
+
+		# Keep management + discovery working over WiFi:
+		udp dport { 67, 68, 546, 547 } accept   # DHCP client (v4/v6)
+		udp dport { 5353, 5355 } accept          # mDNS (.local) + LLMNR
+		ip daddr 224.0.0.0/4 accept              # IPv4 multicast (mDNS/IGMP)
+		ip daddr 255.255.255.255 accept          # IPv4 broadcast
+		ip6 daddr ff00::/8 accept                # IPv6 multicast
+		icmp type echo-request accept            # the laptop can ping us
+		icmpv6 type { nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert, echo-request, destination-unreachable, packet-too-big, time-exceeded, parameter-problem } accept
+		tcp dport 22 accept                      # the laptop can SSH in
+
+		# Anything else inbound on wlan0 is another node reaching us — drop.
+		drop
+	}
+
+	chain output {
+		type filter hook output priority filter; policy accept;
+
+		oifname != "$WLAN_IF" accept
+
+		ct state established,related accept
+
+		udp dport { 67, 68, 546, 547 } accept
+		udp dport { 5353, 5355 } accept
+		ip daddr 224.0.0.0/4 accept
+		ip daddr 255.255.255.255 accept
+		ip6 daddr ff00::/8 accept
+		icmpv6 type { nd-router-solicit, nd-router-advert, nd-neighbor-solicit, nd-neighbor-advert } accept
+
+		# The router is the one WiFi host we're allowed to initiate to.
+		ip daddr $GATEWAY accept
+		# Initiating to any other on-link WiFi host (i.e. the other node) is the
+		# thing we're blocking — over IPv4 and IPv6 link-local alike.
+		ip daddr $WIFI_SUBNET drop
+		ip6 daddr fe80::/10 drop
+		# Everything else (the internet, reached through the router) is fine.
+		accept
+	}
+}
+EOF

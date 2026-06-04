@@ -16,6 +16,10 @@ iperf3
 vlan
 bridge-utils
 
+# Firewall for the wlan0 management-isolation rule (stage 03-wlan0-isolation).
+# RPi OS Lite doesn't ship the nft binary by default.
+nftables
+
 # I2C tooling + Python for the SSD1306 OLED displays in the Phase 1 BOM
 i2c-tools
 python3

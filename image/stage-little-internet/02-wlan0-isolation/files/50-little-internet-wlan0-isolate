@@ -1,0 +1,19 @@
+#!/bin/bash
+#
+# NetworkManager dispatcher hook. The wlan0 management firewall has to point at
+# the current DHCP-assigned router and subnet, so re-apply it whenever wlan0's
+# addressing changes — that's when the boot-time service couldn't yet build the
+# rule (no lease) and when a later lease change would otherwise leave it stale.
+#
+# NetworkManager calls dispatcher scripts as: <script> <interface> <action>.
+
+interface="$1"
+action="$2"
+
+[ "$interface" = "wlan0" ] || exit 0
+
+case "$action" in
+	up | down | dhcp4-change | dhcp6-change)
+		/usr/local/sbin/little-internet-wlan0-isolate || true
+		;;
+esac
