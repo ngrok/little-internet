@@ -1,0 +1,180 @@
+#!/bin/bash
+#
+# Provision a node at boot from a single file the user dropped onto the FAT boot
+# partition: its hostname and/or its Wi-Fi connection. This is the customization
+# path for *released* images — someone who flashes the published .img.xz never
+# ran the build, so the build-time config.local / hostname options were never
+# theirs to set.
+#
+# Looks for /boot/firmware/little-internet.txt, e.g.:
+#
+#     SSID=YourNetwork
+#     PSK=YourPassword
+#     COUNTRY=US
+#     HOSTNAME=pi-a
+#
+# Every key is optional and the two features are independent: set just a
+# hostname, just Wi-Fi, or both. A bare line with no recognized KEY= prefix
+# (e.g. "pi-a") is taken as the hostname, so "HOSTNAME=pi-a" and "pi-a" are
+# equivalent; the first such line wins.
+#
+# Hostname is applied first, before avahi advertises, so the node comes up as
+# <name>.local on this same boot. It is NOT removed: a hostname isn't secret,
+# the file is re-read every boot so it stays authoritative, and it doubles as a
+# physical label for the card. Edit it and reboot to rename.
+#
+# Wi-Fi needs SSID, PSK, and COUNTRY together (COUNTRY is the two-letter ISO
+# regulatory domain that unblocks the radio — region-specific, so the image
+# can't guess it). On a successful join the SSID/PSK/COUNTRY lines are stripped
+# from the file so the plaintext password doesn't linger on the FAT partition;
+# the hostname line and the comments stay. To switch networks later, add the
+# three Wi-Fi lines back (or drop a fresh file) and reboot. On a Wi-Fi config
+# error the file is left as-is so you can fix it — see `systemctl status
+# little-internet`.
+
+set -eu
+
+BOOT_FILE="/boot/firmware/little-internet.txt"
+NM_CONN="/etc/NetworkManager/system-connections/preconfigured.nmconnection"
+HOSTNAME_PLACEHOLDER="pi-CHANGEME"
+SSID_PLACEHOLDER="YourNetwork"
+
+log() { echo "little-internet: $*"; }
+
+[ -f "$BOOT_FILE" ] || exit 0
+
+SSID=""
+PSK=""
+COUNTRY=""
+NEW_HOSTNAME=""
+
+while IFS= read -r line || [ -n "$line" ]; do
+	# Strip a trailing CR so files edited on Windows still parse.
+	line="${line%$'\r'}"
+	case "$line" in
+		\#*|"")     continue ;;
+		SSID=*)     SSID="${line#SSID=}" ;;
+		PSK=*)      PSK="${line#PSK=}" ;;
+		COUNTRY=*)  COUNTRY="${line#COUNTRY=}" ;;
+		HOSTNAME=*) NEW_HOSTNAME="${line#HOSTNAME=}" ;;
+		*=*)        : ;;  # some other KEY=value line — not ours, ignore it
+		*)
+			# A bare line with no KEY= prefix is taken as the hostname, so a file
+			# containing only "pi-a" works. First such line wins.
+			[ -n "$NEW_HOSTNAME" ] || NEW_HOSTNAME="$line"
+			;;
+	esac
+done < "$BOOT_FILE"
+
+# Allow optional surrounding quotes on any value.
+strip_quotes() { local v="$1"; v="${v%\"}"; v="${v#\"}"; printf '%s' "$v"; }
+SSID="$(strip_quotes "$SSID")"
+PSK="$(strip_quotes "$PSK")"
+COUNTRY="$(strip_quotes "$COUNTRY")"
+NEW_HOSTNAME="$(strip_quotes "$NEW_HOSTNAME")"
+COUNTRY="$(echo "$COUNTRY" | tr '[:lower:]' '[:upper:]')"
+# A hostname has no internal whitespace, so trimming all of it is safe.
+NEW_HOSTNAME="$(echo "$NEW_HOSTNAME" | tr -d '[:space:]')"
+
+RC=0
+
+# --- Hostname (applied first, before avahi advertises) -----------------------
+if [ -z "$NEW_HOSTNAME" ]; then
+	: # No hostname requested — leave the card on its default name.
+elif [ "$NEW_HOSTNAME" = "$HOSTNAME_PLACEHOLDER" ]; then
+	# Copied the template but never edited the hostname. Don't name every card
+	# "pi-CHANGEME"; say what to fix and leave the default in place.
+	log "hostname still the example placeholder — set a name in $BOOT_FILE, then reboot. Leaving the hostname unchanged."
+elif ! echo "$NEW_HOSTNAME" | grep -Eq '^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?$'; then
+	# Validate as a single RFC-1123 DNS label: 1–63 chars, letters/digits/hyphens
+	# only, no leading or trailing hyphen (so no dots, spaces, or underscores).
+	log "ERROR: '$NEW_HOSTNAME' in $BOOT_FILE is not a valid hostname. Use 1–63 characters: letters, digits, and hyphens only; no leading/trailing hyphen, dots, spaces, or underscores (e.g. pi-a). Hostname NOT changed. Fix it and reboot."
+	RC=1
+else
+	CURRENT_HOSTNAME="$(cat /etc/hostname 2>/dev/null | tr -d '[:space:]' || true)"
+	if [ "$CURRENT_HOSTNAME" = "$NEW_HOSTNAME" ]; then
+		# Idempotent: only make sure the running kernel hostname agrees (cheap).
+		[ "$(hostname)" = "$NEW_HOSTNAME" ] || hostname "$NEW_HOSTNAME" || true
+		log "hostname already '$NEW_HOSTNAME'; nothing to do"
+	else
+		echo "$NEW_HOSTNAME" > /etc/hostname
+		# Update the 127.0.1.1 line in /etc/hosts so local lookups resolve to the
+		# new name (Debian/RPi OS convention). Rewrite it if present; add it if
+		# this image somehow shipped without one.
+		if grep -qE '^127\.0\.1\.1[[:space:]]' /etc/hosts; then
+			sed -i -E "s/^127\.0\.1\.1[[:space:]].*/127.0.1.1\t$NEW_HOSTNAME/" /etc/hosts
+		else
+			printf '127.0.1.1\t%s\n' "$NEW_HOSTNAME" >> /etc/hosts
+		fi
+		# Set the running hostname now, before avahi-daemon advertises it, so this
+		# boot already comes up as <name>.local. hostnamectl keeps systemd in sync
+		# if its dbus service is up; the plain hostname(1) call is the fallback.
+		hostname "$NEW_HOSTNAME"
+		hostnamectl set-hostname "$NEW_HOSTNAME" 2>/dev/null || true
+		log "hostname set to '$NEW_HOSTNAME'"
+	fi
+fi
+
+# --- Wi-Fi -------------------------------------------------------------------
+if [ -z "$SSID" ]; then
+	: # No SSID — Wi-Fi wasn't requested. Not an error; leave the card Wi-Fi-free.
+elif [ "$SSID" = "$SSID_PLACEHOLDER" ]; then
+	# Copied the template but never edited Wi-Fi. Don't try to join "YourNetwork".
+	log "Wi-Fi still has the example placeholder — edit SSID/PSK/COUNTRY in $BOOT_FILE, then reboot. Leaving Wi-Fi unconfigured."
+elif [ -z "$PSK" ]; then
+	log "ERROR: SSID is set but PSK is empty in $BOOT_FILE. Wi-Fi NOT configured. Add the password and reboot."
+	RC=1
+elif [ -z "$COUNTRY" ]; then
+	log "ERROR: SSID is set but COUNTRY is empty in $BOOT_FILE. Wi-Fi NOT configured. Add a two-letter country code (e.g. US, GB, DE) and reboot."
+	RC=1
+elif ! echo "$COUNTRY" | grep -Eq '^[A-Z]{2}$'; then
+	log "ERROR: COUNTRY='$COUNTRY' in $BOOT_FILE is not a two-letter ISO code (e.g. US, GB, DE). Wi-Fi NOT configured. Fix it and reboot."
+	RC=1
+else
+	# Set the WLAN regulatory domain and unblock the radio. raspi-config is the
+	# release-agnostic, NetworkManager-aware way to do this on Raspberry Pi OS;
+	# the explicit unblock is belt-and-suspenders.
+	log "setting Wi-Fi country to $COUNTRY"
+	raspi-config nonint do_wifi_country "$COUNTRY"
+	rfkill unblock wifi || true
+
+	umask 077
+	install -d -m 700 /etc/NetworkManager/system-connections
+	cat > "$NM_CONN" <<EOF
+[connection]
+id=preconfigured
+type=wifi
+autoconnect=true
+
+[wifi]
+mode=infrastructure
+ssid=$SSID
+
+[wifi-security]
+key-mgmt=wpa-psk
+psk=$PSK
+
+[ipv4]
+method=auto
+
+[ipv6]
+method=auto
+EOF
+	chmod 600 "$NM_CONN"
+	log "wrote Wi-Fi connection for SSID '$SSID' (country $COUNTRY)"
+
+	# Don't leave the plaintext password (or the now-redundant SSID/COUNTRY)
+	# sitting on the FAT partition. Strip just those lines; the hostname line and
+	# the comments stay, so the file remains a useful, authoritative label.
+	sed -i -E '/^[[:space:]]*(SSID|PSK|COUNTRY)=/d' "$BOOT_FILE"
+
+	# We're ordered before NetworkManager.service so it autoconnects on its own,
+	# but if NM is somehow already up (e.g. a re-provision on a later boot),
+	# reload and bring the connection up now.
+	if systemctl is-active --quiet NetworkManager; then
+		nmcli connection reload || true
+		nmcli connection up preconfigured || true
+	fi
+fi
+
+exit "$RC"

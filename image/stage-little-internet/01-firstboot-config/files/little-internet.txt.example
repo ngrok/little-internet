@@ -1,0 +1,44 @@
+# little-internet — set up this Pi on first boot
+#
+# This one file configures two things, both optional and independent: the Wi-Fi
+# network this node joins, and its hostname. To use it:
+#   1. Copy this file to "little-internet.txt" in this same folder (just drop
+#      the .example from the name).
+#   2. Fill in the parts you want below; delete or ignore the rest.
+#   3. Eject the card and boot the Pi.
+#
+# With no file (or if you leave this as .example), the Pi boots with no Wi-Fi and
+# the default hostname pi-node — reach it over Ethernet at pi-node.local (SSH is
+# enabled).
+
+# --- Wi-Fi (optional) --------------------------------------------------------
+# Joins a normal WPA/WPA2 network headless on first boot. The three lines are
+# required together. On a successful join the Pi strips them from this file so
+# your password doesn't sit in plaintext on the card; to switch networks later,
+# add them back and reboot.
+
+# Your network name.
+SSID=YourNetwork
+
+# Your network password.
+PSK=YourPassword
+
+# Two-letter ISO country code for where this Pi runs (e.g. US, GB, DE, FR, JP,
+# AU). REQUIRED for Wi-Fi: it sets the WLAN regulatory domain and unblocks the
+# radio, and the correct value is region-specific — the image can't guess it.
+COUNTRY=US
+
+# --- Hostname (optional) -----------------------------------------------------
+# Every card defaults to "pi-node", so multiple nodes collide on pi-node.local
+# and mDNS renames them unpredictably (pi-node-2.local, …). Set a unique name and
+# this card comes up as <name>.local on first boot, before mDNS advertises.
+#
+# Use a short DNS label: letters, digits, and hyphens only; no spaces, dots, or
+# underscores; must start and end with a letter or digit; 63 chars max.
+# Good: pi-a, pi-b, node-01, gw1.  Bad: pi_a, "pi a", -pi, pi-.
+#
+# The "HOSTNAME=" prefix is optional — a bare line (just "pi-a") works too.
+# Unlike the Wi-Fi lines, this one is NOT removed on boot: a hostname isn't
+# secret, it's read every boot so it stays authoritative, and it doubles as a
+# label for the card. To rename later, edit this line and reboot.
+HOSTNAME=pi-CHANGEME

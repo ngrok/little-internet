@@ -1,0 +1,17 @@
+[Unit]
+Description=Provision hostname and Wi-Fi from a boot-partition file (little-internet)
+# The FAT boot partition (/boot/firmware) must be mounted before we read it. We
+# must set the hostname before avahi-daemon advertises it over mDNS (and before
+# NetworkManager hands it to DHCP), and write the Wi-Fi connection before
+# NetworkManager tries to connect, so both take effect on this same boot.
+After=local-fs.target
+Before=avahi-daemon.service NetworkManager.service
+ConditionPathExists=/usr/local/sbin/little-internet-provision
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/little-internet-provision
+RemainAfterExit=no
+
+[Install]
+WantedBy=multi-user.target
