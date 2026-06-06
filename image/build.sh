@@ -65,9 +65,49 @@ if [ -f "${HERE}/config.local" ]; then
 	. "${HERE}/config.local"
 fi
 
+# 2c. Stamp the image filename with a version label instead of pi-gen's build
+#     date, so a flashed card is traceable to an exact build. Prefer an explicit
+#     override (LI_IMG_VERSION); otherwise derive it from git — a clean tag like
+#     'v0.3.1' on a release build, or '<tag>-<n>-g<sha>' / a bare short SHA in
+#     between (CI fetches tags via fetch-depth: 0 so release builds resolve to
+#     the tag). The version takes the date's slot (prefix), so the name stays
+#     '<version>-little-internet' — matching the *-little-internet.img.xz globs
+#     in the flashing docs. We also override ARCHIVE_FILENAME to drop pi-gen's
+#     redundant 'image_' prefix on the compressed output. Only the version
+#     literal expands here; \${IMG_NAME} is left for pi-gen to expand when it
+#     sources config (it's set above), and pi-gen defaults these only when
+#     unset, so ours win. Result, e.g.: v0.3.1-little-internet.img.xz
+version="${LI_IMG_VERSION:-}"
+if [ -z "${version}" ]; then
+	version="$(git -C "${HERE}" describe --tags --always --dirty 2>/dev/null || true)"
+fi
+version="${version:-unknown}"
+echo ">> Labeling image as version '${version}'"
+{
+	echo ""
+	echo "# Version label written by build.sh — replaces pi-gen's date stamp."
+	echo "IMG_FILENAME=\"${version}-\${IMG_NAME}\""
+	echo "ARCHIVE_FILENAME=\"${version}-\${IMG_NAME}\""
+} >> "${PIGEN_DIR}/config"
+
 # 3. Sync our custom stage into the pi-gen tree.
 rm -rf "${PIGEN_DIR:?}/${STAGE_NAME}"
 cp -R "${HERE}/${STAGE_NAME}" "${PIGEN_DIR}/${STAGE_NAME}"
+
+# 3a. Guard against a silent footgun: pi-gen runs a sub-stage's *-run.sh only if
+#     it's executable, and SKIPS it without error otherwise — the build stays
+#     green while the script's work never happens. That's exactly how the
+#     wlan0-isolation stage shipped empty in v0.3.0 (its 00-run.sh had lost its
+#     +x bit). Fail loud here instead. `-perm -100` (owner-execute) is portable
+#     across GNU/BSD find.
+non_exec="$(find "${PIGEN_DIR}/${STAGE_NAME}" -name '*-run.sh' ! -perm -100 -print)"
+if [ -n "${non_exec}" ]; then
+	echo "!! Stage run scripts are missing their executable bit — pi-gen would" >&2
+	echo "!! silently skip these, shipping a stage that does nothing:" >&2
+	echo "${non_exec}" >&2
+	echo "!! Fix with: chmod +x <file> (and 'git update-index --chmod=+x')." >&2
+	exit 1
+fi
 
 # 3b. Optionally pre-provision Wi-Fi so nodes are reachable headless over Wi-Fi
 #     on first boot. Credentials come only from image/config.local (never

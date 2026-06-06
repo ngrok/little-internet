@@ -47,6 +47,11 @@ jobs:
     steps:
       - name: Check out the repo
         uses: actions/checkout@v6
+        with:
+          # Full history + tags so build.sh's `git describe` can resolve the
+          # image version label (a clean tag like v0.3.1 on a release build,
+          # otherwise <tag>-<n>-g<sha>). A shallow checkout has no tags.
+          fetch-depth: 0
 
       # pi-gen's Lite build plus the xz output needs a few GB of scratch space.
       # GitHub's runners ship with a lot of preinstalled SDKs we don't use;

@@ -203,8 +203,10 @@ root), so it needs sudo: `sudo rm -rf ~/pigen-build`.
 
 #### 4. Copy the image back to the Mac
 
-The finished, compressed image lands in `~/pigen-build/pi-gen/deploy/` (named
-like `image_YYYY-MM-DD-little-internet.img.xz`). Hand it back to the Mac through
+The finished, compressed image lands in `~/pigen-build/pi-gen/deploy/`, named
+for the build version — `<version>-little-internet.img.xz`, where the version is
+the git tag on a release build (e.g. `v0.3.1-little-internet.img.xz`) or a
+`<tag>-<n>-g<sha>` / short-SHA label otherwise. Hand it back to the Mac through
 Lima's writable shared mount; the home mount is read-only, so you can't write
 straight into a Mac folder from the VM:
 
@@ -284,6 +286,11 @@ with pi-gen and publishes the compressed `.img.xz`:
   wraps artifacts in a `.zip` on download — unzip *once* to the `.img.xz` and
   stop there (Imager wants the `.img.xz`, not the ~3 GB raw `.img`). Trigger a
   test build with **Actions → Build node image → Run workflow**.
+- **Filename = version.** `build.sh` labels the image with the build's git
+  version instead of a date, so a flashed card is traceable to an exact build:
+  `v0.3.1-little-internet.img.xz` on a tagged release, or a
+  `<tag>-<n>-g<sha>`-prefixed name for an untagged test build. Override with
+  `LI_IMG_VERSION` if you need a specific label.
 
 > **Build host.** The workflow uses pi-gen's Docker path, which builds inside a
 > Debian container, so it dodges the non-Debian-host keyring trap even though

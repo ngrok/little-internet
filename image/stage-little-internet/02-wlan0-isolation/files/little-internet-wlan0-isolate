@@ -32,10 +32,10 @@ TABLE="inet little_internet_mgmt"
 
 log() { echo "little-internet-wlan0-isolate: $*"; }
 
-# Discover wlan0's current IPv4 subnet (e.g. 192.168.1.0/24) and default gateway.
-# A failed `ip` leaves these empty (awk is last in the pipe, so the assignment
-# still succeeds) — handled by the fail-open check below.
-WIFI_SUBNET="$(ip -4 -o addr show dev "$WLAN_IF" 2>/dev/null | awk '{print $4}' | head -n1)"
+# Discover wlan0's current IPv4 address+prefix (e.g. 192.168.1.5/24) and default
+# gateway. A failed `ip` leaves these empty (awk is last in the pipe, so the
+# assignment still succeeds) — handled by the fail-open check below.
+WIFI_CIDR="$(ip -4 -o addr show dev "$WLAN_IF" 2>/dev/null | awk '{print $4}' | head -n1)"
 GATEWAY="$(ip -4 route show default dev "$WLAN_IF" 2>/dev/null \
 	| awk '{for (i = 1; i <= NF; i++) if ($i == "via") { print $(i + 1); exit }}')"
 
@@ -44,11 +44,26 @@ GATEWAY="$(ip -4 route show default dev "$WLAN_IF" 2>/dev/null \
 # router — and guessing would risk dropping management SSH. So tear our table
 # down, leave WiFi unrestricted, and bail. The NetworkManager dispatcher re-runs
 # us the moment wlan0 comes up with a lease, and the rule gets built then.
-if [ -z "$WIFI_SUBNET" ] || [ -z "$GATEWAY" ]; then
+if [ -z "$WIFI_CIDR" ] || [ -z "$GATEWAY" ]; then
 	log "$WLAN_IF has no IPv4 address/gateway yet — leaving WiFi unrestricted for now"
 	nft delete table $TABLE 2>/dev/null || true
 	exit 0
 fi
+
+# `ip addr` gives wlan0's own host address with prefix (192.168.1.5/24); the drop
+# rule needs the *network* it sits on (192.168.1.0/24). Feeding the host address
+# straight to `ip daddr 192.168.1.5/24` is wrong — depending on the nft version
+# it either silently masks the host bits or rejects them and fails the whole
+# atomic load, which would leave WiFi wide open (exactly the bug this guards
+# against). So mask the host bits off ourselves, in pure bash: no ipcalc
+# dependency, and the default mawk on the image has no bitwise operators.
+addr="${WIFI_CIDR%/*}"
+prefix="${WIFI_CIDR#*/}"
+IFS=. read -r o1 o2 o3 o4 <<< "$addr"
+ipnum=$(( (o1 << 24) | (o2 << 16) | (o3 << 8) | o4 ))
+mask=$(( prefix == 0 ? 0 : (0xFFFFFFFF << (32 - prefix)) & 0xFFFFFFFF ))
+netnum=$(( ipnum & mask ))
+WIFI_SUBNET="$(( (netnum >> 24) & 255 )).$(( (netnum >> 16) & 255 )).$(( (netnum >> 8) & 255 )).$(( netnum & 255 ))/$prefix"
 
 log "policing $WLAN_IF: allow router $GATEWAY, block other hosts on $WIFI_SUBNET"
 
