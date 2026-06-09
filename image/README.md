@@ -2,28 +2,19 @@
 
 Every Raspberry Pi in the little internet boots the same custom image: a
 headless **Raspberry Pi OS Lite** with the networking tools the lessons need
-already installed (`tcpdump`, `tshark`, `arping`, `ethtool`, VLAN/bridge
-tooling, and I2C enabled for the OLED displays).
-
-You don't have to build it. Every release ships a ready-to-flash image, so the
-quickstart below is all most people need. Building from source is only for
-changing what's *in* the image — that's covered further down, under
-[Building the image yourself](#building-the-image-yourself).
+already installed, like `tcpdump`, `tshark`, `arping`, `ethtool`, and
+VLAN/bridge tooling.
 
 ## Quickstart: flash a prebuilt image
 
-Download the image, write it to a microSD card, then drop a couple of optional
-text files on the card to set Wi-Fi and a hostname. No build, no Imager
-customization screen, no command line required.
+Download the image, write it to a microSD card, then edit one text file on the
+card to set Wi-Fi and a hostname.
 
 ### 1. Download the image
 
-Grab the latest `.img.xz` from the **[Releases page](../../releases/latest)** —
-it's attached to each release as a plain download. That's the whole file you
-need; hand it straight to Raspberry Pi Imager, which writes `.xz` without
-unpacking. Don't decompress it yourself.
-
-The image is credential-free: no Wi-Fi baked in, and the default `pi` login.
+Grab the latest `.img.xz` from the **[Releases page](../../releases/latest)**.
+It's attached to each release as a plain download, and you don't need to
+decompress it.
 
 ### 2. Flash the card
 
@@ -35,13 +26,9 @@ The image is credential-free: no Wi-Fi baked in, and the default `pi` login.
 3. **Choose Storage** and pick your microSD card.
 4. **Write**, then leave the card in the reader for step 3.
 
-> Skip Imager's "OS customisation" / Edit-settings step — it doesn't reliably
-> apply to custom images. SSH is already enabled; the boot-partition file in
-> step 3 is how you set Wi-Fi and the hostname.
-
 **Or with the command line (`dd`):** find your SD card device first
 (`diskutil list` on macOS, `lsblk` on Linux) and be certain you've got the right
-one — `dd` to the wrong disk will wipe it.
+one. `dd` to the wrong disk will wipe it.
 
 ```bash
 # macOS — unmount (not eject) the card first; replace diskN with your card.
@@ -59,13 +46,18 @@ sudo sync
 A freshly flashed card already boots and is reachable over Ethernet
 (`ssh pi@pi-node.local`, password `little-internet`); step 3 is optional.
 
-### 3. Configure the card (optional)
+### 3. Configure Wi-Fi credentials and hostnames (optional but _highly_ recommended)
+
+Out of the box, the image doesn't know your Wi-Fi credentials, so you have to
+put your workstation and the Pi on the same router _over Ethernet_ to SSH in.
+Preload the card with your credentials instead: SSH in over Wi-Fi to manage each
+Pi, and let the little internet itself run over Ethernet.
 
 After flashing, the card's FAT boot partition mounts as a removable drive named
 **`bootfs`** (on macOS, Windows, and Linux; re-insert the card if you don't see
-it). On it is one template, **`little-internet.txt.example`** — copy it to
-**`little-internet.txt`** (drop the `.example`), fill in the parts you want, then
-eject and boot. Everything in it is optional and independent.
+it). On it is one template: **`little-internet.txt.example`**. Copy it to
+**`little-internet.txt`** (drop the `.example`), fill in the parts you want,
+then eject and boot. Everything in it is optional and independent.
 
 ```
 SSID=YourNetwork
@@ -74,16 +66,16 @@ COUNTRY=US
 HOSTNAME=pi-a
 ```
 
-- **Wi-Fi** — `SSID`, `PSK`, and `COUNTRY`, all three together. `COUNTRY` is the
-  two-letter ISO code for where the Pi runs (US, GB, DE, …) and is **required** —
-  it unblocks the radio and can't be guessed. On a successful join the Pi strips
-  these three lines from the file so your password doesn't linger in plaintext;
-  to switch networks later, add them back and reboot. No Wi-Fi? Use Ethernet, or
+- **Wi-Fi**: Edit `SSID`, `PSK`, and `COUNTRY`. `COUNTRY` is the two-letter ISO
+  code for where the Pi runs (US, GB, DE, …) and is **required**: it unblocks
+  the radio and can't be guessed. On a successful join the Pi strips these three
+  lines from the file so your password doesn't linger in plaintext; to switch
+  networks later, add them back and reboot. No Wi-Fi? Use Ethernet, or
   `sudo nmcli device wifi connect "SSID" password "PASS"` once it's up.
-- **Hostname** — `HOSTNAME=`, or just a bare line like `pi-a`. Every card
-  defaults to `pi-node`, so set a unique name or multiple nodes collide on
-  `pi-node.local`. Unlike the Wi-Fi lines it's kept and re-read every boot, so it
-  doubles as a label for the card; edit and reboot to rename.
+- **Hostname**: Every card defaults to `pi-node`, which may cause collisions on
+  `pi-node.local`. Instead, edit `HOSTNAME` to give each Pi a unique name.
+  Unlike the Wi-Fi settings, it's kept and re-read every boot, so it doubles as
+  a label for the card; edit and reboot to rename.
 
 A bad value is logged to `systemctl status little-internet`, which leaves the
 file in place so you can fix it and reboot.
@@ -96,9 +88,9 @@ file in place so you can fix it and reboot.
 - Confirm the networking tools are present: `which tcpdump tshark arping`.
 - Check the I2C bus (for the OLED): `i2cdetect -y 1`.
 - Wi-Fi is management-only by design: you can SSH in and the node reaches the
-  internet, but two nodes **can't reach each other over Wi-Fi** — the lessons run
-  on a wired link instead. So if a second node seems unreachable *from the first
-  node* over Wi-Fi, that's expected, not a fault. The rule (an nftables ruleset
+  internet, but two nodes **can't reach each other over Wi-Fi**. The lessons run
+  on a wired link instead. So if a second node seems unreachable _from the first
+  node_ over Wi-Fi, that's expected, not a fault. The rule (an nftables ruleset
   scoped to `wlan0`, applied by the `02-wlan0-isolation` stage) lives in
   `sudo nft list table inet little_internet_mgmt`.
 
@@ -185,8 +177,8 @@ sudo apt install -y quilt parted qemu-user-static qemu-user-binfmt debootstrap \
 #### 3. Build straight from the mounted repo
 
 No need to copy or clone the repo into the VM. Run `build.sh` directly from the
-read-only host mount and send pi-gen's build directory to the VM's local disk via
-`LI_BUILD_DIR` (pi-gen loop-mounts the image, which a read-only/virtio mount
+read-only host mount and send pi-gen's build directory to the VM's local disk
+via `LI_BUILD_DIR` (pi-gen loop-mounts the image, which a read-only/virtio mount
 can't do). Edit any file on your Mac with your normal editor and the next run
 picks up the change, with no re-copy and no in-VM editor:
 
@@ -204,7 +196,7 @@ root), so it needs sudo: `sudo rm -rf ~/pigen-build`.
 #### 4. Copy the image back to the Mac
 
 The finished, compressed image lands in `~/pigen-build/pi-gen/deploy/`, named
-for the build version — `<version>-little-internet.img.xz`, where the version is
+for the build version, `<version>-little-internet.img.xz`, where the version is
 the git tag on a release build (e.g. `v0.3.1-little-internet.img.xz`) or a
 `<tag>-<n>-g<sha>` / short-SHA label otherwise. Hand it back to the Mac through
 Lima's writable shared mount; the home mount is read-only, so you can't write
@@ -215,7 +207,8 @@ cp ~/pigen-build/pi-gen/deploy/*.img.xz /tmp/lima/
 ```
 
 On the Mac it's now in `/tmp/lima/`, ready to move and flash. (Or pull it
-directly from the Mac with `limactl copy '<instance>:<path-to-img>' ~/Downloads/`.)
+directly from the Mac with
+`limactl copy '<instance>:<path-to-img>' ~/Downloads/`.)
 
 #### Alternatives
 
@@ -255,14 +248,15 @@ build joins your Wi-Fi headless on first boot. Credentials live only in
   hit package errors. `build.sh` defaults to the `bookworm-arm64` branch to
   match `RELEASE='bookworm'`. Other options (set both together):
 
-  | Want | `PIGEN_REF` | `RELEASE` in `config` |
-  | -- | -- | -- |
-  | 64-bit Bookworm (default) | `bookworm-arm64` | `bookworm` |
-  | 32-bit Bookworm | `bookworm` | `bookworm` |
-  | 64-bit Trixie (newest) | `arm64` | `trixie` |
-  | 32-bit Trixie (newest) | `master` | `trixie` |
+  | Want                      | `PIGEN_REF`      | `RELEASE` in `config` |
+  | ------------------------- | ---------------- | --------------------- |
+  | 64-bit Bookworm (default) | `bookworm-arm64` | `bookworm`            |
+  | 32-bit Bookworm           | `bookworm`       | `bookworm`            |
+  | 64-bit Trixie (newest)    | `arm64`          | `trixie`              |
+  | 32-bit Trixie (newest)    | `master`         | `trixie`              |
 
   e.g. `PIGEN_REF=bookworm ./build.sh` (after setting `RELEASE='bookworm'`).
+
 - **Defaults to change.** The image ships with user `pi` / password
   `little-internet` and hostname `pi-node`, baked in via `config`. Fine for a
   closed lab; change the password for anything else.
@@ -279,11 +273,11 @@ A GitHub Actions workflow (`.github/workflows/build-image.yml`) builds the image
 with pi-gen and publishes the compressed `.img.xz`:
 
 - **Releases.** Tagged builds (`v*`) attach the `.img.xz` to a
-  [GitHub Release](../../releases) as a plain asset — this is what the quickstart
+  [GitHub Release](../../releases) as a plain asset. This is what the quickstart
   links to. Cut one with `git tag v1.0.0 && git push origin v1.0.0`.
 - **Workflow artifacts.** Every run also uploads the image under the **Actions**
-  tab (a run → *Artifacts*). Handy for testing an unreleased build, but GitHub
-  wraps artifacts in a `.zip` on download — unzip *once* to the `.img.xz` and
+  tab (a run → _Artifacts_). Handy for testing an unreleased build, but GitHub
+  wraps artifacts in a `.zip` on download, so unzip _once_ to the `.img.xz` and
   stop there (Imager wants the `.img.xz`, not the ~3 GB raw `.img`). Trigger a
   test build with **Actions → Build node image → Run workflow**.
 - **Filename = version.** `build.sh` labels the image with the build's git

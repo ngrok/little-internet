@@ -1,35 +1,45 @@
 # The little internet
 
 A hardware-based, reproducible **little internet** for learning how networking
-*actually* works, built from Raspberry Pis, managed switches, and a pile of
-Ethernet cables you can hold in your hands.
+actually works.
 
-Most networking education is either too surface-level to be useful or too
-academic to stick. This project takes the opposite approach: make the invisible
-visible. Plug two Pis together and ask *why can't they just talk?* Then watch an
-ARP request fly across the wire, a switch learn a MAC address, a router decide
-where a packet goes next, and eventually a handful of autonomous systems
-announce themselves to each other over BGP.
+Networking is one of the most global and durable technologies you'll ever touch.
+Its fundamentals are going nowhere, and when you make all those invisible layers
+of the internet visible and intuitive to you, you become a better developer.
 
-Everything here is meant to be **reproduced**. The bill of materials, the OS
-image, the scripts, and the captured packets all live in this repo so you can
-build your own little internet and follow along.
+_And have some fun along the way._
 
-## How it's organized
+## How I'm rolling out the little internet
 
-The project grows in three phases. Each phase adds just enough hardware to make
-the next set of ideas tangible.
+We start with a single network, then two networks, and then a working facsimile
+of the internet you know and love. Each phase comes with lessons as technical
+write-ups ([ngrok blog](https://ngrok.com/blog)), YouTube videos
+([ngrok @ YouTube](https://www.youtube.com/@ngrokHQ)), and follow-along scripts
+in this repo.
+
+Each phase includes just enough hardware to make the next set of ideas tangible.
 
 - **Phase 1: a network.** Two Pis and a managed switch. How do devices on the
-  same network find and talk to each other? *ARP, MAC addresses, broadcast
+  same network find and talk to each other? _ARP, MAC addresses, broadcast
   domains, Ethernet frames, packet capture, how switches work, VLANs, port
-  mirroring, ARP cache poisoning.*
-- **Phase 2: two networks.** Add a router. A Pi in network A can't reach a Pi
-  in network B, so something has to decide where the packet goes next. *Routers,
-  IPs, subnets, routing tables, NAT, traceroute.*
+  mirroring, ARP cache poisoning._
+- **Phase 2: two networks.** Add a router. A Pi in network A can't reach a Pi in
+  network B, so something has to decide where the packet goes next. _Routers,
+  IPs, subnets, routing tables, NAT, traceroute._
 - **Phase 3: the little internet.** Multiple autonomous networks that have to
-  advertise their reachability to one another. *Autonomous systems, BGP, path
-  selection, convergence*, plus side quests like DNS, TLS, and Pi-hole.
+  advertise their reachability to one another. _Autonomous systems, BGP, path
+  selection, convergence_, plus side quests like DNS, TLS, and Pi-hole.
+
+## Want to build your own?
+
+1. Gather the hardware. See [`BOM.md`](./BOM.md) for the full parts list by
+   phase.
+2. Download a prebuilt image from [Releases](../../releases), or build your own.
+   Either way, see [`image/`](./image/) for getting the Raspberry Pi OS image
+   (built with [pi-gen](https://github.com/RPi-Distro/pi-gen)) and flashing it
+   to your microSD cards.
+3. Follow the lessons. (Coming soon. Start with lesson 00, "why can't these two
+   Pis just talk to each other?")
 
 ## Repo layout
 
@@ -42,21 +52,3 @@ the next set of ideas tangible.
 └── lessons/      (coming soon) One directory per lesson: an explainer, the
                   scripts to run it yourself, and recorded packet captures.
 ```
-
-## Getting started
-
-1. Gather the hardware. See [`BOM.md`](./BOM.md) for the full parts list by phase.
-2. Get the node image. Download a prebuilt image from
-   [Releases](../../releases), or build your own. Either way, see
-   [`image/`](./image/) for getting the Raspberry Pi OS image (built with
-   [pi-gen](https://github.com/RPi-Distro/pi-gen)) and flashing it to your
-   microSD cards.
-3. Follow the lessons. (Coming soon. Start with lesson 00, "why can't these two
-   Pis just talk to each other?")
-
-## Why we're building this
-
-Networking is one of the most global and durable technologies a developer will
-ever touch. When its fundamentals are intuitive to you, you become a better
-developer. This is our attempt to teach those fundamentals in a way that's
-hands-on, reproducible, and (honestly) fun.
