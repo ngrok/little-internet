@@ -37,11 +37,9 @@ permissions:
 
 jobs:
   build:
-    # x86 runner + qemu emulation works on a private repo today. Once this repo
-    # is public, switch to the free native-arm64 runner for a big speed-up — no
-    # other change needed (the QEMU step below becomes a harmless no-op):
-    #     runs-on: ubuntu-24.04-arm
-    runs-on: ubuntu-latest
+    # Native arm64 runner — free for public repos and builds the arm64 image
+    # without QEMU emulation (the QEMU step below is a harmless no-op here).
+    runs-on: ubuntu-24.04-arm
     timeout-minutes: 180
 
     steps:
@@ -62,14 +60,13 @@ jobs:
             /opt/hostedtoolcache/CodeQL || true
           df -h /
 
-      # pi-gen's Docker build cross-builds arm64 on this x86 runner, and its
-      # preflight check requires the qemu-aarch64-static *binary* on PATH —
-      # binfmt-only registration (e.g. docker/setup-qemu-action) isn't enough.
-      # The qemu-user-static package provides that binary AND registers the
-      # binfmt handlers with the fix-binary (F) flag, so the emulator works
-      # inside the build's chroot. On a native arm64 runner there's no
-      # cross-build, so pi-gen skips this requirement and the install is a
-      # harmless no-op.
+      # On this native arm64 runner pi-gen builds without emulation, so QEMU
+      # isn't strictly needed and this install is effectively a no-op. We keep
+      # it as belt-and-suspenders: qemu-user-static provides the
+      # qemu-aarch64-static *binary* and registers the binfmt handlers with the
+      # fix-binary (F) flag, which is what pi-gen's preflight requires (plain
+      # binfmt registration via docker/setup-qemu-action isn't enough) should
+      # the workflow ever fall back to an x86 cross-build.
       - name: Install QEMU for arm64 emulation
         run: |
           sudo apt-get update
