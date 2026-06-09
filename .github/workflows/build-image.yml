@@ -12,9 +12,8 @@ on:
   push:
     tags:
       - 'v*'
-  # Build on PRs, but only when the image itself changes — these builds are long
-  # and (while the repo is private) emulated, so we don't want to fire one on
-  # every PR push across the repo.
+  # Build on PRs, but only when the image itself changes — these builds are long,
+  # so we don't want to fire one on every PR push across the repo.
   pull_request:
     paths:
       - 'image/**'
