@@ -7,7 +7,7 @@ builds on the one before it.
 
 | Item                                                                    | Qty | Unit  | Subtotal  | Vendor                   |
 | ----------------------------------------------------------------------- | --- | ----- | --------- | ------------------------ |
-| Raspberry Pi 3 Model B+                                                 | 2   | $35   | $70       | Adafruit / PiShop        |
+| Raspberry Pi 3 Model B (optionally, 3+)                                 | 2   | $35   | $70       | Adafruit / PiShop        |
 | TP-Link TL-SG108E 8-port managed switch                                 | 1   | $30   | $30       | Amazon                   |
 | SanDisk Ultra 16GB microSD, A1-rated                                    | 3   | $12   | $36       | Amazon (sold by SanDisk) |
 | Official Raspberry Pi 12.5W micro-USB PSU                               | 2   | $8    | $16       | Adafruit / PiShop        |
@@ -20,7 +20,7 @@ builds on the one before it.
 
 | Item                                                                              | Qty | Unit  | Subtotal  | Vendor                   |
 | --------------------------------------------------------------------------------- | --- | ----- | --------- | ------------------------ |
-| Raspberry Pi 3 Model B+ (router)                                                  | 1   | $35   | $35       | Adafruit / PiShop        |
+| Raspberry Pi 3 Model B (optionally, 3+) (router)                                  | 1   | $35   | $35       | Adafruit / PiShop        |
 | USB 3.0 to Gigabit Ethernet adapter, AX88179A chipset (Plugable / Anker / UGreen) | 1   | $15   | $15       | Amazon / Adafruit        |
 | TP-Link TL-SG108E (second switch)                                                 | 1   | $30   | $30       | Amazon                   |
 | Official Raspberry Pi 12.5W micro-USB PSU                                         | 1   | $8    | $8        | Adafruit / PiShop        |
@@ -33,7 +33,7 @@ builds on the one before it.
 
 | Item                                                  | Qty | Unit  | Subtotal  | Vendor                   |
 | ----------------------------------------------------- | --- | ----- | --------- | ------------------------ |
-| Raspberry Pi 3 Model B+ (AS routers)                  | 2   | $35   | $70       | Adafruit / PiShop        |
+| Raspberry Pi 3 Model B (optionally, 3+) (AS routers)  | 2   | $35   | $70       | Adafruit / PiShop        |
 | USB 3.0 to Gigabit Ethernet adapter, AX88179A chipset | 2   | $15   | $30       | Amazon / Adafruit        |
 | Official Raspberry Pi 12.5W micro-USB PSU             | 2   | $8    | $16       | Adafruit / PiShop        |
 | SanDisk Ultra 16GB microSD, A1-rated                  | 2   | $12   | $24       | Amazon (sold by SanDisk) |
