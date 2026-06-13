@@ -85,6 +85,10 @@ file in place so you can fix it and reboot.
 - SSH is enabled. From another machine on the same network:
   `ssh pi@<hostname>.local` (or `ssh pi@pi-node.local` if you skipped the
   hostname in step 3), password `little-internet`.
+- Tired of typing the password every time? Copy your SSH public key to the node
+  once and key-based auth takes over: `ssh-copy-id pi@<hostname>.local` (enter
+  the password one last time). After that, `ssh pi@<hostname>.local` logs in
+  with no prompt.
 - Confirm the networking tools are present: `which tcpdump tshark arping`.
 - Check the I2C bus (for the OLED): `i2cdetect -y 1`.
 - Wi-Fi is management-only by design: you can SSH in and the node reaches the
