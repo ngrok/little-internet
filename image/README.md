@@ -239,9 +239,9 @@ build joins your Wi-Fi headless on first boot. Credentials live only in
 ### Notes & knobs
 
 - **Architecture.** Builds 64-bit (arm64) Raspberry Pi OS Lite by default. It
-  runs well on the Pi 3 Model B+ and, on an Apple Silicon Mac, builds natively
+  runs well on the Pi 3 Model B (or 3+) and, on an Apple Silicon Mac, builds natively
   without emulation. Both 32-bit and 64-bit flash and boot identically on the Pi
-  3 B+, so this is purely a build-host convenience.
+  3 B (or 3+), so this is purely a build-host convenience.
 - **pi-gen branch must match the release.** pi-gen pairs each Debian release
   with its own branch, and the branch must match `RELEASE` in `config` or pi-gen
   warns (`RELEASE does not match the intended option for this branch`) and may
