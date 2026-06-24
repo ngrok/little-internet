@@ -39,6 +39,8 @@ the next set of ideas tangible.
 ├── BOM.md        Bill of materials — every part, by phase, with vendors.
 ├── image/        pi-gen config that builds the Raspberry Pi OS image the
 │                 nodes run, plus instructions for building and flashing it.
+├── diaries/      Running build log of how the network came together, one
+│                 prose file per session, in the order things happened.
 └── lessons/      (coming soon) One directory per lesson: an explainer, the
                   scripts to run it yourself, and recorded packet captures.
 ```
@@ -53,6 +55,8 @@ the next set of ideas tangible.
    microSD cards.
 3. Follow the lessons. (Coming soon. Start with lesson 00, "why can't these two
    Pis just talk to each other?")
+4. Read the diaries for the story behind it all. They're the running build log
+   of putting this together, in the order each piece came to life.
 
 ## Why we're building this
 
