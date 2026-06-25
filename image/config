@@ -31,6 +31,17 @@ TARGET_HOSTNAME='pi-node'
 FIRST_USER_NAME='pi'
 FIRST_USER_PASS='little-internet'
 
+# Keep the 'pi' user as a permanent account instead of pi-gen's default
+# behavior of treating it as build-only and forcing a "create your real user"
+# step on first boot. With the default (rename enabled), Raspberry Pi OS arms
+# the userconf-pi first-boot flow and shows an SSH pre-login banner — "Please
+# note that SSH may not work until a valid user has been set up" — until that
+# flow completes, which never happens on our headless image. Setting this to 1
+# disables the rename so 'pi' is stable and the banner goes away. Requires
+# FIRST_USER_PASS to be set (above). Tradeoff: we intentionally ship a known
+# default username/password — fine for a closed lab, not for exposed nodes.
+DISABLE_FIRST_BOOT_USER_RENAME=1
+
 # Enable SSH so nodes are reachable headless out of the box.
 ENABLE_SSH=1
 
