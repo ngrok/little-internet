@@ -1,11 +1,26 @@
 #!/usr/bin/env bash
-# Tear down the lab IP profile so you can re-run from a blank wire. Run on each
-# node you addressed.
-set -uo pipefail
+# Put the wire back to blank so you can re-run from the top.
+source "$(dirname "$0")/lib.sh"
 
-echo ">>> Deleting the 'eth' NetworkManager profile..."
-if sudo nmcli connection delete eth 2>/dev/null; then
-  echo ">>> Done. eth0 is back to a blank wire (no IPv4 identity)."
-else
-  echo "(no 'eth' profile found — already blank)"
+if [ "$MODE" = netns ]; then
+  note <<'EOF'
+Namespace lab: tear it all down with  sudo ./virtual/lab-down.sh
+EOF
+  exit 0
 fi
+
+note <<'EOF'
+Wiping the lab profile from both nodes so eth0 goes back to a blank wire, ready to
+run the whole thing again from scratch.
+EOF
+
+pause "Press Enter to delete the 'eth' profile on both nodes."
+
+RESET='if nmcli connection delete eth 2>/dev/null; then
+  echo "deleted the eth profile—back to a blank wire"
+else
+  echo "no eth profile found (already blank)"
+fi'
+
+h "pi-a"; node_a "$RESET"
+h "pi-b"; node_b "$RESET"

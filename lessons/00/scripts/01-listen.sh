@@ -1,25 +1,40 @@
 #!/usr/bin/env bash
-# Beat 2 + 3 (raw) — They're already talking. Capture the burst the instant the
-# link comes up.
-#
-# The chatter only fires when the interface comes UP, so start this capture
-# FIRST, then trigger the link (plug the cable, or toggle it with
-# `sudo nmcli device disconnect eth0 && sudo nmcli device connect eth0`).
-#
-# Watch for:
-#   ICMPv6  — IPv6 claiming its own fe80:: (DAD), MLD group joins, router
-#             solicitations that never get answered.
-#   MDNS    — the node announcing its own hostname, in the clear, to the link.
-#   DHCP    — Discover after Discover, with no Offer ever coming back.
-# All talk, no answers. Then it goes quiet. Ctrl-C to stop.
-set -uo pipefail
-IFACE="${IFACE:-eth0}"
-OUT="${OUT:-$HOME/cap/link-up_$(hostname).pcap}"
-mkdir -p "$(dirname "$OUT")"
+# They're already talking, you just weren't listening. With the cable
+# already seated, momentarily bounce pi-a's link to re-create the
+# instant of connection, and capture what the node says into the void.
+source "$(dirname "$0")/lib.sh"
 
-echo ">>> Capturing on $IFACE -> $OUT"
-echo ">>> Trigger the link now (plug the cable or toggle the interface)."
-echo ">>> Ctrl-C when the burst has died down. Read it back with:"
-echo ">>>   tcpdump -n -e -r $OUT   (or open it in Wireshark)"
-echo
-exec sudo tcpdump -i "$IFACE" -n -e -w "$OUT"
+note <<'EOF'
+This is the one that got me. A live wire, no addresses, nothing configured—so the
+link should sit there silent until you tell it to do something. It doesn't. Bounce
+pi-a's link to replay the moment of connection and watch: the instant it comes up,
+the Pi hands itself an identity, shouts its own name, and goes hunting for a server
+that isn't there. You asked for none of it. And look closely—some of these frames
+aren't even pi-a. The other Pi is already on the wire, talking too.
+
+(It looks different every run: a free-for-all of independent processes, not a
+script. Watch for the kinds of frames below, not an exact transcript.)
+EOF
+
+eye <<'EOF'
+ICMP6 "neighbor solicitation, who has fe80::..."  DAD: claiming its own IPv6 address
+"multicast listener report"                       joining IPv6 groups
+"router solicitation" to ff02::2                  hunting for a router (no reply comes)
+On real Pis you'll ALSO see MDNS (the node shouting its own hostname) and DHCP
+Discover (begging for an address). Both go unanswered. All talk, no answers.
+EOF
+
+pause "Press Enter to bounce pi-a's link and capture the burst."
+
+node_a "$STYLE"'
+rm -f /tmp/link-up.pcap
+tcpdump -i eth0 -n -e -U -w /tmp/link-up.pcap 2>/dev/null & CAP=$!
+sleep 1; ip link set eth0 down; sleep 1; ip link set eth0 up; sleep 8
+kill $CAP 2>/dev/null; wait $CAP 2>/dev/null
+h "the link-up burst on eth0 (oldest first)"
+if command -v tshark >/dev/null 2>&1; then
+  tshark -n -r /tmp/link-up.pcap 2>/dev/null
+else
+  echo "(tshark not found—showing tcpdump)"
+  tcpdump -n -r /tmp/link-up.pcap 2>/dev/null
+fi'

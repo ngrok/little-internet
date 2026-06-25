@@ -1,20 +1,42 @@
 #!/usr/bin/env bash
-# Beat 4 (setup) — Give the wire an identity. Run on EACH node, with its own IP:
-#   SELF_IP=10.10.0.1 ./03-address.sh   # on pi-a
-#   SELF_IP=10.10.0.2 ./03-address.sh   # on pi-b
-#
-# Uses NetworkManager (the Pi image runs it). ipv4.never-default keeps this lab
-# link out of the default route; ipv6.method link-local leaves the fe80:: alone.
-set -euo pipefail
-IFACE="${IFACE:-eth0}"
-SELF_IP="${SELF_IP:-10.10.0.1}"
+# Give the wire an identity on BOTH nodes at once. The node
+# decides how: nmcli if it has NetworkManager (the Pi image does), otherwise
+# plain `ip addr add` (the namespace lab).
+source "$(dirname "$0")/lib.sh"
 
-echo ">>> Assigning $SELF_IP/24 to $IFACE via NetworkManager (manual, lab-only)."
-sudo nmcli connection add type ethernet ifname "$IFACE" con-name eth \
-  ipv4.method manual ipv4.addresses "$SELF_IP/24" \
-  ipv4.never-default yes ipv6.method link-local connection.autoconnect yes
-sudo nmcli connection up eth
-echo
-echo "--- ip route get the peer now resolves to $IFACE ---"
-echo ">>> Re-run 02-no-address.sh: 'ip route get' now points at $IFACE instead of"
-echo ">>> wlan0. Giving the wire an identity made it visible to the routing table."
+addr_for() {  # $1 = this node's IPv4, $2 = peer IPv4
+cat <<EOF
+if command -v nmcli >/dev/null && systemctl is-active --quiet NetworkManager; then
+  nmcli connection add type ethernet ifname eth0 con-name eth ipv4.method manual \
+    ipv4.addresses $1/24 ipv4.never-default yes ipv6.method link-local connection.autoconnect yes
+  nmcli connection up eth
+else
+  ip addr add $1/24 dev eth0
+fi
+h "ip route get $2 now points at eth0"
+ip route get $2 || true
+EOF
+}
+
+note <<'EOF'
+So hand the wire an identity—the piece that was missing. This gives both nodes an
+IPv4 address in one go. (Run it once, right here; it reaches both, so you never
+pick a Pi or run it on one.) Then watch the same "ip route get" that betrayed you a
+moment ago: the instant eth0 has an address, the routing table can finally see the
+cable as a path. pi-a becomes 10.10.0.1, pi-b becomes 10.10.0.2.
+EOF
+
+eye <<'EOF'
+each node accepts its address with no error
+"ip route get" to the peer now resolves to dev eth0—the wire just became reachable
+the src shown is the address you just assigned
+EOF
+
+pause "Press Enter to assign 10.10.0.1 to pi-a and 10.10.0.2 to pi-b."
+
+h "Addressing pi-a as 10.10.0.1"
+node_a "$STYLE
+$(addr_for 10.10.0.1 10.10.0.2)"
+h "Addressing pi-b as 10.10.0.2"
+node_b "$STYLE
+$(addr_for 10.10.0.2 10.10.0.1)"

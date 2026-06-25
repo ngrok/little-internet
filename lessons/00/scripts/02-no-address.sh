@@ -1,21 +1,27 @@
 #!/usr/bin/env bash
-# Beat 3 — The obvious thing fails. With no IPv4 identity on the wire, the ping
-# doesn't even use the wire: the routing table can't see the link as a path, so
-# the packet leaves via your only other route (the management Wi-Fi on the Pis)
-# and dies. Connectivity is not reachability.
-set -uo pipefail
-IFACE="${IFACE:-eth0}"
-PEER_IP="${PEER_IP:-10.10.0.2}"
+# The obvious thing fails. With no IPv4 identity on the wire, the
+# routing table can't see the link as a path to the peer.
+source "$(dirname "$0")/lib.sh"
 
-echo "--- ip -4 addr show $IFACE  (expect: no 'inet' line) ---"
-ip -4 addr show "$IFACE"
-echo
-echo "--- ip route get $PEER_IP  (the smoking gun: which 'dev'?) ---"
-ip route get "$PEER_IP" || true
-echo
-echo "--- ping -c1 $PEER_IP  (expect failure) ---"
-ping -c1 -W1 "$PEER_IP" || true
-echo
-echo ">>> The point: $IFACE has no L3 identity, so the kernel can't see the wire"
-echo ">>> as a way to reach $PEER_IP. On a Pi the ping leaks out the default"
-echo ">>> route (wlan0) and never touches the cable."
+note <<'EOF'
+The wire's alive and frames are flowing both ways, so ping 10.10.0.2 obviously
+works. Try it. ...No dice. So where did the packet actually go? Trace it with
+"ip route get": it never touched the cable. With no IPv4 identity on eth0, the
+routing table can't see the wire as a way to reach anything, so the packet goes
+elsewhere. On a Pi it slips out the only other route, the management Wi-Fi, and
+dies out there; in the bare lab there's simply nowhere to send it ("Network is
+unreachable"). The wire was never the problem. Identity was.
+EOF
+
+eye <<'EOF'
+"ip -4 addr show eth0" has no inet line—the wire has no IPv4 identity
+"ip route get" does NOT resolve to dev eth0 (on a Pi it picks dev wlan0, the mgmt route)
+the ping fails—with no identity on the wire, the packet never even touches it
+EOF
+
+pause "Press Enter to check pi-a's address, route to the peer, and ping."
+
+node_a "$STYLE"'
+h "ip -4 addr show eth0  (expect no inet line)"; ip -4 addr show eth0
+h "ip route get 10.10.0.2  (which dev?)"; ip route get 10.10.0.2 || true
+h "ping -c1 10.10.0.2  (expect failure)"; ping -c1 -W1 10.10.0.2 || true'
