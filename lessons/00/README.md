@@ -21,13 +21,9 @@ answer itself on the wire:
 
 ## How it runs
 
-The scripts live here, on your machine, and reach *into* the two nodes to run each
-step. Nothing gets installed on the nodes—they only need SSH and the networking
-tools the [little internet image](../../image/) already ships. Pick a backend with
-`MODE`:
-
-- `MODE=ssh` (the default) drives two real Pis over SSH.
-- `MODE=netns` drives a local namespace lab, no hardware required.
+The scripts live here, on your machine, and drive the two nodes themselves—nothing
+gets installed on them; they only need SSH and the networking tools the [little
+internet image](../../image/) already ships.
 
 Each step runs as one privileged block per node, so on real hardware you're asked
 for that node's sudo password once per step. Don't want to be prompted? Set up
@@ -44,35 +40,28 @@ Parts are in [`BOM.md`](../../BOM.md). Point the scripts at your nodes with
 export A_HOST=pi@pi-foo-01.local B_HOST=pi@pi-foo-02.local
 
 ./scripts/00-link.sh        # is there a wire? unplug, then seat, the cable
-./scripts/01-listen.sh      # the link-up burst
-./scripts/02-no-address.sh  # the ping fails—the wire has no identity
+./scripts/01-listen.sh      # the link-up burst, then a naive ping that flops
+./scripts/02-no-address.sh  # so where did that packet actually go?
 ./scripts/03-address.sh     # give each node an identity
-./scripts/04-arp.sh         # ARP makes the introduction
+./scripts/04-arp.sh         # the ping works now—watch the ARP that made it
 ./scripts/reset.sh          # back to a blank wire
 ```
 
 ### Virtually (no hardware, one Linux host)
 
-A veth pair is the closest thing to a single cable in software: two ends, nothing
-in between. `scripts/virtual/lab-up.sh` builds two network namespaces (pi-a and
-pi-b) joined by one veth, with no bridge, gateway, or DHCP in the way. You'll need
-a Linux host and root; on macOS or Windows, run it inside a Linux VM
-([colima](https://github.com/abiosoft/colima) and
-[lima](https://github.com/lima-vm/lima) both work). The lab needs `ip`, `tcpdump`,
-and `ping`.
+No Pis? `scripts/virtual/demo.sh` recreates the whole thing in software. A veth
+pair is the closest thing to a single cable—two ends, nothing in between—so the
+script stands up two network namespaces (pi-a and pi-b) joined by one veth, walks
+the same steps (pausing for you between each, just like the hardware path), and
+tears it all down when you're done.
+
+It's Linux-only, since network namespaces are a Linux feature. On macOS or Windows,
+run it inside a Linux VM ([colima](https://github.com/abiosoft/colima) and
+[lima](https://github.com/lima-vm/lima) both work); the script tells you as much if
+you try it directly.
 
 ```bash
-sudo ./scripts/virtual/demo.sh    # build the lab, run the steps, tear it down
-```
-
-Or drive the steps yourself against the lab:
-
-```bash
-sudo ./scripts/virtual/lab-up.sh
-MODE=netns ./scripts/02-no-address.sh
-MODE=netns ./scripts/03-address.sh
-MODE=netns ./scripts/04-arp.sh
-sudo ./scripts/virtual/lab-down.sh
+sudo ./scripts/virtual/demo.sh
 ```
 
 ## What survives virtualization, and what doesn't

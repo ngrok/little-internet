@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
-# They're already talking, you just weren't listening. With the cable
-# already seated, momentarily bounce pi-a's link to re-create the
-# instant of connection, and capture what the node says into the void.
+# They're already talking, you just weren't listening: bounce pi-a's link, capture
+# the link-up burst, then try the naive ping that "obviously" works (it doesn't).
 source "$(dirname "$0")/lib.sh"
 
 note <<'EOF'
@@ -38,3 +37,19 @@ else
   echo "(tshark not found—showing tcpdump)"
   tcpdump -n -r /tmp/link-up.pcap 2>/dev/null
 fi'
+
+note <<'EOF'
+Frames are flying both directions now. So the two can obviously ping each
+other—right? Let's just try, before we configure a single thing.
+EOF
+
+pause "Press Enter to ping pi-b from pi-a."
+
+node_a "$STYLE"'
+h "ping -c1 10.10.0.2"
+ping -c1 -W1 10.10.0.2 || true'
+
+note <<'EOF'
+...No dice. A live wire, frames flowing both ways, and the ping still drops. So
+where did that packet even go? That's the next step.
+EOF

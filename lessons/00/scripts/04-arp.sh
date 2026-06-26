@@ -1,15 +1,25 @@
 #!/usr/bin/env bash
-# Watch ARP make the introduction. Flush pi-a's neighbor
-# cache, ping the peer twice, and capture the exchange.
+# Watch ARP make the introduction. Ping the peer (it works now that both nodes have
+# addresses), then flush the cache and run it again in slow motion to catch the
+# who-has/is-at that had to happen before the first echo could leave.
 source "$(dirname "$0")/lib.sh"
 
 note <<'EOF'
-Ping again. It works now—but that's not the interesting part. Rewind to the
-half-millisecond before the first echo even left the wire. You typed an IP address;
-the wire only carries MAC addresses. Something had to translate one into the other,
-and you never saw it. Flush pi-a's memory, ping, and catch it in the act: pi-a
-shouting into the room, a stranger shouting back. That's ARP—the introduction that
-had to happen before any of this could work.
+You gave both nodes an identity. So does the ping finally work? Try the very same
+command that flopped before you had addresses.
+EOF
+
+pause "Press Enter to ping pi-b again."
+
+node_a "$STYLE"'
+h "ping -c2 10.10.0.2"
+ping -c2 10.10.0.2 || true'
+
+note <<'EOF'
+There it is—a reply, after all that. But how? You typed an IP address, and the wire
+only carries MAC addresses. Something had to bridge the two in the half-millisecond
+before that first echo went out, and you never saw it. Flush pi-a's memory of its
+neighbor and run the ping again, this time in slow motion.
 EOF
 
 eye <<'EOF'
@@ -19,7 +29,7 @@ THEN the ICMP echo request, and its reply
 seq 2 skips ARP entirely—pi-a remembers now (the cache is REACHABLE)
 EOF
 
-pause "Press Enter to flush the cache, ping, and capture the ARP exchange."
+pause "Press Enter to flush the cache and capture the introduction."
 
 node_a "$STYLE"'
 h "neighbor cache before"; ip neigh show dev eth0

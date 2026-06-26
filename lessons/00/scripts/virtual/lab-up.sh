@@ -10,6 +10,35 @@ set -euo pipefail
 A="${A:-pi-a}"
 B="${B:-pi-b}"
 
+# Network namespaces are a Linux-only kernel feature, so this lab can't run
+# natively on macOS or Windows. Fail fast with directions instead of a pile of
+# "command not found".
+if [ "$(uname -s)" != Linux ]; then
+  cat >&2 <<'MSG'
+This lab needs Linux. Network namespaces (ip netns) don't exist on macOS or
+Windows, so it can't run here directly.
+
+Run it inside a Linux VM. With colima (brew install colima):
+
+  colima start
+  colima ssh
+  # then, from the repo root inside the VM:
+  sudo ./lessons/00/scripts/virtual/demo.sh
+
+Or skip the lab entirely and drive real Pis over SSH with MODE=ssh. See
+lessons/00/README.md.
+MSG
+  exit 1
+fi
+if [ "$(id -u)" -ne 0 ]; then
+  echo "This lab creates network namespaces and needs root. Re-run with sudo." >&2
+  exit 1
+fi
+command -v ip >/dev/null 2>&1 || {
+  echo "Missing the 'ip' command (iproute2). Install it, e.g. sudo apt-get install -y iproute2." >&2
+  exit 1
+}
+
 if ip netns list | grep -qw "$A"; then
   echo "Namespace $A already exists. Run lab-down.sh first." >&2
   exit 1
