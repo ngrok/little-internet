@@ -12,10 +12,10 @@ _And have some fun along the way._
 ## How I'm rolling out the little internet
 
 We start with a single network, then two networks, and then a working facsimile
-of the internet you know and love. Each phase comes with lessons as technical
-write-ups ([ngrok blog](https://ngrok.com/blog)), YouTube videos
-([ngrok @ YouTube](https://www.youtube.com/@ngrokHQ)), and follow-along scripts
-in this repo.
+of the internet you know and love. Each phase comes with hands-on lessons and
+diaries right here in this repo, with companion deep-dives on the
+[ngrok blog](https://ngrok.com/blog) and walkthroughs on
+[YouTube](https://www.youtube.com/@ngrokHQ).
 
 Each phase includes just enough hardware to make the next set of ideas tangible.
 
@@ -38,8 +38,10 @@ Each phase includes just enough hardware to make the next set of ideas tangible.
    Either way, see [`image/`](./image/) for getting the Raspberry Pi OS image
    (built with [pi-gen](https://github.com/RPi-Distro/pi-gen)) and flashing it
    to your microSD cards.
-3. Follow the lessons. (Coming soon. Start with lesson 00, "why can't these two
-   Pis just talk to each other?")
+3. Follow the lessons. Start with [`lesson 00`](./lessons/00/), "why can't these
+   two Pis just talk to each other?"
+4. Read the diaries for the story behind it all. They're the running build log
+   of putting this together, in the order each piece came to life.
 
 ## Repo layout
 
@@ -49,6 +51,8 @@ Each phase includes just enough hardware to make the next set of ideas tangible.
 ├── BOM.md        Bill of materials — every part, by phase, with vendors.
 ├── image/        pi-gen config that builds the Raspberry Pi OS image the
 │                 nodes run, plus instructions for building and flashing it.
-└── lessons/      (coming soon) One directory per lesson: an explainer, the
+├── diaries/      Running build log of how the network came together, one
+│                 prose file per session, in the order things happened.
+└── lessons/      One directory per lesson: an explainer, the
                   scripts to run it yourself, and recorded packet captures.
 ```
