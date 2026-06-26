@@ -48,3 +48,25 @@ seq 2 skips ARP entirely because pi-a remembers now (the cache is REACHABLE)
 EOF
 
 pause "Press Enter when you've had a look."
+
+note <<'EOF'
+So—can they just talk? Yes, of course they can. "Talk" was only ever hiding three
+questions, and you watched each one answer itself on the wire: the wire woke the
+instant you seated the cable, the link was already chattering before you configured
+a thing, and the only piece you had to work for was the IPv4 address you'd type into
+a ping.
+
+It was never a wire problem or a frame problem. It was an identity problem. The
+connectivity was free; the reachability you wanted needed an identity—and ARP was
+the introduction that turned the IP you typed into the MAC the wire could actually
+deliver to.
+
+One thing to sit with before you go: two Pis on one cable is the smallest network
+there is, a broadcast domain of two. When pi-a shouted "who has 10.10.0.2?" into the
+room, exactly one other device was there to hear it—so "broadcast to everyone" and
+"ask the only other guy in the room" looked like the same thing. Add a third node
+and a switch and that stops being true: a frame arrives for one specific MAC, and
+the switch has to decide which port to send it out of. How does it even know?
+
+That's the next lesson.
+EOF

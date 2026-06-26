@@ -32,3 +32,16 @@ for i in "${!BEATS[@]}"; do
   [ "$i" -gt 0 ] && printf '\n────────────────────────────────────────────────────\n'
   "$HERE/${BEATS[$i]}.sh"
 done
+
+# Virtual finale: the lab's still up, so offer the live dashboard before teardown.
+# Only interactively — a non-tty run (CI) just falls through to the EXIT trap.
+if [ -n "$VIRTUAL" ] && [ -t 1 ]; then
+  printf '\n────────────────────────────────────────────────────\n\n'
+  printf 'The lab is still up. Want to watch the ARP cache react live?\n'
+  printf 'A dashboard opens with pi-a and pi-b side by side and a shell on pi-a to\n'
+  printf 'poke them: ping from the bottom pane and watch both caches move.\n'
+  printf '(Ctrl-b then d exits the dashboard.)\n\n'
+  printf 'Press Enter to open it, or Ctrl-C to finish here. '
+  read -r
+  sudo env ORCHESTRATED=1 "$HERE/virtual/watch.sh"
+fi
