@@ -36,11 +36,11 @@ You'll need two nodes flashed with the [little internet image](../../image/), an
 Ethernet cable between their `eth0` ports, and SSH reachability to each over
 Wi-Fi. Walk the whole lesson with one command:
 
-Parts are in . Point the scripts at your nodes with
-`A_HOST` / `B_HOST` (they default to `pi@pi-foo-01.local` / `pi@pi-foo-02.local`),
-then
+Point the scripts at your nodes with `A_HOST` / `B_HOST` (they default to
+`pi@pi-foo-01.local` / `pi@pi-foo-02.local`), then
 
 ```bash
+./scripts/check.sh --hardware
 ./scripts/run.sh        # walks every step, pausing between each
 ```
 
@@ -75,8 +75,16 @@ Linux VM ([colima](https://github.com/abiosoft/colima) and
 [lima](https://github.com/lima-vm/lima) both work).
 
 ```bash
+sudo ./scripts/check.sh --virtual
 sudo ./scripts/run.sh --virtual
 ```
+
+### With a coding agent
+
+Agents should read the root [`AGENTS.md`](../../AGENTS.md) and this lesson's
+[`manifest.json`](./manifest.json) before running anything. The manifest lists
+the lesson beats, which scripts drive them, what output to look for, and how to
+recover from interrupted hardware or virtual runs.
 
 #### What you can't see with virtualization
 

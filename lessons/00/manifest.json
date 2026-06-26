@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "lesson": {
+    "id": "00",
+    "title": "Two Pis, one cable: can they just talk?",
+    "summary": "A guided lab that shows the difference between link, frames, and reachability by connecting two nodes with one Ethernet cable."
+  },
+  "primary_docs": {
+    "story": "../../diaries/00_two-pis-one-cable.md",
+    "runbook": "README.md",
+    "scripts": "scripts/"
+  },
+  "modes": {
+    "hardware": {
+      "description": "Drive two Raspberry Pi nodes over SSH while their eth0 ports are connected by one cable.",
+      "default_hosts": {
+        "pi_a": "pi@pi-foo-01.local",
+        "pi_b": "pi@pi-foo-02.local"
+      },
+      "environment": ["A_HOST", "B_HOST"],
+      "run": "./scripts/run.sh",
+      "check": "./scripts/check.sh --hardware",
+      "reset": "./scripts/reset.sh",
+      "requires_human_actions": true
+    },
+    "virtual": {
+      "description": "Recreate the two-node cable with Linux network namespaces and a veth pair.",
+      "run": "sudo ./scripts/run.sh --virtual",
+      "check": "sudo ./scripts/check.sh --virtual",
+      "cleanup": "sudo ./scripts/virtual/lab-down.sh",
+      "requirements": ["Linux", "root", "iproute2", "ping", "tcpdump"],
+      "limitations": [
+        "No physical carrier, speed, duplex, or link lights.",
+        "No real Raspberry Pi MAC vendor prefix.",
+        "Link-up chatter differs from physical hardware."
+      ]
+    },
+    "read_only": {
+      "description": "Teach from the README, diary, and manifest when hardware or Linux namespaces are unavailable.",
+      "run": null
+    }
+  },
+  "agent_defaults": {
+    "no_color": true,
+    "safe_first_step": "Read README.md, diaries/00_two-pis-one-cable.md, and lessons/00/README.md before running scripts.",
+    "ask_before": [
+      "Running hardware scripts against A_HOST/B_HOST.",
+      "Deleting NetworkManager profiles with scripts/reset.sh.",
+      "Building or flashing Raspberry Pi images.",
+      "Running disk-writing commands such as dd."
+    ],
+    "recovery": [
+      {
+        "situation": "Virtual lab interrupted or left behind.",
+        "command": "sudo ./scripts/virtual/lab-down.sh"
+      },
+      {
+        "situation": "Hardware lesson should return eth0 to a blank wire.",
+        "command": "./scripts/reset.sh"
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "00-link",
+      "script": "scripts/00-link.sh",
+      "question": "Is there even a wire?",
+      "concept": "Layer 1: carrier and autonegotiation.",
+      "mode": "hardware_only",
+      "human_action": "Unplug and then seat the Ethernet cable.",
+      "expected_observations": [
+        "Before link-up, eth0 shows NO-CARRIER and state DOWN.",
+        "After link-up, eth0 shows LOWER_UP and state UP.",
+        "ethtool reports Link detected: yes, speed, and duplex after the cable is seated."
+      ],
+      "common_failures": [
+        "The virtual lab skips this beat because veth has no physical layer.",
+        "If LOWER_UP never appears, check both cable ends, power, and the interface name."
+      ]
+    },
+    {
+      "id": "01-listen",
+      "script": "scripts/01-listen.sh",
+      "question": "Are frames flowing before we configure anything?",
+      "concept": "Layer 2: link-up chatter, broadcast, multicast, and local discovery.",
+      "mode": "hardware_or_virtual",
+      "expected_observations": [
+        "tcpdump or tshark shows frames shortly after the link bounces.",
+        "IPv6 neighbor solicitation and multicast listener reports may appear.",
+        "Real Pis may also show mDNS hostname announcements and DHCP discovery.",
+        "A naive ping to 10.10.0.2 still fails."
+      ],
+      "common_failures": [
+        "If tshark is missing, scripts fall back to tcpdump output.",
+        "If no frames appear, confirm both ends of eth0 are up."
+      ]
+    },
+    {
+      "id": "02-no-address",
+      "script": "scripts/02-no-address.sh",
+      "question": "Where did the failed ping go?",
+      "concept": "Layer 3 identity: a live wire is not automatically a route.",
+      "mode": "hardware_or_virtual",
+      "expected_observations": [
+        "ip -4 addr show eth0 has no inet line.",
+        "ip route get 10.10.0.2 does not resolve to dev eth0.",
+        "On hardware, the route may point at wlan0; in the bare virtual lab, it may be unreachable."
+      ],
+      "common_failures": [
+        "If eth0 already has 10.10.0.x, run reset or recreate the virtual lab."
+      ]
+    },
+    {
+      "id": "03-address",
+      "script": "scripts/03-address.sh",
+      "question": "What changes when the wire has IPv4 identities?",
+      "concept": "Assigning addresses creates a connected route on eth0.",
+      "mode": "hardware_or_virtual",
+      "expected_observations": [
+        "pi-a receives 10.10.0.1/24 and pi-b receives 10.10.0.2/24.",
+        "ip route get to the peer now resolves to dev eth0.",
+        "The source address matches the node's assigned 10.10.0.x address."
+      ],
+      "common_failures": [
+        "NetworkManager may reject duplicate connection names if the lesson was already run; use scripts/reset.sh on hardware or recreate the virtual lab."
+      ]
+    },
+    {
+      "id": "04-arp",
+      "script": "scripts/04-arp.sh",
+      "question": "How does an IP address become a frame on the wire?",
+      "concept": "ARP maps the peer IPv4 address to its MAC address, then the ICMP echo can leave.",
+      "mode": "hardware_or_virtual",
+      "expected_observations": [
+        "ping -c2 10.10.0.2 succeeds.",
+        "After the neighbor cache is flushed, capture shows who-has 10.10.0.2 tell 10.10.0.1.",
+        "The peer replies with an is-at MAC address.",
+        "The second ICMP echo skips ARP because the neighbor cache is warm."
+      ],
+      "common_failures": [
+        "If tcpdump cannot capture, check root privileges on the target node.",
+        "If ping fails after addressing, verify both nodes have eth0 addresses in 10.10.0.0/24."
+      ]
+    }
+  ]
+}

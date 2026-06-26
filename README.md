@@ -12,8 +12,8 @@ where a packet goes next, and eventually a handful of autonomous systems
 announce themselves to each other over BGP.
 
 Everything here is meant to be **reproduced**. The bill of materials, the OS
-image, the scripts, and the captured packets all live in this repo so you can
-build your own little internet and follow along.
+image tooling, and the lesson scripts all live in this repo so you can build
+your own little internet and follow along.
 
 ## How it's organized
 
@@ -41,8 +41,9 @@ the next set of ideas tangible.
 │                 nodes run, plus instructions for building and flashing it.
 ├── diaries/      Running build log of how the network came together, one
 │                 prose file per session, in the order things happened.
-└── lessons/      (coming soon) One directory per lesson: an explainer, the
-                  scripts to run it yourself, and recorded packet captures.
+├── lessons/      One directory per lesson: an explainer and the scripts to run
+│                 it yourself. Start with lessons/00.
+└── AGENTS.md     Guidance for coding agents that teach or operate the labs.
 ```
 
 ## Getting started
@@ -53,10 +54,18 @@ the next set of ideas tangible.
    [`image/`](./image/) for getting the Raspberry Pi OS image (built with
    [pi-gen](https://github.com/RPi-Distro/pi-gen)) and flashing it to your
    microSD cards.
-3. Follow the lessons. (Coming soon. Start with lesson 00, "why can't these two
-   Pis just talk to each other?")
+3. Follow the lessons. Start with
+   [`lessons/00`](./lessons/00/), "two Pis, one cable: can they just talk?"
 4. Read the diaries for the story behind it all. They're the running build log
    of putting this together, in the order each piece came to life.
+
+## Using a coding agent
+
+Coding agents can teach from the docs, run the Linux virtual lab, or drive real
+Pis over SSH while you handle the cable and hardware. Point them at
+[`AGENTS.md`](./AGENTS.md) first; lesson 00 also has a machine-readable
+[`manifest.json`](./lessons/00/manifest.json) with beats, commands, expected
+observations, and recovery steps.
 
 ## Why we're building this
 
