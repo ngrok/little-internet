@@ -36,8 +36,9 @@ fi
 h() { printf '\n%s%s▸ %s%s\n' "$_B" "$_C" "$*" "$_X"; }
 # note — dimmed explanatory text read from stdin.
 note() { printf '\n'; while IFS= read -r l; do printf '%s%s%s\n' "$_D" "$l" "$_X"; done; }
-# eye — a yellow "what to look for" block read from stdin.
-eye() { printf '\n%swhat to look for%s\n' "$_B$_Y" "$_X"
+# eye — a yellow "what just happened" block read from stdin; shown AFTER the output
+# so it's a look-back at what you just saw, not a spoiler before it.
+eye() { printf '\n%swhat just happened%s\n' "$_B$_Y" "$_X"
         while IFS= read -r l; do printf '%s    %s%s\n' "$_Y" "$l" "$_X"; done; }
 # pause MSG — bold prompt, then wait for Enter so you can read before anything
 # runs. When there's no terminal (the demo one-shot, CI), it prints and continues.

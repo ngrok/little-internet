@@ -23,7 +23,7 @@ Run it inside a Linux VM. With colima (brew install colima):
   colima start
   colima ssh
   # then, from the repo root inside the VM:
-  sudo ./lessons/00/scripts/virtual/demo.sh
+  sudo ./lessons/00/scripts/run.sh --virtual
 
 Or skip the lab entirely and drive real Pis over SSH with MODE=ssh. See
 lessons/00/README.md.
@@ -64,7 +64,7 @@ done
 
 echo "Lab up:  $A  <--veth(eth0)-->  $B   (link up, no IPv4 yet)"
 
-# Verbose hints when run by hand; quiet when driven by demo.sh (QUIET=1).
+# Verbose hints when run by hand; quiet when driven by run.sh --virtual (QUIET=1).
 if [ -z "${QUIET:-}" ]; then
   echo
   echo "Drive the steps against this lab from lessons/00 (they auto-detect it):"

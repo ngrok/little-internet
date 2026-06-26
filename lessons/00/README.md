@@ -1,13 +1,14 @@
 # Lesson 00: two Pis, one cable—do it yourself
 
-This is the hands-on version of [diary 00](../../diaries/00_two-pis-one-cable.md):
-two machines, one cable, and a question that sounds trivial until you try it—can
-they just... talk? You run each step yourself and watch every answer show up on
-the wire.
+This is the hands-on version of [diary
+00](../../diaries/00_two-pis-one-cable.md): two machines, one cable, and a
+question that sounds trivial until you try it: _Can they just... talk?_ You run
+each step yourself and watch every answer show up on the wire.
 
-It's procedure, not the story. For the *why*, read the diary. For ARP frame by
-frame—cache states, padding, even how to poison it—read [ARP from the ground
-up](LINK-TK).
+This part is all procedure, not story. For the _why_, read the
+[diary](../../diaries/00_two-pis-one-cable.md). For a frame-by-frame deep-dive
+into what the Address Resolution Protocol is, from cache states to actually
+poisoning it, read _ARP from the ground up_ (coming soon!).
 
 ## What you'll watch happen
 
@@ -15,30 +16,44 @@ up](LINK-TK).
 answer itself on the wire:
 
 - Is there even a wire? (Layer 1: a dead port coming to life.)
-- Are frames flowing? (Layer 2: the burst of chatter the instant the link comes up.)
+- Are frames flowing? (Layer 2: the burst of chatter the instant the link comes
+  up.)
 - Can they reach each other by the address you'd type? (Layer 3: why a wire with
   no identity is invisible to the routing table, and how ARP fixes it.)
 
 ## How it runs
 
-The scripts live here, on your machine, and drive the two nodes themselves—nothing
-gets installed on them; they only need SSH and the networking tools the [little
-internet image](../../image/) already ships.
+The scripts live on your machine where you clone this repo and drive two nodes.
 
-Each step runs as one privileged block per node, so on real hardware you're asked
-for that node's sudo password once per step. Don't want to be prompted? Set up
-passwordless sudo on the nodes. That's opt-in; the default assumes you haven't.
+For anyone who's built a [hardware version](../../BOM.md) of the little internet
+themselves (bless you), those nodes will be your two Pis. If you don't want or
+can't built the hardware version, there's also a **virtualized version** you can
+run on any Linux machine (or a VM on Windows or macOS).
 
-### On hardware (two Raspberry Pis)
+### On hardware
 
 You'll need two nodes flashed with the [little internet image](../../image/), an
-Ethernet cable between their `eth0` ports, and SSH reachability to each over Wi-Fi.
-Parts are in [`BOM.md`](../../BOM.md). Point the scripts at your nodes with
-`A_HOST` / `B_HOST` (they default to `pi@pi-foo-01.local` / `pi@pi-foo-02.local`):
+Ethernet cable between their `eth0` ports, and SSH reachability to each over
+Wi-Fi. Walk the whole lesson with one command:
+
+Parts are in . Point the scripts at your nodes with
+`A_HOST` / `B_HOST` (they default to `pi@pi-foo-01.local` / `pi@pi-foo-02.local`),
+then
+
+```bash
+./scripts/run.sh        # walks every step, pausing between each
+```
+
+If you changed your Pi's names from the default, you'll need to set them.
 
 ```bash
 export A_HOST=pi@pi-foo-01.local B_HOST=pi@pi-foo-02.local
+./scripts/run.sh        # walks every step, pausing between each
+```
 
+Each step is also its own script, so you can run or re-run just one:
+
+```bash
 ./scripts/00-link.sh        # is there a wire? unplug, then seat, the cable
 ./scripts/01-listen.sh      # the link-up burst, then a naive ping that flops
 ./scripts/02-no-address.sh  # so where did that packet actually go?
@@ -47,47 +62,30 @@ export A_HOST=pi@pi-foo-01.local B_HOST=pi@pi-foo-02.local
 ./scripts/reset.sh          # back to a blank wire
 ```
 
-### Virtually (no hardware, one Linux host)
+### Virtually
 
-No Pis? `scripts/virtual/demo.sh` recreates the whole thing in software. A veth
-pair is the closest thing to a single cable—two ends, nothing in between—so the
-script stands up two network namespaces (pi-a and pi-b) joined by one veth, walks
-the same steps (pausing for you between each, just like the hardware path), and
-tears it all down when you're done.
+No Pis? `./scripts/run.sh --virtual` recreates the whole thing in software. A
+veth pair is the closest thing to a single cable—two ends, nothing in between—so
+it stands up two network namespaces (`pi-a` and `pi-b`) joined by one veth,
+walks the same steps (pausing for you between each, just like the hardware
+path), and tears it all down when you're done.
 
-It's Linux-only, since network namespaces are a Linux feature. On macOS or Windows,
-run it inside a Linux VM ([colima](https://github.com/abiosoft/colima) and
-[lima](https://github.com/lima-vm/lima) both work); the script tells you as much if
-you try it directly.
+Network namespaces are a Linux feature, so on macOS or Windows, run it inside a
+Linux VM ([colima](https://github.com/abiosoft/colima) and
+[lima](https://github.com/lima-vm/lima) both work).
 
 ```bash
-sudo ./scripts/virtual/demo.sh
+sudo ./scripts/run.sh --virtual
 ```
 
-## What survives virtualization, and what doesn't
+#### What you can't see with virtualization
 
-The conceptual core transfers exactly, because a namespace runs the very same Linux
-network stack as the Pi. What doesn't transfer are the physical details—which is
-the whole point: Layer 1 is the one layer you have to feel with real hardware.
+A network namespace runs the same Linux stack as the Pi, but you can't see the
+physical details. That includes no:
 
-| Stage | On hardware | In the namespace lab |
-|---|---|---|
-| Layer 1 | carrier, autonegotiation, Speed/Duplex | nothing to see: a veth has no PHY |
-| Link-up chatter | DAD, MLD, RS, mDNS, DHCP Discover | DAD, MLD, RS fire; mDNS and DHCP don't (nothing runs avahi or a DHCP client) |
-| Failed ping | leaks out `wlan0`, 0 received | "Network is unreachable" (no route at all), same lesson |
-| ARP ⭐ | who-has → is-at → echo, cache hit on seq 2 | identical, down to the cache hit |
-
-Two details from the diary are hardware-only:
-
-- The 42-vs-60-byte tell (whether you sent or received a frame) vanishes, because a
-  veth doesn't pad to Ethernet's 60-byte minimum—both the question and the answer
-  come through at 42.
-- The `b8:27:eb` vendor prefix is gone: virtual interfaces get random,
-  locally-administered MACs (the kind with the LG bit flipped to 1), so the "every
-  Pi shares a prefix" trick inverts.
-
-## Captures
-
-`captures/` is where committed reference pcaps will live, so anyone can open the
-exchange in Wireshark without running a thing. (Coming soon—they need a fresh
-capture on the hardware.)
+- Carrier or Speed/Duplex details on the `eth0` device
+- mDNS or DHCP firing on link-up
+- 42-vs-60-byte tell on whether your device sent or received ARP frames, because
+  veth doesn't pad to Ethernet's 60-byte minimum
+- `b8:27:eb`<->Raspberry Pi vendor prefix on MACs, because virtual interfaces
+  get random MACs.
