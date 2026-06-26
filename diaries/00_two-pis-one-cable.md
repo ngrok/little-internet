@@ -128,52 +128,66 @@ $ tshark -i eth0 -n -t d -P -w ~/cap/link-up_$(hostname).pcapng
 What shows up in `tshark` when I plug the Ethernet cables back in?
 
 ```
-1 0.000000000      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x6e6041f
-2 0.003892064      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0xd581d00
-3 0.008486209           :: → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
-4 0.008055326           :: → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
-5 0.059911273           :: → ff02::1:ff75:bfad ICMPv6 86 Neighbor Solicitation for fe80::417f:5a36:c975:bfad
-6 0.212077517           :: → ff02::1:ff3e:ddbe ICMPv6 86 Neighbor Solicitation for fe80::8d7c:b062:23e:ddbe
-7 0.512033465           :: → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
-8 0.051884958           :: → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
-9 0.256202461 fe80::417f:5a36:c975:bfad → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
-10 0.178249088 fe80::417f:5a36:c975:bfad → ff02::2      ICMPv6 62 Router Solicitation
-11 0.025535814 fe80::417f:5a36:c975:bfad → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
-12 0.002353530 fe80::8d7c:b062:23e:ddbe → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
-13 0.134735860 fe80::8d7c:b062:23e:ddbe → ff02::2      ICMPv6 62 Router Solicitation
-14 0.321857665 fe80::8d7c:b062:23e:ddbe → ff02::fb     MDNS 284 Standard query response 0x0000 TXT, cache flush AAAA, cache flush fe80::8d7c:b062:23e:ddbe PTR, cache flush pi-foo-02.local SRV, cache flush 0 0 9 pi-foo-02.local
-15 0.023327856 fe80::417f:5a36:c975:bfad → ff02::fb     MDNS 284 Standard query response 0x0000 TXT, cache flush AAAA, cache flush fe80::417f:5a36:c975:bfad PTR, cache flush pi-foo-01.local SRV, cache flush 0 0 9 pi-foo-01.local
-16 0.254158200      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0xa7b88e4c
-17 0.159684178 fe80::8d7c:b062:23e:ddbe → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
-18 0.512704921      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x7be23448
-19 0.327832272 fe80::8d7c:b062:23e:ddbe → ff02::fb     MDNS 249 Standard query response 0x0000 PTR _workstation._tcp.local PTR pi-foo-02 [b8:27:eb:7d:e8:ee]._workstation._tcp.local TXT, cache flush SRV, cache flush 0 0 9 pi-foo-02.local AAAA, cache flush fe80::8d7c:b062:23e:ddbe
-20 0.044318953 fe80::417f:5a36:c975:bfad → ff02::fb     MDNS 212 Standard query response 0x0000 PTR pi-foo-01 [b8:27:eb:3a:e2:c8]._workstation._tcp.local TXT, cache flush SRV, cache flush 0 0 9 pi-foo-01.local AAAA, cache flush fe80::417f:5a36:c975:bfad
-21 0.684938571 fe80::8d7c:b062:23e:ddbe → ff02::fb     MDNS 284 Standard query response 0x0000 TXT, cache flush AAAA, cache flush fe80::8d7c:b062:23e:ddbe PTR, cache flush pi-foo-02.local SRV, cache flush 0 0 9 pi-foo-02.local
-22 0.037357476 fe80::417f:5a36:c975:bfad → ff02::fb     MDNS 284 Standard query response 0x0000 TXT, cache flush AAAA, cache flush fe80::417f:5a36:c975:bfad PTR, cache flush pi-foo-01.local SRV, cache flush 0 0 9 pi-foo-01.local
-23 1.125502883 fe80::417f:5a36:c975:bfad → ff02::2      ICMPv6 62 Router Solicitation
-24 0.856592157 fe80::8d7c:b062:23e:ddbe → ff02::2      ICMPv6 62 Router Solicitation
-25 0.645319956      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x8ff0f268
-26 0.333891243      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x867078d2
+1 0.000000000      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0xb41599cb
+2 0.000083490      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x96cc4fa5
+3 0.014863826           :: → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
+4 0.003233495           :: → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
+5 0.684038463           :: → ff02::1:ff18:e263 ICMPv6 86 Neighbor Solicitation for fe80::600f:9f10:ee18:e263
+6 0.036725268           :: → ff02::1:ff25:a21c ICMPv6 86 Neighbor Solicitation for fe80::18d5:ef5b:eb25:a21c
+7 0.251291608           :: → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
+8 0.004677976           :: → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
+9 0.731423368 fe80::600f:9f10:ee18:e263 → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
+10 0.036680788 fe80::18d5:ef5b:eb25:a21c → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
+11 0.073094337 fe80::18d5:ef5b:eb25:a21c → ff02::2      ICMPv6 62 Router Solicitation
+12 0.108444393 fe80::600f:9f10:ee18:e263 → ff02::2      ICMPv6 62 Router Solicitation
+13 0.057646759 fe80::18d5:ef5b:eb25:a21c → ff02::fb     MDNS 284 Standard query response 0x0000 TXT, cache flush AAAA, cache flush fe80::18d5:ef5b:eb25:a21c PTR, cache flush pi-foo-01.local SRV, cache flush 0 0 9 pi-foo-01.local
+14 0.122903737 fe80::600f:9f10:ee18:e263 → ff02::fb     MDNS 284 Standard query response 0x0000 TXT, cache flush AAAA, cache flush fe80::600f:9f10:ee18:e263 PTR, cache flush pi-foo-02.local SRV, cache flush 0 0 9 pi-foo-02.local
+15 0.138246262      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x19cb3d5f
+16 0.235561833 fe80::18d5:ef5b:eb25:a21c → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
+17 0.012260488      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x15d971bf
+18 0.207084184 fe80::600f:9f10:ee18:e263 → ff02::16     ICMPv6 110 Multicast Listener Report Message v2
+19 0.724115933 fe80::18d5:ef5b:eb25:a21c → ff02::fb     MDNS 249 Standard query response 0x0000 PTR _workstation._tcp.local PTR pi-foo-01 [b8:27:eb:3a:e2:c8]._workstation._tcp.local TXT, cache flush SRV, cache flush 0 0 9 pi-foo-01.local AAAA, cache flush fe80::18d5:ef5b:eb25:a21c
+20 0.208121264 fe80::600f:9f10:ee18:e263 → ff02::fb     MDNS 212 Standard query response 0x0000 PTR pi-foo-02 [b8:27:eb:7d:e8:ee]._workstation._tcp.local TXT, cache flush SRV, cache flush 0 0 9 pi-foo-02.local AAAA, cache flush fe80::600f:9f10:ee18:e263
+21 0.474254125 fe80::18d5:ef5b:eb25:a21c → ff02::fb     MDNS 284 Standard query response 0x0000 TXT, cache flush AAAA, cache flush fe80::18d5:ef5b:eb25:a21c PTR, cache flush pi-foo-01.local SRV, cache flush 0 0 9 pi-foo-01.local
+22 0.183605909 fe80::600f:9f10:ee18:e263 → ff02::fb     MDNS 284 Standard query response 0x0000 TXT, cache flush AAAA, cache flush fe80::600f:9f10:ee18:e263 PTR, cache flush pi-foo-02.local SRV, cache flush 0 0 9 pi-foo-02.local
+23 1.587357382 fe80::600f:9f10:ee18:e263 → ff02::2      ICMPv6 62 Router Solicitation
+24 0.292672889 fe80::18d5:ef5b:eb25:a21c → ff02::2      ICMPv6 62 Router Solicitation
+25 0.395784084      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x9b447e7e
+26 0.628896512      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0xcfc7ff48
+27 6.522848232 fe80::600f:9f10:ee18:e263 → ff02::2      ICMPv6 62 Router Solicitation
+28 1.017035781 fe80::18d5:ef5b:eb25:a21c → ff02::2      ICMPv6 62 Router Solicitation
+29 0.033977233      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x272236f2
+30 1.313535829      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x24a40786
 ```
 
 You have two categories of frames here. First, attempts to find a DHCP server
-that can give the Pi an IP address.
+that can give the Pi an IP address. The first two frames look like one device
+retrying—but a retry would reuse its transaction ID, and these two differ. The
+default columns hide the other half of the story, so I read the saved capture
+back asking for just three fields: the frame number, the Ethernet source, and
+the DHCP transaction ID.
 
 ```
-1 0.000000000      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0x6e6041f
-2 0.003892064      0.0.0.0 → 255.255.255.255 DHCP 329 DHCP Discover - Transaction ID 0xd581d00
+$ tshark -r ~/cap/link-up_pi-foo-01.pcapng -n -c 2 -T fields \
+  -e frame.number -e eth.src -e dhcp.id
+
+1	b8:27:eb:7d:e8:ee	0xb41599cb
+2	b8:27:eb:3a:e2:c8	0x96cc4fa5
 ```
 
-This pattern of paired DHCP discovery requests happens a few more times. None of
-them successful. What's interesting here is that while frame `1` is `pi-foo-01`
-making its request, frame `2` is actually `pi-foo-02`. The moment I plugged in
-`pi-foo-01`, it started listening, and it could also start hearing `pi-foo-02`
-introducing itself over this single shared link.
+Same transaction IDs as frames `1` and `2` up top, but two different Ethernet
+sources. This capture is running on `pi-foo-01`, whose MAC is
+`b8:27:eb:3a:e2:c8`. Frame `1` came from `b8:27:eb:7d:e8:ee`—that's `pi-foo-02`.
+The very first frame `pi-foo-01` recorded wasn't even its own; it was its
+neighbor already shouting for an address. Only on frame `2` does `pi-foo-01`
+itself pipe up. The moment I seated the cable, `pi-foo-01` started listening,
+and it could already hear `pi-foo-02` introducing itself over this single
+shared link.
 
 The wire is alive _and_ passing frames.
 
 What's all the other mumbo-jumbo, then? Two important clues: `ICMPv6` and
-`fe80::417f:5a36:c975:bfad`. This isn't actually mumbo-jumbo, but rather the
+`fe80::18d5:ef5b:eb25:a21c`. This isn't actually mumbo-jumbo, but rather the
 diagnostic portion of the IPv6 protocol doing its job: announcing the device's
 name, giving itself an IPv6 address, and finding neighbors.
 
@@ -238,7 +252,7 @@ Sneaky little trick.
 ### Well, what about IPv6?
 
 The truth is that I _do_ know I could ping one Pi with another over IPv6. I saw
-the `fe80::417f:5a36:c975:bfad` and `fe80::8d7c:b062:23e:ddbe` from before.
+the `fe80::18d5:ef5b:eb25:a21c` and `fe80::600f:9f10:ee18:e263` from before.
 
 But... that's not the experience I expected. That's not the way I've dealt with
 local networks ever since I had more than one device on the local network, and
@@ -292,26 +306,26 @@ And `tshark` has captured all sorts of goodness for me. Here's `pi-foo-01`:
 
 ```
 1 0.000000000 b8:27:eb:3a:e2:c8 → ff:ff:ff:ff:ff:ff ARP 42 Who has 10.10.0.2? Tell 10.10.0.1
-2 0.000630558 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 60 10.10.0.2 is at b8:27:eb:7d:e8:ee
-3 0.000044217    10.10.0.1 → 10.10.0.2    ICMP 98 Echo (ping) request  id=0x0006, seq=1/256, ttl=64
-4 0.000640714    10.10.0.2 → 10.10.0.1    ICMP 98 Echo (ping) reply    id=0x0006, seq=1/256, ttl=64 (request in 3)
-5 1.000482602    10.10.0.1 → 10.10.0.2    ICMP 98 Echo (ping) request  id=0x0006, seq=2/512, ttl=64
-6 0.000703472    10.10.0.2 → 10.10.0.1    ICMP 98 Echo (ping) reply    id=0x0006, seq=2/512, ttl=64 (request in 5)
-7 4.079729717 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 60 Who has 10.10.0.1? Tell 10.10.0.2
-8 0.000074581 b8:27:eb:3a:e2:c8 → b8:27:eb:7d:e8:ee ARP 42 10.10.0.1 is at b8:27:eb:3a:e2:c8
+2 0.000593124 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 60 10.10.0.2 is at b8:27:eb:7d:e8:ee
+3 0.000027552    10.10.0.1 → 10.10.0.2    ICMP 98 Echo (ping) request  id=0x0010, seq=1/256, ttl=64
+4 0.000555988    10.10.0.2 → 10.10.0.1    ICMP 98 Echo (ping) reply    id=0x0010, seq=1/256, ttl=64 (request in 3)
+5 0.999792156    10.10.0.1 → 10.10.0.2    ICMP 98 Echo (ping) request  id=0x0010, seq=2/512, ttl=64
+6 0.000669842    10.10.0.2 → 10.10.0.1    ICMP 98 Echo (ping) reply    id=0x0010, seq=2/512, ttl=64 (request in 5)
+7 4.160625093 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 60 Who has 10.10.0.1? Tell 10.10.0.2
+8 0.000077604 b8:27:eb:3a:e2:c8 → b8:27:eb:7d:e8:ee ARP 42 10.10.0.1 is at b8:27:eb:3a:e2:c8
 ```
 
 And `pi-foo-02`:
 
 ```
 1 0.000000000 b8:27:eb:3a:e2:c8 → ff:ff:ff:ff:ff:ff ARP 60 Who has 10.10.0.2? Tell 10.10.0.1
-2 0.000085558 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 42 10.10.0.2 is at b8:27:eb:7d:e8:ee
-3 0.000542057    10.10.0.1 → 10.10.0.2    ICMP 98 Echo (ping) request  id=0x0006, seq=1/256, ttl=64
-4 0.000154234    10.10.0.2 → 10.10.0.1    ICMP 98 Echo (ping) reply    id=0x0006, seq=1/256, ttl=64 (request in 3)
-5 1.001466353    10.10.0.1 → 10.10.0.2    ICMP 98 Echo (ping) request  id=0x0006, seq=2/512, ttl=64
-6 0.000156109    10.10.0.2 → 10.10.0.1    ICMP 98 Echo (ping) reply    id=0x0006, seq=2/512, ttl=64 (request in 5)
-7 4.081530384 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 42 Who has 10.10.0.1? Tell 10.10.0.2
-8 0.000620523 b8:27:eb:3a:e2:c8 → b8:27:eb:7d:e8:ee ARP 60 10.10.0.1 is at b8:27:eb:3a:e2:c8
+2 0.000092811 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 42 10.10.0.2 is at b8:27:eb:7d:e8:ee
+3 0.000457073    10.10.0.1 → 10.10.0.2    ICMP 98 Echo (ping) request  id=0x0010, seq=1/256, ttl=64
+4 0.000130882    10.10.0.2 → 10.10.0.1    ICMP 98 Echo (ping) reply    id=0x0010, seq=1/256, ttl=64 (request in 3)
+5 1.000266128    10.10.0.1 → 10.10.0.2    ICMP 98 Echo (ping) request  id=0x0010, seq=2/512, ttl=64
+6 0.000153747    10.10.0.2 → 10.10.0.1    ICMP 98 Echo (ping) reply    id=0x0010, seq=2/512, ttl=64 (request in 5)
+7 4.160484416 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 42 Who has 10.10.0.1? Tell 10.10.0.2
+8 0.000597122 b8:27:eb:3a:e2:c8 → b8:27:eb:7d:e8:ee ARP 60 10.10.0.1 is at b8:27:eb:3a:e2:c8
 ```
 
 Let's break this down frame by frame from the perspective of `pi-foo-01`:
@@ -352,10 +366,10 @@ ARPing and pinging:
 
 ```
 1 0.000000000 b8:27:eb:3a:e2:c8 → ff:ff:ff:ff:ff:ff ARP 42 Who has 10.10.0.2? Tell 10.10.0.1
-2 0.000630558 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 60 10.10.0.2 is at b8:27:eb:7d:e8:ee
+2 0.000593124 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 60 10.10.0.2 is at b8:27:eb:7d:e8:ee
 ...
-7 4.079729717 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 60 Who has 10.10.0.1? Tell 10.10.0.2
-8 0.000074581 b8:27:eb:3a:e2:c8 → b8:27:eb:7d:e8:ee ARP 42 10.10.0.1 is at b8:27:eb:3a:e2:c8
+7 4.160625093 b8:27:eb:7d:e8:ee → b8:27:eb:3a:e2:c8 ARP 60 Who has 10.10.0.1? Tell 10.10.0.2
+8 0.000077604 b8:27:eb:3a:e2:c8 → b8:27:eb:7d:e8:ee ARP 42 10.10.0.1 is at b8:27:eb:3a:e2:c8
 ```
 
 The first ARP frame comes in at 42 bytes as it's leaving `pi-foo-01`. The second
