@@ -27,7 +27,7 @@ The scripts live on your machine where you clone this repo and drive two nodes.
 
 For anyone who's built a [hardware version](../../BOM.md) of the little internet
 themselves (bless you), those nodes will be your two Pis. If you don't want or
-can't built the hardware version, there's also a **virtualized version** you can
+can't build the hardware version, there's also a **virtualized version** you can
 run on any Linux machine (or a VM on Windows or macOS).
 
 ### On hardware
@@ -36,7 +36,8 @@ You'll need two nodes flashed with the [little internet image](../../image/), an
 Ethernet cable between their `eth0` ports, and SSH reachability to each over
 Wi-Fi. Walk the whole lesson with one command:
 
-Parts are in . Point the scripts at your nodes with
+The scripts are in this lesson's [`scripts/`](./scripts/) directory. Point them
+at your nodes with
 `A_HOST` / `B_HOST` (they default to `pi@pi-foo-01.local` / `pi@pi-foo-02.local`),
 then
 

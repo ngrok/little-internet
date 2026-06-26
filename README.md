@@ -41,7 +41,7 @@ the next set of ideas tangible.
 │                 nodes run, plus instructions for building and flashing it.
 ├── diaries/      Running build log of how the network came together, one
 │                 prose file per session, in the order things happened.
-└── lessons/      (coming soon) One directory per lesson: an explainer, the
+└── lessons/      One directory per lesson: an explainer, the
                   scripts to run it yourself, and recorded packet captures.
 ```
 
@@ -53,8 +53,9 @@ the next set of ideas tangible.
    [`image/`](./image/) for getting the Raspberry Pi OS image (built with
    [pi-gen](https://github.com/RPi-Distro/pi-gen)) and flashing it to your
    microSD cards.
-3. Follow the lessons. (Coming soon. Start with lesson 00, "why can't these two
-   Pis just talk to each other?")
+3. Follow the lessons. Start with
+   [`lesson 00`](./lessons/00/), "why can't these two Pis just talk to each
+   other?"
 4. Read the diaries for the story behind it all. They're the running build log
    of putting this together, in the order each piece came to life.
 
