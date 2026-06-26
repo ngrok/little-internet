@@ -12,10 +12,10 @@ _And have some fun along the way._
 ## How I'm rolling out the little internet
 
 We start with a single network, then two networks, and then a working facsimile
-of the internet you know and love. Each phase comes with lessons as technical
-write-ups ([ngrok blog](https://ngrok.com/blog)), YouTube videos
-([ngrok @ YouTube](https://www.youtube.com/@ngrokHQ)), and follow-along scripts
-in this repo.
+of the internet you know and love. Each phase comes with hands-on lessons and
+diaries right here in this repo, with companion deep-dives on the
+[ngrok blog](https://ngrok.com/blog) and walkthroughs on
+[YouTube](https://www.youtube.com/@ngrokHQ).
 
 Each phase includes just enough hardware to make the next set of ideas tangible.
 

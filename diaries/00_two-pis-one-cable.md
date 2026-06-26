@@ -111,7 +111,7 @@ happened, these tools also reveal:
 
 **Okay, I have Layer 1 of networking: a live wire.**
 
-### What kind of "talking" do the Pis on the wire at the moment of connection?
+### What kind of "talking" do the Pis do on the wire at the moment of connection?
 
 Capturing all this chatter, in the form of network frames, is exactly what tools
 like `tshark` were designed for. With both Pis unplugged, I start up
@@ -341,10 +341,9 @@ If Layer 2 of networking is MAC addresses and Layer 3 is IP addresses, then the
 Address Resolution Protocol (ARP) is the bridge that gave our `pings` a route
 out of the un-reachable doldrums.
 
-I got nerd-sniped so hard by ARP I wrote a separate article about it.
-If you want ARP frame by frame, with all the Ethernet padding, the cache states,
-and even how it can be abused and poisoned—read [ARP from the ground
-up](LINK-TK) and then come back.
+I got nerd-sniped so hard by ARP that it's getting its own article. If you want
+ARP frame by frame, with all the Ethernet padding, the cache states, and even
+how it can be abused and poisoned—_ARP from the ground up_ is coming soon.
 
 ### Frame size tells you "did I send or hear that?"
 
