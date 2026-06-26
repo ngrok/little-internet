@@ -67,10 +67,11 @@ echo "Lab up:  $A  <--veth(eth0)-->  $B   (link up, no IPv4 yet)"
 # Verbose hints when run by hand; quiet when driven by demo.sh (QUIET=1).
 if [ -z "${QUIET:-}" ]; then
   echo
-  echo "Drive the steps against this lab with MODE=netns, e.g. from lessons/00:"
-  echo "  MODE=netns ./scripts/02-no-address.sh    # fails, no identity"
-  echo "  MODE=netns ./scripts/03-address.sh       # give each node an identity"
-  echo "  MODE=netns ./scripts/04-arp.sh           # the ARP introduction"
+  echo "Drive the steps against this lab from lessons/00 (they auto-detect it):"
+  echo "  ./scripts/02-no-address.sh    # the ping fails, no identity"
+  echo "  ./scripts/03-address.sh       # give each node an identity"
+  echo "  ./scripts/04-arp.sh           # the ARP introduction"
+  echo "  ./scripts/virtual/watch.sh    # live two-pane dashboard"
   echo
   echo "Tear down with: sudo ./lab-down.sh"
 fi

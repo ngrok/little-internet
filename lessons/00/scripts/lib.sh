@@ -12,7 +12,12 @@
 # Point the SSH backend at your nodes with A_HOST / B_HOST.
 set -uo pipefail
 
-MODE="${MODE:-ssh}"
+# MODE picks the backend. If you don't set it, autodetect: a namespace lab being up
+# (pi-a present under /run/netns) means you're virtual; otherwise assume real Pis
+# over SSH. The context banner below prints whichever it chose.
+if [ -z "${MODE:-}" ]; then
+  if [ -e /run/netns/pi-a ] || [ -e /var/run/netns/pi-a ]; then MODE=netns; else MODE=ssh; fi
+fi
 A_HOST="${A_HOST:-pi@pi-foo-01.local}"
 B_HOST="${B_HOST:-pi@pi-foo-02.local}"
 
