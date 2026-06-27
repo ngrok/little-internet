@@ -20,7 +20,12 @@ bridge-utils
 # RPi OS Lite doesn't ship the nft binary by default.
 nftables
 
-# I2C tooling + Python for the SSD1306 OLED displays in the Phase 1 BOM
-i2c-tools
+# Python + libraries for the SSD1306 *SPI* OLED displays in the Phase 1 BOM.
+# The compiled/heavy deps come from apt (prebuilt — no toolchain in the image);
+# the pure-python luma.oled library is layered on top via pip in 04-run.sh.
 python3
+python3-venv
 python3-pip
+python3-pil
+python3-spidev
+python3-rpi-lgpio
