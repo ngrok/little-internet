@@ -90,7 +90,12 @@ file in place so you can fix it and reboot.
   the password one last time). After that, `ssh pi@<hostname>.local` logs in
   with no prompt.
 - Confirm the networking tools are present: `which tcpdump tshark arping`.
-- Check the I2C bus (for the OLED): `i2cdetect -y 1`.
+- Check the OLED bus: the Phase 1 displays are **SPI** (not I2C), so confirm
+  `ls /dev/spidev*` lists `spidev0.0` and `spidev0.1`. The display library is
+  pre-installed in `/opt/little-internet/venv`; drive a panel with
+  `/opt/little-internet/venv/bin/python3` (the `tools/oled-test/` scripts in this
+  repo, `oled_test.py` and `oled_shrimp.py`, are ready-made smoke tests — copy
+  them onto the node with `scp`).
 - Wi-Fi is management-only by design: you can SSH in and the node reaches the
   internet, but two nodes **can't reach each other over Wi-Fi**. The lessons run
   on a wired link instead. So if a second node seems unreachable _from the first
@@ -126,9 +131,11 @@ image/
     ├── EXPORT_IMAGE              Marks this stage as exporting the final image.
     ├── 00-net-tools/
     │   ├── 00-debconf            Preseeds iperf3 to not autostart (keeps the build non-interactive).
-    │   ├── 00-packages           apt packages to install (capture, ARP, VLAN, I2C…).
-    │   ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays.
-    │   └── 02-run.sh             Installs a pre-provisioned Wi-Fi connection, if one was generated.
+    │   ├── 00-packages           apt packages to install (capture, ARP, VLAN, OLED/SPI…).
+    │   ├── 01-run.sh             Enables the SPI bus for the SSD1306 OLED displays.
+    │   ├── 02-run.sh             Installs a pre-provisioned Wi-Fi connection, if one was generated.
+    │   ├── 03-run.sh             Grants the user unprivileged packet capture + a ~/cap dir.
+    │   └── 04-run.sh             Builds the OLED display venv (luma.oled) at /opt/little-internet/venv.
     ├── 01-firstboot-config/      First-boot hostname + Wi-Fi provisioner for flashed (released) images.
     │   ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
     │   └── files/                The script, systemd unit, and little-internet.txt.example.
