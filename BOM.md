@@ -3,7 +3,7 @@
 Every part needed to build the little internet, organized by phase. Each phase
 builds on the one before it.
 
-## Phase 1: a network (~$198)
+## Phase 1: a network (~$180)
 
 | Item                                                                    | Qty | Unit  | Subtotal  | Vendor                   |
 | ----------------------------------------------------------------------- | --- | ----- | --------- | ------------------------ |
@@ -12,11 +12,11 @@ builds on the one before it.
 | SanDisk Ultra 16GB microSD, A1-rated                                    | 3   | $12   | $36       | Amazon (sold by SanDisk) |
 | Official Raspberry Pi 12.5W micro-USB PSU                               | 2   | $8    | $16       | Adafruit / PiShop        |
 | Monoprice SlimRun Cat6A 1ft (single color)                              | 5   | $2.50 | $12       | Monoprice                |
-| Adafruit SSD1306 128×64 OLED, 0.96" (bare breakout, requires soldering) | 2   | $15   | $30       | Adafruit                 |
+| ELEGOO SSD1306 128×64 OLED, 0.96" I2C (4-pin, 3-pack, no soldering)     | 1   | $12   | $12       | Amazon (sold by ELEGOO)  |
 | Female-to-female jumper wires (40-pack)                                 | 1   | $4    | $4        | Adafruit / Amazon        |
-| **Phase 1 total**                                                       |     |       | **~$198** |                          |
+| **Phase 1 total**                                                       |     |       | **~$180** |                          |
 
-## Phase 2: two networks (+~$112, running ~$310)
+## Phase 2: two networks (+~$112, running ~$292)
 
 | Item                                                                              | Qty | Unit  | Subtotal  | Vendor                   |
 | --------------------------------------------------------------------------------- | --- | ----- | --------- | ------------------------ |
@@ -27,9 +27,9 @@ builds on the one before it.
 | SanDisk Ultra 16GB microSD, A1-rated                                              | 1   | $12   | $12       | Amazon (sold by SanDisk) |
 | Monoprice SlimRun Cat6A 1ft (second color)                                        | 5   | $2.50 | $12       | Monoprice                |
 | **Phase 2 added**                                                                 |     |       | **~$112** |                          |
-| **Running total**                                                                 |     |       | **~$310** |                          |
+| **Running total**                                                                 |     |       | **~$292** |                          |
 
-## Phase 3: the little internet (+~$148, running ~$458)
+## Phase 3: the little internet (+~$148, running ~$440)
 
 | Item                                                  | Qty | Unit  | Subtotal  | Vendor                   |
 | ----------------------------------------------------- | --- | ----- | --------- | ------------------------ |
@@ -39,4 +39,4 @@ builds on the one before it.
 | SanDisk Ultra 16GB microSD, A1-rated                  | 2   | $12   | $24       | Amazon (sold by SanDisk) |
 | Monoprice SlimRun Cat6A 1ft (third color)             | 3   | $2.50 | $8        | Monoprice                |
 | **Phase 3 added**                                     |     |       | **~$148** |                          |
-| **Running total**                                     |     |       | **~$458** |                          |
+| **Running total**                                     |     |       | **~$440** |                          |
