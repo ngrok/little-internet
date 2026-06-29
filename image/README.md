@@ -130,7 +130,8 @@ image/
     │   ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays + adds the user to the i2c group.
     │   ├── 02-run.sh             Installs a pre-provisioned Wi-Fi connection, if one was generated.
     │   ├── 03-run.sh             Lets the user run tshark unprivileged and sets COLORTERM for colored output over SSH.
-    │   └── 04-run.sh             Builds /opt/little-internet/venv with luma.oled to drive the OLED displays.
+    │   ├── 04-run.sh             Builds /opt/little-internet/venv with luma.oled to drive the OLED displays.
+    │   └── 05-run.sh             Installs the OLED test scripts into ~/oled-test (staged from tools/oled-test by build.sh).
     ├── 01-firstboot-config/      First-boot hostname + Wi-Fi provisioner for flashed (released) images.
     │   ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
     │   └── files/                The script, systemd unit, and little-internet.txt.example.

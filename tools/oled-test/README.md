@@ -18,11 +18,16 @@ Quick smoke tests for the **SSD1306 128×64** OLEDs over **I2C** (4-pin modules)
 
 ## On the Pi
 
-> **On the official little-internet image** I2C is already enabled and the
-> library is pre-installed at `/opt/little-internet/venv`. Skip straight to
-> running the scripts with that interpreter:
-> `/opt/little-internet/venv/bin/python3 oled_shrimp.py`. The steps below are for
-> a stock Raspberry Pi OS where you set this up yourself.
+> **On the official little-internet image** I2C is already enabled, the library
+> is pre-installed at `/opt/little-internet/venv`, and these scripts ship in
+> `~/oled-test`. Wire it up and run, straight off a fresh flash:
+>
+> ```sh
+> /opt/little-internet/venv/bin/python3 ~/oled-test/oled_test.py
+> /opt/little-internet/venv/bin/python3 ~/oled-test/oled_shrimp.py
+> ```
+>
+> The steps below are for a stock Raspberry Pi OS where you set this up yourself.
 
 ```sh
 # 1. Enable I2C (one-time), then reboot
