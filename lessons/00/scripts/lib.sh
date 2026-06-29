@@ -78,6 +78,30 @@ fi
 node_a() { _run "$A_TGT" "$1"; }
 node_b() { _run "$B_TGT" "$1"; }
 
+# baseline_block — shell (run as root on a node) that returns eth0 to its stock
+# resting state: a single DHCP, autoconnect wired profile (eth-dhcp) that never
+# grabs the default route, so management stays on wlan0. This is what a freshly
+# imaged Pi has out of the box, and it's what makes a blank eth0 chatter the
+# instant the link comes up—the spontaneous burst the whole lesson is built on.
+# DHCP finds no server on a two-Pi link, so the wire stays addressless ("no
+# identity") while still talking. Idempotent. NetworkManager only; the netns lab
+# has no NM, so this no-ops there.
+baseline_block() {
+cat <<'EOF'
+command -v nmcli >/dev/null 2>&1 || exit 0
+existing="$(nmcli -t -f NAME connection show 2>/dev/null)"
+# Drop the lesson's other wired profiles so eth-dhcp is the only connection on eth0.
+for c in eth eth0 "Wired connection 1"; do
+  printf '%s\n' "$existing" | grep -qx "$c" && nmcli connection delete "$c" >/dev/null 2>&1
+done
+printf '%s\n' "$existing" | grep -qx eth-dhcp || \
+  nmcli connection add type ethernet ifname eth0 con-name eth-dhcp \
+    ipv4.method auto ipv6.method auto connection.autoconnect yes \
+    ipv4.never-default yes ipv6.never-default yes >/dev/null
+nmcli connection up eth-dhcp >/dev/null 2>&1 || true
+EOF
+}
+
 # Context line, every step: you run from THIS machine; it reaches both nodes.
 if [ "$MODE" = ssh ]; then
   note <<EOF

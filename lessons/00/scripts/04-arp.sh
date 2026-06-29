@@ -34,7 +34,9 @@ kill -INT $CAP 2>/dev/null; wait $CAP 2>/dev/null
 h "neighbor cache after (expect 10.10.0.2 ... REACHABLE)"; ip neigh show dev eth0
 h "the exchange, frame by frame"
 if command -v tshark >/dev/null 2>&1; then
-  tshark -n -r /tmp/first-arp.pcap 2>/dev/null
+  # COLORTERM inline: the ssh transport runs this via non-login sudo bash, which
+  # never sources /etc/profile.d, so tshark --color stays blank without it.
+  COLORTERM=truecolor tshark -n -r /tmp/first-arp.pcap --color 2>/dev/null
 else
   echo "(tshark not found—showing tcpdump; frame length first, trailing length is the L2 payload)"
   tcpdump -n -e -t -r /tmp/first-arp.pcap 2>/dev/null

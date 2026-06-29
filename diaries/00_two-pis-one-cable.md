@@ -20,12 +20,14 @@ I can verify that with the
 [`ethtool`](https://man7.org/linux/man-pages/man8/ethtool.8.html) Linux
 utilities.
 
-```
+```bash
 $ ip link show eth0
 
 2: eth0: <NO-CARRIER,BROADCAST,MULTICAST,UP> mtu 1500 qdisc pfifo_fast state DOWN mode DEFAULT group default qlen 1000
     link/ether b8:27:eb:3a:e2:c8 brd ff:ff:ff:ff:ff:ff
+```
 
+```
 $ sudo ethtool eth0
 
 Settings for eth0:
@@ -58,15 +60,17 @@ Your dead giveaways: `NO-CARRIER`, `DOWN`, and `Link detected: no`.
 
 ## Bring the Pis to life
 
-Now, what do those same tools show on `pi-foo-01` when I connect the Ethernet cable on
-both ends?
+Now, what do those same tools show on `pi-foo-01` when I connect the Ethernet
+cable on both ends?
 
-```
+```bash
 $ ip link show eth0
 
 2: eth0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast state UP mode DEFAULT group default qlen 1000
     link/ether b8:27:eb:3a:e2:c8 brd ff:ff:ff:ff:ff:ff
+```
 
+```bash
 $ sudo ethtool eth0
 
 Settings for eth0:
@@ -114,15 +118,11 @@ happened, these tools also reveal:
 ### What kind of "talking" do the Pis do on the wire at the moment of connection?
 
 Capturing all this chatter, in the form of network frames, is exactly what tools
-like `tshark` were designed for. With both Pis unplugged, I start up
-`tshark` to listen and capture everything in `.pcapng` files.
+like `tshark` were designed for. With both Pis unplugged, I start up `tshark` on
+both Pis to listen and capture everything in `.pcapng` files.
 
 ```bash
-# on pi-foo-01
-$ tshark -i eth0 -n -t d -P -w ~/cap/link-up_$(hostname).pcapng
-
-# on pi-foo-02
-$ tshark -i eth0 -n -t d -P -w ~/cap/link-up_$(hostname).pcapng
+$ tshark -i eth0 -nPtd --color -w ~/cap/link-up_$(hostname).pcapng
 ```
 
 What shows up in `tshark` when I plug the Ethernet cables back in?
@@ -181,8 +181,8 @@ sources. This capture is running on `pi-foo-01`, whose MAC is
 The very first frame `pi-foo-01` recorded wasn't even its own; it was its
 neighbor already shouting for an address. Only on frame `2` does `pi-foo-01`
 itself pipe up. The moment I seated the cable, `pi-foo-01` started listening,
-and it could already hear `pi-foo-02` introducing itself over this single
-shared link.
+and it could already hear `pi-foo-02` introducing itself over this single shared
+link.
 
 The wire is alive _and_ passing frames.
 
@@ -285,12 +285,12 @@ $ sudo nmcli connection add type ethernet ifname eth0 con-name eth \
 Then, I start `tshark` on both Pis.
 
 ```bash
-$ tshark -i eth0 -n -t d --color -P -f "arp or icmp" -w ~/cap/arp_$(hostname).pcapng
+$ tshark -i eth0 -nPtd --color -f "arp or icmp" -w ~/cap/arp_$(hostname).pcapng
 ```
 
 From another session on `pi-foo-01`, I can _finally_ ping the other Pi.
 
-```
+```bash
 $ ping -c2 10.10.0.2
 
 PING 10.10.0.2 (10.10.0.2) 56(84) bytes of data.
@@ -361,8 +361,8 @@ how it can be abused and poisoned—_ARP from the ground up_ is coming soon.
 
 ### Frame size tells you "did I send or hear that?"
 
-Let me remind you of what a `tshark` capture from `pi-foo-01` looks like at the moment of
-ARPing and pinging:
+Let me remind you of what a `tshark` capture from `pi-foo-01` looks like at the
+moment of ARPing and pinging:
 
 ```
 1 0.000000000 b8:27:eb:3a:e2:c8 → ff:ff:ff:ff:ff:ff ARP 42 Who has 10.10.0.2? Tell 10.10.0.1
@@ -373,9 +373,9 @@ ARPing and pinging:
 ```
 
 The first ARP frame comes in at 42 bytes as it's leaving `pi-foo-01`. The second
-frame, which indicates the ARP reply from `pi-foo-02`, is 60 bytes. That tells us
-_something_. Now, if I superimpose another capture from `pi-foo-02` onto that one
-and you're willing to squint a little...
+frame, which indicates the ARP reply from `pi-foo-02`, is 60 bytes. That tells
+us _something_. Now, if I superimpose another capture from `pi-foo-02` onto that
+one and you're willing to squint a little...
 
 ```
 1 ARP 42 Who has 10.10.0.2? Tell 10.10.0.1 | ARP 60 Who has 10.10.0.2? Tell 10.10.0.1
@@ -416,9 +416,9 @@ The connectivity was free. The reachability I wanted needed an identity.
 ## What's next?
 
 Two Pis on one cable is the smallest network there is: a broadcast domain of
-two. When `pi-foo-01` screamed `who has 10.10.0.2?` into the room, there was exactly
-one other device to hear it—so "broadcast to everyone" and "ask the only other
-guy in the room" looked like the same thing.
+two. When `pi-foo-01` screamed `who has 10.10.0.2?` into the room, there was
+exactly one other device to hear it—so "broadcast to everyone" and "ask the only
+other guy in the room" looked like the same thing.
 
 That stops being true the moment I add a third node and a switch. Now a
 broadcast really does hit _everyone_, and the switch has to make a call it never

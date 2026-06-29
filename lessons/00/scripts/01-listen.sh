@@ -17,20 +17,45 @@ aren't even pi-a. The other Pi is already on the wire, talking too.
 script. Watch for the kinds of frames below, not an exact transcript.)
 EOF
 
-pause "Press Enter to bounce pi-a's link and capture the burst."
+# Both nodes need their stock DHCP baseline so the bounce reproduces the FULL burst
+# (DHCP + IPv6 + mDNS), not just the kernel's IPv6 chatter. NetworkManager only; the
+# netns lab has no NM and shows the IPv6-only burst on its own.
+if [ "$MODE" = ssh ]; then
+  h "making sure both nodes are at the stock DHCP baseline"
+  node_a "$(baseline_block)"
+  node_b "$(baseline_block)"
+fi
+
+pause "Press Enter to bounce the link(s) and capture the burst on pi-a."
+
+# In ssh mode, bounce the neighbor in the background too, timed so its link comes up
+# *inside* pi-a's capture window: pi-a then hears pi-b wake up on the shared wire,
+# not just itself—the "some of these frames aren't even me" moment from the diary.
+# Best-effort: if pi-b can't be driven unattended (passworded sudo on a backgrounded
+# session), you simply get pi-a's own burst, same as before.
+BPID=
+if [ "$MODE" = ssh ]; then
+  node_b "$STYLE"'ip link set eth0 down; sleep 2; ip link set eth0 up' >/dev/null 2>&1 &
+  BPID=$!
+fi
 
 node_a "$STYLE"'
 rm -f /tmp/link-up.pcap
 tcpdump -i eth0 -n -e -U -w /tmp/link-up.pcap 2>/dev/null & CAP=$!
-sleep 1; ip link set eth0 down; sleep 1; ip link set eth0 up; sleep 8
+sleep 1; ip link set eth0 down; sleep 1; ip link set eth0 up; sleep 10
 kill $CAP 2>/dev/null; wait $CAP 2>/dev/null
 h "the link-up burst on eth0 (oldest first)"
 if command -v tshark >/dev/null 2>&1; then
-  tshark -n -r /tmp/link-up.pcap 2>/dev/null
+  # COLORTERM inline because the ssh transport runs this via non-login sudo bash,
+  # which never sources /etc/profile.d; tshark --color stays blank without it.
+  COLORTERM=truecolor tshark -n -r /tmp/link-up.pcap --color 2>/dev/null
 else
   echo "(tshark not found—showing tcpdump)"
   tcpdump -n -r /tmp/link-up.pcap 2>/dev/null
 fi'
+
+[ -n "$BPID" ] && wait "$BPID" 2>/dev/null
+true
 
 eye <<'EOF'
 ICMP6 "neighbor solicitation, who has fe80::..."  DAD: claiming its own IPv6 address
