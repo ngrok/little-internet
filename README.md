@@ -11,13 +11,17 @@ _And have some fun along the way._
 
 ## How I'm rolling out the little internet
 
-We start with a single network, then two networks, and then a working facsimile
-of the internet you know and love. Each phase comes with hands-on lessons and
-diaries right here in this repo, with companion deep-dives on the
-[ngrok blog](https://ngrok.com/blog) and walkthroughs on
+I'm going from single network, then two networks, and then a working facsimile
+of the internet you know and love.
+
+As I go, I'll write [diaries](./diaries/) that track questions I'm asking about
+the little internet and the paths I've taken to unpuzzle and understand them.
+Each of those gets a hands-on [lesson](./lessons) you can run yourself. I'll
+also peel off particularly tasty deep-dives on different protocols over to the
+[ngrok blog](https://ngrok.com/blog) and
 [YouTube](https://www.youtube.com/@ngrokHQ).
 
-Each phase includes just enough hardware to make the next set of ideas tangible.
+Here's the whole big picture:
 
 - **Phase 1: a network.** Two Pis and a managed switch. How do devices on the
   same network find and talk to each other? _ARP, MAC addresses, broadcast
@@ -30,7 +34,7 @@ Each phase includes just enough hardware to make the next set of ideas tangible.
   advertise their reachability to one another. _Autonomous systems, BGP, path
   selection, convergence_, plus side quests like DNS, TLS, and Pi-hole.
 
-## Want to build your own?
+## Want to build your own little internet?
 
 1. Gather the hardware. See [`BOM.md`](./BOM.md) for the full parts list by
    phase.
