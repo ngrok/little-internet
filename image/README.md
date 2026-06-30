@@ -127,10 +127,12 @@ image/
     ├── 00-net-tools/
     │   ├── 00-debconf            Preseeds iperf3 to not autostart (keeps the build non-interactive).
     │   ├── 00-packages           apt packages to install (capture, ARP, VLAN, I2C…).
-    │   ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays.
+    │   ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays + adds the user to the i2c group.
     │   ├── 02-run.sh             Installs eth0's DHCP baseline (eth-dhcp) + a pre-provisioned Wi-Fi connection, if generated.
-    │   ├── 03-run.sh             Adds the user to the wireshark group, pre-creates ~/cap, sets COLORTERM for colored tshark.
-    │   └── files/                eth-dhcp.nmconnection — the eth0 DHCP baseline keyfile.
+    │   ├── 03-run.sh             Lets the user run tshark unprivileged, pre-creates ~/cap, and sets COLORTERM for colored output over SSH.
+    │   ├── 04-run.sh             Builds /opt/little-internet/venv with luma.oled to drive the OLED displays.
+    │   ├── 05-run.sh             Installs the OLED test scripts into ~/oled-test (staged from tools/oled-test by build.sh).
+    │   └── files/                eth-dhcp.nmconnection — the eth0 DHCP baseline keyfile (build.sh also stages oled-test/ here).
     ├── 01-firstboot-config/      First-boot hostname + Wi-Fi provisioner for flashed (released) images.
     │   ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
     │   └── files/                The script, systemd unit, and little-internet.txt.example.
