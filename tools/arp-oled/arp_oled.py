@@ -205,7 +205,7 @@ def main():
                    help="display controller (default ssd1306; try sh1106 if garbled)")
     p.add_argument("--font", default=None,
                    help="path to a .ttf for the state text "
-                        "(default: DejaVu Sans Mono if present, else bitmap font)")
+                        "(default: JetBrains Mono, then DejaVu Sans Mono, else bitmap font)")
     p.add_argument("--font-size", type=int, default=None,
                    help="state font size in px (default: auto-fit the longest state)")
     args = p.parse_args()
