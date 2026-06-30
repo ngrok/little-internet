@@ -148,6 +148,12 @@ oled_files="${PIGEN_DIR}/${STAGE_NAME}/00-net-tools/files/oled-test"
 mkdir -p "${oled_files}"
 cp "${oled_src}/oled_test.py" "${oled_src}/oled_shrimp.py" "${oled_files}/"
 
+# 3d. Stage the ARP-state OLED viewer the same way (tools/arp-oled is its source
+#     of truth); 00-net-tools/06-run.sh drops it in the first user's home.
+arp_files="${PIGEN_DIR}/${STAGE_NAME}/00-net-tools/files/arp-oled"
+mkdir -p "${arp_files}"
+cp "${HERE}/../tools/arp-oled/arp_oled.py" "${arp_files}/"
+
 # 4. Only export our final image, not the intermediate Lite image.
 touch "${PIGEN_DIR}/stage2/SKIP_IMAGES"
 
