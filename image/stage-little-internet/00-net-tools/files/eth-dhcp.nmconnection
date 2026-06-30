@@ -1,0 +1,22 @@
+# The stock resting state of eth0: a DHCP, autoconnect wired profile that never
+# becomes the default route (management stays on wlan0). This is what makes a
+# blank eth0 chatter the instant the link comes up — DHCP Discover, IPv6 SLAAC,
+# and mDNS — with nothing configured by the reader, exactly the moment the
+# lesson 00 diary opens on. On a two-Pi link no DHCP server answers, so eth0
+# never gets an IPv4 address: "a live wire with no identity," which is precisely
+# where the lesson begins. lessons/00/scripts/reset.sh restores this profile.
+[connection]
+id=eth-dhcp
+uuid=ea4302a7-a8e0-43f3-8aae-d9bb45eed4db
+type=ethernet
+interface-name=eth0
+autoconnect=true
+autoconnect-priority=0
+
+[ipv4]
+method=auto
+never-default=true
+
+[ipv6]
+method=auto
+never-default=true
