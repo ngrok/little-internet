@@ -50,7 +50,11 @@ tmux select-pane -t "$bottom"
 if [ -t 1 ] && [ -z "${NO_ATTACH:-}" ]; then
   tmux attach -t "$SESSION"
   tmux kill-session -t "$SESSION" 2>/dev/null || true
-  echo "Dashboard closed. The lab is still up (tear it down with: sudo ./lab-down.sh)."
+  if [ -n "${ORCHESTRATED:-}" ]; then
+    echo "Dashboard closed; tearing down the lab."
+  else
+    echo "Dashboard closed. The lab is still up (tear it down with: sudo ./lab-down.sh)."
+  fi
 else
   echo "Dashboard session '$SESSION' created (detached)."
   echo "  attach:    sudo tmux attach -t $SESSION"

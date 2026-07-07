@@ -7,8 +7,11 @@ source "$(dirname "$0")/lib.sh"
 addr_for() {  # $1 = this node's IPv4, $2 = peer IPv4
 cat <<EOF
 if command -v nmcli >/dev/null && systemctl is-active --quiet NetworkManager; then
+  # autoconnect-priority above the eth-dhcp baseline (0) so this static identity
+  # wins on the device from here on, including across reboots.
   nmcli connection add type ethernet ifname eth0 con-name eth ipv4.method manual \
-    ipv4.addresses $1/24 ipv4.never-default yes ipv6.method link-local connection.autoconnect yes
+    ipv4.addresses $1/24 ipv4.never-default yes ipv6.method link-local \
+    connection.autoconnect yes connection.autoconnect-priority 10
   nmcli connection up eth
 else
   ip addr add $1/24 dev eth0

@@ -10,16 +10,20 @@ EOF
 fi
 
 note <<'EOF'
-Wiping the lab profile from both nodes so eth0 goes back to a blank wire, ready to
-run the whole thing again from scratch.
+Returning eth0 on both nodes to its stock resting state: a single DHCP, autoconnect
+profile and no address. That's a "blank wire" in the sense the lesson means—nothing
+*you* configured—but it still chatters the instant the link comes up, exactly like a
+freshly imaged Pi. This is what makes the whole thing re-runnable: reset, start from
+the top, and beat 2 fires for real again instead of sitting silent.
 EOF
 
-pause "Press Enter to delete the 'eth' profile on both nodes."
+pause "Press Enter to reset eth0 to the stock DHCP baseline on both nodes."
 
-RESET='if nmcli connection delete eth 2>/dev/null; then
-  echo "deleted the eth profile—back to a blank wire"
+RESET="$(baseline_block)"'
+if ip -4 addr show eth0 | grep -q "inet "; then
+  echo "eth0 back to the DHCP baseline, but it unexpectedly has an IPv4 address"
 else
-  echo "no eth profile found (already blank)"
+  echo "eth0 back to the DHCP baseline (eth-dhcp): no address, ready to chatter"
 fi'
 
 h "pi-a"; node_a "$RESET"
