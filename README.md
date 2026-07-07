@@ -7,6 +7,10 @@ Networking is one of the most global and durable technologies you'll ever touch.
 Its fundamentals are going nowhere, and when you make all those invisible layers
 of the internet visible and intuitive to you, you become a better developer.
 
+Everything here is meant to be **reproduced**. The bill of materials, the OS
+image tooling, and the lesson scripts all live in this repo so you can build
+your own little internet and follow along.
+
 _And have some fun along the way._
 
 ## How I'm rolling out the little internet
@@ -42,8 +46,8 @@ Here's the whole big picture:
    Either way, see [`image/`](./image/) for getting the Raspberry Pi OS image
    (built with [pi-gen](https://github.com/RPi-Distro/pi-gen)) and flashing it
    to your microSD cards.
-3. Follow the lessons. Start with [`lesson 00`](./lessons/00/), "why can't these
-   two Pis just talk to each other?"
+3. Follow the lessons. Start with [`lesson 00`](./lessons/00/), "two Pis, one
+   cable: can they just talk?"
 4. Read the diaries for the story behind it all. They're the running build log
    of putting this together, in the order each piece came to life.
 
@@ -57,6 +61,16 @@ Here's the whole big picture:
 │                 nodes run, plus instructions for building and flashing it.
 ├── diaries/      Running build log of how the network came together, one
 │                 prose file per session, in the order things happened.
-└── lessons/      One directory per lesson: an explainer, the
-                  scripts to run it yourself, and recorded packet captures.
+├── lessons/      One directory per lesson: an explainer, the scripts to run
+│                 it yourself, and recorded packet captures. Start with
+│                 lessons/00.
+└── AGENTS.md     Guidance for coding agents that teach or operate the labs.
 ```
+
+## Using a coding agent
+
+Coding agents can teach from the docs, run the Linux virtual lab, or drive real
+Pis over SSH while you handle the cable and hardware. Point them at
+[`AGENTS.md`](./AGENTS.md) first; lesson 00 also has a machine-readable
+[`manifest.json`](./lessons/00/manifest.json) with beats, commands, expected
+observations, and recovery steps.
