@@ -26,6 +26,8 @@ hardware image enforces — so anything you see on `eth0` really crossed the wir
 ## Requirements
 
 - A Mac with **QEMU**: `brew install qemu` (HVF acceleration, no sudo needed).
+  Apple Silicon and Intel both work — the lab picks the matching QEMU binary
+  and Debian image automatically.
 - Built-in `hdiutil`, `python3`, and `curl` — already present on macOS.
 - ~2GB RAM free and ~2GB disk. First boot needs internet (downloads the image
   and installs `tcpdump` in the guests).
