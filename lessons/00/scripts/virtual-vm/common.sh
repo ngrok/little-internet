@@ -11,21 +11,44 @@ set -euo pipefail
 # Everything the lab creates at runtime lives OUTSIDE the repo so git stays clean.
 LAB_HOME="${LAB_HOME:-$HOME/.little-internet/lab00-vm}"
 
+# HVF can only accelerate a guest that matches the host CPU, so the host arch
+# picks both the QEMU binary and the Debian image (Apple Silicon runs arm64
+# guests, Intel Macs run amd64).
+case "$(uname -m)" in
+  arm64|aarch64) GUEST_ARCH=arm64; QEMU_DEFAULT=qemu-system-aarch64 ;;
+  x86_64)        GUEST_ARCH=amd64; QEMU_DEFAULT=qemu-system-x86_64 ;;
+  *) echo "error: unsupported host architecture: $(uname -m)" >&2; exit 1 ;;
+esac
+
 # Debian 12 "bookworm" cloud image — the same Debian lineage as Raspberry Pi OS.
-IMG_URL="https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-amd64.qcow2"
-BASE_IMG="$LAB_HOME/debian-base.qcow2"
+IMG_URL="https://cloud.debian.org/images/cloud/bookworm/latest/debian-12-genericcloud-$GUEST_ARCH.qcow2"
+BASE_IMG="$LAB_HOME/debian-base-$GUEST_ARCH.qcow2"
 
 # The virtual crossover cable is a QEMU socket on this localhost TCP port.
 WIRE_PORT="${WIRE_PORT:-10000}"
 
 # Resolve QEMU + qemu-img from the SAME directory, so a stray qemu-img earlier in
 # PATH (e.g. the Android SDK's) can't be picked up by accident.
-QEMU="${QEMU:-qemu-system-x86_64}"
+QEMU="${QEMU:-$QEMU_DEFAULT}"
 if ! command -v "$QEMU" >/dev/null 2>&1; then
   echo "error: '$QEMU' not found. Install QEMU first:  brew install qemu" >&2
   exit 1
 fi
 QEMU_IMG="${QEMU_IMG:-$(dirname "$(command -v "$QEMU")")/qemu-img}"
+
+# x86_64 QEMU has a default board and BIOS; aarch64 has neither, so it gets the
+# generic "virt" machine plus the EDK2 UEFI firmware that ships with QEMU.
+# (Always non-empty: bash 3.2, macOS's default, chokes on empty arrays + set -u.)
+if [ "$GUEST_ARCH" = arm64 ]; then
+  EDK2_FW="$(dirname "$(command -v "$QEMU")")/../share/qemu/edk2-aarch64-code.fd"
+  if [ ! -f "$EDK2_FW" ]; then
+    echo "error: EDK2 firmware not found at $EDK2_FW (reinstall QEMU?)" >&2
+    exit 1
+  fi
+  machine_args=( -M virt -bios "$EDK2_FW" )
+else
+  machine_args=( -M q35 )
+fi
 
 SSH_KEY="$LAB_HOME/id_ed25519"
 ssh_opts=( -i "$SSH_KEY" -o StrictHostKeyChecking=no \
@@ -105,6 +128,7 @@ boot_node() {
   local n="$1" wire_spec="$2"
   "$QEMU" \
     -name "pi-$n" \
+    "${machine_args[@]}" \
     -accel hvf \
     -cpu host \
     -m 1024 -smp 2 \
