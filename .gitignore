@@ -1,4 +1,4 @@
-# Python
+# Python bytecode (from running the tools/* scripts)
 __pycache__/
 *.py[cod]
 

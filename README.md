@@ -74,3 +74,22 @@ Pis over SSH while you handle the cable and hardware. Point them at
 [`AGENTS.md`](./AGENTS.md) first; lesson 00 also has a machine-readable
 [`manifest.json`](./lessons/00/manifest.json) with beats, commands, expected
 observations, and recovery steps.
+
+## Contributing
+
+Want to help? Open an issue or email me at joel@ngrok.com.
+
+A few directions I'd especially love help with:
+
+- **Virtualization.** This is the big one. I build on real hardware and base
+  everything on the reality of the hardware, but plenty of people won't want to
+  buy the kit (or spend the money) and should still be able to learn what
+  everyone else is learning. How do we virtualize the little internet (VMs,
+  containers, network namespaces, whatever fits) without losing the things that
+  make the hardware version click?
+- **Agent accessibility.** How do we make these lessons work alongside coding
+  agents? Maybe that's agent skills built around each lesson that help you
+  understand the material, or maybe it's something else entirely. Open to ideas.
+- **The learning experience.** I could use advice on making this sticky and
+  tangible: other modes of learning, other ways of teaching, anything that helps
+  the ideas stick.
