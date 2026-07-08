@@ -25,6 +25,14 @@ also peel off particularly tasty deep-dives on different protocols over to the
 [ngrok blog](https://ngrok.com/blog) and
 [YouTube](https://www.youtube.com/@ngrokHQ).
 
+Every numbered entry comes in two halves: the diary tells the story and the
+lesson is the version you run yourself. Read them in order, or jump to whatever
+question hooks you:
+
+| #  | The question                             | Read the story                                 | Run it yourself         |
+| -- | ---------------------------------------- | ---------------------------------------------- | ----------------------- |
+| 00 | Two Pis, one cable: can they just talk?  | [Diary 00](./diaries/00_two-pis-one-cable.md)  | [Lesson 00](./lessons/00/) |
+
 Here's the whole big picture:
 
 - **Phase 1: a network.** Two Pis and a managed switch. How do devices on the
@@ -49,7 +57,9 @@ Here's the whole big picture:
 3. Follow the lessons. Start with [`lesson 00`](./lessons/00/), "two Pis, one
    cable: can they just talk?"
 4. Read the diaries for the story behind it all. They're the running build log
-   of putting this together, in the order each piece came to life.
+   of putting this together, in the order each piece came to life. The
+   [table above](#how-im-rolling-out-the-little-internet) pairs each diary with
+   its lesson.
 
 ## Repo layout
 
