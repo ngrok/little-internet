@@ -18,3 +18,17 @@ adduser ${FIRST_USER_NAME} wireshark
 install -d -o ${FIRST_USER_NAME} -g ${FIRST_USER_NAME} -m 755 \
 	/home/${FIRST_USER_NAME}/cap
 EOF
+
+# tshark's `--color` emits 24-bit truecolor escapes and only does so when
+# $COLORTERM advertises truecolor. SSH carries TERM but NOT COLORTERM, so over an
+# SSH session it's empty and tshark's colored output comes out blank. Set it for
+# interactive logins (respecting one that's been forwarded, if any) so
+# `tshark ... --color` just works when someone SSHes in to poke around.
+on_chroot << 'EOF'
+cat > /etc/profile.d/10-little-internet-color.sh << 'PROFILE'
+# Advertise truecolor so tshark --color produces output over SSH (SSH doesn't
+# forward COLORTERM). Harmless on truecolor-capable terminals; see lessons/00.
+export COLORTERM="${COLORTERM:-truecolor}"
+PROFILE
+chmod 644 /etc/profile.d/10-little-internet-color.sh
+EOF
