@@ -34,7 +34,7 @@ pause "Press Enter to bounce the link(s) and capture the burst on pi-a."
 # Best-effort: if pi-b can't be driven unattended (passworded sudo on a backgrounded
 # session), you simply get pi-a's own burst, same as before.
 BPID=
-if [ "$MODE" = ssh ]; then
+if [ "$MODE" = ssh ] || [ "$MODE" = vm ]; then
   node_b "$STYLE"'ip link set eth0 down; sleep 2; ip link set eth0 up' >/dev/null 2>&1 &
   BPID=$!
 fi
