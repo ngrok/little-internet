@@ -14,9 +14,10 @@ WARNS=0
 
 usage() {
   cat <<EOF
-usage: check.sh [--virtual|--hardware]
+usage: check.sh [--virtual|--vm|--hardware]
 
   --virtual   check this machine for the Linux namespace lab
+  --vm        check this machine for the two-VM QEMU lab
   --hardware  check SSH access and tools on A_HOST/B_HOST
 
 Without a mode, check.sh auto-selects --virtual when a pi-a namespace already
@@ -199,9 +200,35 @@ check_hardware() {
   remote_check "$B_HOST" "B"
 }
 
+check_vm() {
+  info "checking VM lab prerequisites"
+
+  case "$(uname -m)" in
+    arm64|aarch64) vm_qemu=qemu-system-aarch64 ;;
+    *)             vm_qemu=qemu-system-x86_64 ;;
+  esac
+  if have "$vm_qemu"; then
+    ok "found $vm_qemu"
+  else
+    fail "missing $vm_qemu; install QEMU (brew install qemu)"
+  fi
+
+  check_cmd ssh
+  check_cmd python3
+
+  local qmp_a="$HOME/.little-internet/lab00-vm/pi-a.qmp"
+  local qmp_b="$HOME/.little-internet/lab00-vm/pi-b.qmp"
+  if [ -S "$qmp_a" ] && [ -S "$qmp_b" ]; then
+    ok "VM lab appears to be up (pi-a, pi-b)"
+  else
+    info "VM lab is not up yet; run ./scripts/run.sh --vm to build it"
+  fi
+}
+
 MODE="${1:-auto}"
 case "$MODE" in
   --virtual) check_virtual ;;
+  --vm) check_vm ;;
   --hardware) check_hardware ;;
   -h|--help) usage; exit 0 ;;
   auto)

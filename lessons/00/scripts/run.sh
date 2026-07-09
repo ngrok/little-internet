@@ -5,22 +5,33 @@
 #
 #   ./run.sh                 # drive two real Pis over SSH (set A_HOST / B_HOST)
 #   ./run.sh --virtual       # stand up the local namespace lab, walk it, tear down
+#   ./run.sh --vm            # stand up the two-VM QEMU lab, walk it, tear down
 #
 # --virtual needs Linux + root + the virtual/ deps (tcpdump, ping). On macOS or
-# Windows, run that inside a Linux VM. See lessons/00/README.md.
+# Windows, run that inside a Linux VM. --vm needs QEMU (brew install qemu). See
+# lessons/00/README.md.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
+VIRTUAL=; VM=
 case "${1:-}" in
-  "")        VIRTUAL= ;;
+  "")        ;;
   --virtual) VIRTUAL=1 ;;
-  *)         echo "usage: run.sh [--virtual]" >&2; exit 2 ;;
+  --vm)      VM=1 ;;
+  *)         echo "usage: run.sh [--virtual|--vm]" >&2; exit 2 ;;
 esac
 
-# 00-link is hardware-only (Layer 1 needs a real PHY); it self-skips under netns.
+# 00-link is hardware-only on a real PHY; it self-skips under netns and runs the
+# carrier beat under the VM lab (whose virtio NIC has a controllable carrier).
 BEATS=(00-link 01-listen 02-no-address 03-address 04-arp)
 
-if [ -n "$VIRTUAL" ]; then
+if [ -n "$VM" ]; then
+  "$HERE/virtual-vm/lab-down.sh" >/dev/null 2>&1 || true
+  "$HERE/virtual-vm/lab-up.sh" || exit 1
+  export MODE=vm
+  # tear the VM lab down on any exit, including Ctrl-C partway through
+  trap '"$HERE/virtual-vm/lab-down.sh" >/dev/null 2>&1 || true' EXIT
+elif [ -n "$VIRTUAL" ]; then
   sudo "$HERE/virtual/lab-down.sh" >/dev/null 2>&1 || true
   sudo QUIET=1 "$HERE/virtual/lab-up.sh" || exit 1
   export MODE=netns
