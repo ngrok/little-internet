@@ -1,21 +1,29 @@
 #!/usr/bin/env bash
-# Beat 3 — The obvious thing fails. With no IPv4 identity on the wire, the ping
-# doesn't even use the wire: the routing table can't see the link as a path, so
-# the packet leaves via your only other route (the management Wi-Fi on the Pis)
-# and dies. Connectivity is not reachability.
-set -uo pipefail
-IFACE="${IFACE:-eth0}"
-PEER_IP="${PEER_IP:-10.10.0.2}"
+# Where did that packet go? The ping from the last step failed because eth0 has no
+# IPv4 identity, so the routing table can't see the wire as a path to the peer.
+source "$(dirname "$0")/lib.sh"
 
-echo "--- ip -4 addr show $IFACE  (expect: no 'inet' line) ---"
-ip -4 addr show "$IFACE"
-echo
-echo "--- ip route get $PEER_IP  (the smoking gun: which 'dev'?) ---"
-ip route get "$PEER_IP" || true
-echo
-echo "--- ping -c1 $PEER_IP  (expect failure) ---"
-ping -c1 -W1 "$PEER_IP" || true
-echo
-echo ">>> The point: $IFACE has no L3 identity, so the kernel can't see the wire"
-echo ">>> as a way to reach $PEER_IP. On a Pi the ping leaks out the default"
-echo ">>> route (wlan0) and never touches the cable."
+note <<'EOF'
+You just watched a ping drop on a live, chattering wire. So where did that packet
+actually go? Follow it. With no IPv4 identity on eth0, the routing table can't see
+the wire as a way to reach anything, so the packet goes ~~somewhere~~.
+
+On a Pi, that's out the only other route it has (the management Wi-Fi), where it dies.
+In the bare lab, that's nowhere at all ("Network is unreachable"). 
+
+The wire was never the problem. Identity was.
+EOF
+
+pause "Press Enter to check pi-a's address and trace where the packet would go."
+
+node_a "$STYLE"'
+h "ip -4 addr show eth0  (expect no inet line)"; ip -4 addr show eth0
+h "ip route get 10.10.0.2  (which dev?)"; ip route get 10.10.0.2 || true'
+
+eye <<'EOF'
+"ip -4 addr show eth0" has no inet line because the wire has no IPv4 identity
+"ip route get 10.10.0.2" does NOT resolve to dev eth0 (on a Pi it picks dev wlan0)
+that mismatch is the whole story: a wire with no identity is invisible to routing
+EOF
+
+pause "Press Enter when you've had a look."

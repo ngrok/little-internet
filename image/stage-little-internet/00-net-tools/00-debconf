@@ -2,7 +2,10 @@
 # Preseeded so the build never stops on iperf3's interactive prompt.
 iperf3 iperf3/start_daemon boolean false
 
-# Don't make dumpcap setuid for non-root capture — lessons capture with sudo,
-# consistently for tcpdump and tshark. (Debian's default; suppresses the
-# wireshark-common prompt during the build.)
-wireshark-common wireshark-common/install-setuid boolean false
+# Let non-root users capture packets. This makes the wireshark-common install
+# create the 'wireshark' group and grant /usr/bin/dumpcap the capture
+# capabilities (cap_net_raw,cap_net_admin), owned root:wireshark and mode 0750.
+# tshark (and Wireshark) capture through dumpcap, so members of that group can
+# run `tshark` without sudo — see 03-run.sh, which adds the default user to it.
+# Preseeded so the build never stops on the wireshark-common prompt.
+wireshark-common wireshark-common/install-setuid boolean true
