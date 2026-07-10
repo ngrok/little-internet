@@ -17,6 +17,10 @@ machine yourself from another shell and watch the panel follow along:
 The peer defaults to the other half of the 10.10.0.1 <-> 10.10.0.2 lab pair
 (auto-picked from this node's own address), or pass --peer.
 
+On the little-internet image the panel normally shows the boot-time status
+display (hostname/MAC/IP); this script pauses it via a claim file while it
+runs and the status display resumes when this exits.
+
     /opt/little-internet/venv/bin/python3 arp_oled.py
     arp_oled.py --peer 10.10.0.2 --interval 0.5
     arp_oled.py --address 0x3d --controller sh1106
@@ -25,6 +29,7 @@ The peer defaults to the other half of the 10.10.0.1 <-> 10.10.0.2 lab pair
 import argparse
 import json
 import os
+import signal
 import subprocess
 import sys
 import time
@@ -38,6 +43,33 @@ from luma.oled.device import sh1106, ssd1306
 # image and service work unchanged on both cards.
 PAIR = {"10.10.0.1": "10.10.0.2", "10.10.0.2": "10.10.0.1"}
 DEFAULT_PEER = "10.10.0.2"
+
+# The boot-time status display (little-internet-oled.service on the image)
+# owns the panel; it pauses while this claim file exists and resumes when it's
+# removed. The claim directory is that service's RuntimeDirectory (root:i2c,
+# 0775), so no sudo is needed. On systems without the service, claiming just
+# fails quietly — there's nothing to pause.
+CLAIM_FILE = "/run/little-internet/oled.claim"
+
+
+def claim_panel():
+    """Pause the boot status display; True if the claim file was written."""
+    try:
+        with open(CLAIM_FILE, "w") as fh:
+            fh.write(f"{os.getpid()}\n")
+    except OSError:
+        return False
+    # Let an in-flight status frame land before we paint over it.
+    time.sleep(0.5)
+    return True
+
+
+def release_panel(claimed):
+    if claimed:
+        try:
+            os.remove(CLAIM_FILE)
+        except OSError:
+            pass
 
 # NUD states worth a one-glance read. Anything else is shown verbatim.
 KNOWN_STATES = {
@@ -228,6 +260,10 @@ def main():
         print("Requested font unavailable; using the built-in bitmap font.")
 
     print(f"Watching ARP state for {peer} (poll {args.interval}s). Ctrl-C to stop.")
+    # Python dies on SIGTERM without running `finally`, which would strand the
+    # claim file and leave the status display paused; exit cleanly instead.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    claimed = claim_panel()
     beat = False
     try:
         while True:
@@ -238,6 +274,9 @@ def main():
     except KeyboardInterrupt:
         device.clear()
         print("\nDone.")
+    finally:
+        # Hand the panel back: the status display repaints within a second.
+        release_panel(claimed)
 
 
 if __name__ == "__main__":

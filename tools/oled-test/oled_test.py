@@ -8,12 +8,41 @@ Draws a border and "OLED OK" so you can confirm the display and wiring work.
     python3 oled_test.py --address 0x3d --hold 8
 """
 import argparse
+import os
+import signal
 import sys
 import time
 
 from luma.core.interface.serial import i2c
 from luma.core.render import canvas
 from luma.oled.device import sh1106, ssd1306
+
+# The boot-time status display (little-internet-oled.service on the image)
+# owns the panel; it pauses while this claim file exists and resumes when it's
+# removed. The claim directory is that service's RuntimeDirectory (root:i2c,
+# 0775), so no sudo is needed. On systems without the service, claiming just
+# fails quietly — there's nothing to pause.
+CLAIM_FILE = "/run/little-internet/oled.claim"
+
+
+def claim_panel():
+    """Pause the boot status display; True if the claim file was written."""
+    try:
+        with open(CLAIM_FILE, "w") as fh:
+            fh.write(f"{os.getpid()}\n")
+    except OSError:
+        return False
+    # Let an in-flight status frame land before we paint over it.
+    time.sleep(0.5)
+    return True
+
+
+def release_panel(claimed):
+    if claimed:
+        try:
+            os.remove(CLAIM_FILE)
+        except OSError:
+            pass
 
 
 def main():
@@ -38,14 +67,21 @@ def main():
               "and that I2C is enabled.")
         sys.exit(1)
 
-    with canvas(device) as draw:
-        draw.rectangle(device.bounding_box, outline="white")
-        draw.text((6, 8), "OLED OK", fill="white")
-        draw.text((6, 26), f"I2C {args.port} @ {hex(args.address)}", fill="white")
-        draw.text((6, 44), f"{device.width}x{device.height}", fill="white")
-    print(f"Drew test pattern on I2C {args.port} @ {hex(args.address)}. "
-          f"Holding {args.hold}s...")
-    time.sleep(args.hold)
+    # Python dies on SIGTERM without running `finally`, which would strand the
+    # claim file and leave the status display paused; exit cleanly instead.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    claimed = claim_panel()
+    try:
+        with canvas(device) as draw:
+            draw.rectangle(device.bounding_box, outline="white")
+            draw.text((6, 8), "OLED OK", fill="white")
+            draw.text((6, 26), f"I2C {args.port} @ {hex(args.address)}", fill="white")
+            draw.text((6, 44), f"{device.width}x{device.height}", fill="white")
+        print(f"Drew test pattern on I2C {args.port} @ {hex(args.address)}. "
+              f"Holding {args.hold}s...")
+        time.sleep(args.hold)
+    finally:
+        release_panel(claimed)
     print("Done.")
 
 

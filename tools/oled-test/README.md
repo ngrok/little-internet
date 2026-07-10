@@ -27,6 +27,11 @@ Quick smoke tests for the **SSD1306 128×64** OLEDs over **I2C** (4-pin modules)
 > /opt/little-internet/venv/bin/python3 ~/oled-test/oled_shrimp.py
 > ```
 >
+> On the image the panel is normally driven by the boot-time
+> [status display](../status-oled/README.md) (hostname/MAC/IP). These scripts
+> pause it while they run and it repaints when they exit, so a working panel
+> already showing status is itself a passing smoke test.
+>
 > The steps below are for a stock Raspberry Pi OS where you set this up yourself.
 
 ```sh
