@@ -8,8 +8,10 @@
 #
 # Run it by hand against the venv built in 04-run.sh (no sudo: reading the
 # neighbour cache is unprivileged and the first user is already in the i2c
-# group). It deliberately is NOT a boot service — that would permanently claim
-# the OLED and fight the oled-test smoke scripts over the one I2C panel:
+# group). It deliberately is NOT a boot service — the panel's boot-time
+# resident is the status display (07-run.sh). While this script runs it pauses
+# that display via the claim file described in little-internet-oled.service,
+# and hands the panel back on exit:
 #   /opt/little-internet/venv/bin/python3 ~/arp-oled/arp_oled.py
 #
 # Staged into files/arp-oled by build.sh from tools/arp-oled (source of truth);

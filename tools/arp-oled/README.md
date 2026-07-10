@@ -15,8 +15,10 @@ the cache is unprivileged, and the `pi` user is already in the `i2c` group):
 
 By default it watches the other half of the `10.10.0.x` pair (on `.1` it watches
 `.2`, and vice versa); override with `--peer`. Ctrl-C clears the panel and exits.
-It's a script, not a service, so it won't fight the `oled-test` scripts for the
-display.
+On the image the panel normally shows the boot-time
+[status display](../status-oled/README.md) (hostname/MAC/IP); this script pauses
+it while it runs — via `/run/little-internet/oled.claim`, no sudo needed — and
+the status display repaints when this exits.
 
 ## Drive the state machine
 

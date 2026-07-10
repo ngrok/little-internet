@@ -11,6 +11,8 @@ needs no network access or SVG libraries on the Pi.
 """
 import argparse
 import base64
+import os
+import signal
 import sys
 import time
 
@@ -18,6 +20,33 @@ from PIL import Image
 
 from luma.core.interface.serial import i2c
 from luma.oled.device import sh1106, ssd1306
+
+# The boot-time status display (little-internet-oled.service on the image)
+# owns the panel; it pauses while this claim file exists and resumes when it's
+# removed. The claim directory is that service's RuntimeDirectory (root:i2c,
+# 0775), so no sudo is needed. On systems without the service, claiming just
+# fails quietly — there's nothing to pause.
+CLAIM_FILE = "/run/little-internet/oled.claim"
+
+
+def claim_panel():
+    """Pause the boot status display; True if the claim file was written."""
+    try:
+        with open(CLAIM_FILE, "w") as fh:
+            fh.write(f"{os.getpid()}\n")
+    except OSError:
+        return False
+    # Let an in-flight status frame land before we paint over it.
+    time.sleep(0.5)
+    return True
+
+
+def release_panel(claimed):
+    if claimed:
+        try:
+            os.remove(CLAIM_FILE)
+        except OSError:
+            pass
 
 # 64x64, 1-bit, MSB-first packed (PIL mode "1"). Phosphor "shrimp" (regular).
 SHRIMP_64_B64 = (
@@ -66,10 +95,17 @@ def main():
     x = (device.width - icon.width) // 2
     y = (device.height - icon.height) // 2
     frame.paste(icon, (x, y))
-    device.display(frame)
-    print(f"Shrimp on I2C {args.port} @ {hex(args.address)}. "
-          f"Holding {args.hold}s... 🦐")
-    time.sleep(args.hold)
+    # Python dies on SIGTERM without running `finally`, which would strand the
+    # claim file and leave the status display paused; exit cleanly instead.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    claimed = claim_panel()
+    try:
+        device.display(frame)
+        print(f"Shrimp on I2C {args.port} @ {hex(args.address)}. "
+              f"Holding {args.hold}s... 🦐")
+        time.sleep(args.hold)
+    finally:
+        release_panel(claimed)
     print("Done.")
 
 
