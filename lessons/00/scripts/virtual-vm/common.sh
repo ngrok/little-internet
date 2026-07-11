@@ -52,7 +52,8 @@ fi
 
 SSH_KEY="$LAB_HOME/id_ed25519"
 ssh_opts=( -i "$SSH_KEY" -o StrictHostKeyChecking=no \
-           -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR )
+           -o UserKnownHostsFile=/dev/null -o LogLevel=ERROR \
+           -o SetEnv=LC_ALL=C.UTF-8 )
 
 # Per-node settings. pi-a LISTENS on the wire; pi-b CONNECTS to it.
 #   ssh_port  -> host port forwarded to the guest's sshd over the mgmt NAT

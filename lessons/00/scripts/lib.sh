@@ -76,7 +76,8 @@ _run() {
       local b64; b64="$(printf '%s' "$2" | base64 | tr -d '\n')"
       ssh -i "$VM_KEY" -p "$1" \
         -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-        -o LogLevel=ERROR pi@127.0.0.1 "echo $b64 | base64 -d | sudo bash"
+        -o SetEnv=LC_ALL=C.UTF-8 -o LogLevel=ERROR \
+        pi@127.0.0.1 "echo $b64 | base64 -d | sudo bash"
       ;;
     *)
       printf '%s' "$2" | sudo ip netns exec "$1" bash
