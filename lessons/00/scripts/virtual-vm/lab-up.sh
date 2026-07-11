@@ -58,6 +58,17 @@ for n in a b; do
 done
 echo " up."
 
+# cloud-init can't reliably install tshark on first boot: its own package step
+# holds the apt lock while it runs, and SSH comes up before it finishes. So wait
+# for cloud-init to complete, then install. Fast no-op on later boots.
+echo "ensuring tshark on both nodes (first boot may take a moment)…"
+for n in a b; do
+  node_ssh "$n" 'command -v tshark >/dev/null 2>&1 && exit 0
+    sudo cloud-init status --wait >/dev/null 2>&1 || true
+    sudo apt-get update && sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tshark' >/dev/null 2>&1 \
+    || echo "warning: could not install tshark on pi-$n (beats fall back to tcpdump)" >&2
+done
+
 cat <<EOF
 
 Lab up:  pi-a  <--socket cable (eth0)-->  pi-b   (cable seated, no IPv4 yet)
