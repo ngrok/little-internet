@@ -69,6 +69,13 @@ for n in a b; do
     || echo "warning: could not install tshark on pi-$n (beats fall back to tcpdump)" >&2
 done
 
+# run.sh --vm walks the Layer 1 beat (00-link), which shows a dead wire coming
+# alive, so start it unseated. Standalone runs leave the cable seated so the
+# manual walkthrough below works as written.
+if [ -n "${START_UNSEATED:-}" ]; then
+  ./link.sh a off >/dev/null 2>&1 || true
+fi
+
 cat <<EOF
 
 Lab up:  pi-a  <--socket cable (eth0)-->  pi-b   (cable seated, no IPv4 yet)

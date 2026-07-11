@@ -27,7 +27,7 @@ BEATS=(00-link 01-listen 02-no-address 03-address 04-arp)
 
 if [ -n "$VM" ]; then
   "$HERE/virtual-vm/lab-down.sh" >/dev/null 2>&1 || true
-  "$HERE/virtual-vm/lab-up.sh" || exit 1
+  QUIET=1 START_UNSEATED=1 "$HERE/virtual-vm/lab-up.sh" || exit 1
   export MODE=vm
   # tear the VM lab down on any exit, including Ctrl-C partway through
   trap '"$HERE/virtual-vm/lab-down.sh" >/dev/null 2>&1 || true' EXIT

@@ -17,25 +17,22 @@ if [ "$MODE" = vm ]; then
   LINK="$(dirname "$0")/virtual-vm/link.sh"
   note <<'EOF'
 Layer 1 on the VM lab: a virtio NIC has no PHY, so there's no Speed or Duplex to
-read, but its carrier is real and QEMU controls it. We drop the cable and bring it
-back, and watch eth0 react: the same NO-CARRIER to LOWER_UP a physical cable shows.
-This is the one beat the namespace lab can't do at all.
+read, but its carrier is real and QEMU controls it. The lab starts with the cable
+unseated, so pi-a's eth0 is a dead wire. Seat it and watch the link come alive:
+NO-CARRIER to LOWER_UP, the transition a physical cable shows. This is the one beat
+the namespace lab can't do at all.
 EOF
   PROBE="$STYLE"'
 h "ip link show eth0"; ip link show eth0
 h "carrier (1 up, 0 down)"; cat /sys/class/net/eth0/carrier 2>/dev/null || echo "(down)"'
-  pause "Cable is seated. Press Enter to read pi-a's link (expect LOWER_UP, carrier 1)."
+  pause "The cable is unseated. Press Enter to read pi-a's link (expect NO-CARRIER, carrier 0)."
   node_a "$PROBE"
-  pause "Now unseat the cable on pi-a. Press Enter (runs link.sh a off)."
-  "$LINK" a off
-  sleep 1
-  node_a "$PROBE"
-  pause "Re-seat the cable. Press Enter (runs link.sh a on)."
+  pause "Now seat the cable. Press Enter (runs link.sh a on)."
   "$LINK" a on
   sleep 2
   node_a "$PROBE"
   eye <<'EOF'
-carrier 1 -> 0 -> 1, and eth0 flips LOWER_UP -> NO-CARRIER -> LOWER_UP
+carrier 0 -> 1, and eth0 flips NO-CARRIER -> LOWER_UP
 no Speed, Duplex, or autonegotiation: a virtio NIC has no PHY, only the carrier is real
 EOF
   pause "Press Enter when you've had a look."
