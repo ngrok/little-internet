@@ -24,9 +24,18 @@ For an agent-led walkthrough:
 4. Run only that beat. Preserve and quote the relevant raw output in the chat;
    tool UI summaries such as "Ran 4 shell commands" are not observations and
    must never be the learner's only view of the experiment.
-5. Point to the specific fields or packets that support the conclusion, explain
-   unfamiliar terms, and distinguish direct observation from inference.
-6. Ask the learner a concrete prediction or interpretation question and wait.
+5. Put the evidence before the interpretation. Present the command's verbatim
+   output (or a clearly labeled, contiguous excerpt) in a fenced code block with
+   its columns, frame numbers, addresses, timestamps, and errors intact. Never
+   replace a `tshark`/`tcpdump` transcript with a prose reconstruction such as
+   "Frame 1 was the shout." If output is long, say exactly what was omitted and
+   offer the full transcript or capture path.
+6. Give the learner a chance to inspect the evidence. Ask what they notice or
+   direct their eyes to one field before supplying the complete interpretation.
+7. Then point to the specific fields or packets that support the conclusion,
+   explain unfamiliar terms, and distinguish direct observation from inference.
+   Keep the raw evidence visible alongside any frame-by-frame annotation.
+8. Ask the learner a concrete prediction or interpretation question and wait.
    Continue only when they answer or explicitly say to move on. "Next" advances
    one conceptual checkpoint, not the rest of the lab.
 
@@ -40,6 +49,13 @@ Do not manufacture a dramatic result. If the output differs from the manifest,
 show the difference and investigate it with the learner. If a command fails,
 show the error and explain the correction before retrying; never present output
 from later commands as though the failed experiment succeeded.
+
+For packet-capture beats, the minimum visible artifact is the actual decoded
+packet table produced by `tshark` or `tcpdump`. A learner should be able to trace
+an explanation back to a row on screen—for example, compare the destination MAC
+on the ARP request and reply, see ARP precede ICMP, and compare the first and
+second echo timings. The agent's explanation is a guide to that artifact, not a
+substitute for it.
 
 ## Start here
 

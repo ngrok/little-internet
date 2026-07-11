@@ -93,6 +93,13 @@ your prediction or questions before continuing. A collapsed tool message like
 "Ran 4 shell commands" is not the experiment—you should see the `ip`,
 `ethtool`, routing, capture, and ARP evidence that supports each conclusion.
 
+For packet captures in particular, expect to see the actual `tshark` or
+`tcpdump` rows in a code block before the agent explains them. Frame-by-frame
+prose is useful only when you can look back at the corresponding timestamps,
+source and destination addresses, protocols, and summaries yourself. If the
+capture is too long, the agent should label any excerpt and tell you what it
+left out—not silently replace the capture with its conclusions.
+
 For an interactive walkthrough, the agent should use the individual step
 scripts rather than batch-running `scripts/run.sh`. The full runner is handy for
 an unattended demonstration or functional check, but a coding agent's job here

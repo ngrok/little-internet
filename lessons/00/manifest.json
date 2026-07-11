@@ -48,6 +48,9 @@
     "evidence_policy": [
       "Show the exact command before running it and explain what it is intended to reveal.",
       "Expose the relevant raw output; a tool summary such as 'Ran 4 shell commands' is not sufficient evidence.",
+      "Present verbatim output or a clearly labeled contiguous excerpt in a fenced code block before interpreting it; preserve columns, frame numbers, addresses, timestamps, and errors.",
+      "For tshark or tcpdump, show the decoded packet rows themselves; never replace the capture with a prose reconstruction of what each frame contained.",
+      "Give the learner a chance to inspect the output before providing the complete interpretation.",
       "Tie conclusions to specific flags, routes, frames, addresses, or cache entries in the output.",
       "Separate direct observations from inferences and explain output that differs from expectations.",
       "Prefer provided beat scripts over improvised SSH, capture, or link-control commands."
