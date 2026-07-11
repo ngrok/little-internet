@@ -117,24 +117,3 @@ printf '%s\n' "$existing" | grep -qx eth-dhcp || \
 nmcli connection up eth-dhcp >/dev/null 2>&1 || true
 EOF
 }
-
-# Context line, every step: you run from THIS machine; it reaches both nodes.
-case "$MODE" in
-  ssh)
-    note <<EOF
-Running from this machine against pi-a=$A_HOST and pi-b=$B_HOST.
-Each node's sudo may prompt once. (MODE=ssh; set A_HOST/B_HOST to retarget.)
-EOF
-    ;;
-  vm)
-    note <<EOF
-Running from this machine against the local VM lab: pi-a on ssh port 2201, pi-b on
-2202. (MODE=vm; see scripts/virtual-vm.)
-EOF
-    ;;
-  *)
-    note <<EOF
-Running from this machine against the local namespace lab (pi-a, pi-b). (MODE=netns)
-EOF
-    ;;
-esac
