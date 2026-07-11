@@ -87,6 +87,17 @@ Agents should read the root [`AGENTS.md`](../../AGENTS.md) and this lesson's
 the lesson beats, which scripts drive them, what output to look for, and how to
 recover from interrupted hardware or virtual runs.
 
+Ask the agent to **teach the lesson one beat at a time**. It should show you the
+command and the relevant raw output, help you read the evidence, and wait for
+your prediction or questions before continuing. A collapsed tool message like
+"Ran 4 shell commands" is not the experiment—you should see the `ip`,
+`ethtool`, routing, capture, and ARP evidence that supports each conclusion.
+
+For an interactive walkthrough, the agent should use the individual step
+scripts rather than batch-running `scripts/run.sh`. The full runner is handy for
+an unattended demonstration or functional check, but a coding agent's job here
+is to provide the pacing and instruction that a shell script cannot.
+
 #### What you can't see with virtualization
 
 A network namespace runs the same Linux stack as the Pi, but you can't see the

@@ -43,6 +43,16 @@
   "agent_defaults": {
     "no_color": true,
     "safe_first_step": "Read README.md, diaries/00_two-pis-one-cable.md, and lessons/00/README.md before running scripts.",
+    "walkthrough_intent": "Requests to walk through, teach, or do the lesson are tutoring requests, not requests to test the scripts.",
+    "pacing": "Run one beat or conceptual checkpoint at a time and wait for the learner before advancing.",
+    "evidence_policy": [
+      "Show the exact command before running it and explain what it is intended to reveal.",
+      "Expose the relevant raw output; a tool summary such as 'Ran 4 shell commands' is not sufficient evidence.",
+      "Tie conclusions to specific flags, routes, frames, addresses, or cache entries in the output.",
+      "Separate direct observations from inferences and explain output that differs from expectations.",
+      "Prefer provided beat scripts over improvised SSH, capture, or link-control commands."
+    ],
+    "full_runner_policy": "Use scripts/run.sh only for an explicitly requested unattended demonstration, full run, or functional test; use individual beat scripts for tutoring.",
     "ask_before": [
       "Running hardware scripts against A_HOST/B_HOST.",
       "Deleting NetworkManager profiles with scripts/reset.sh.",
