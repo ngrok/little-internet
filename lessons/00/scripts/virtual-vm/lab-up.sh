@@ -76,6 +76,8 @@ if [ -n "${START_UNSEATED:-}" ]; then
   ./link.sh a off >/dev/null 2>&1 || true
 fi
 
+# Verbose hints when run by hand; quiet when driven by run.sh --vm (QUIET=1).
+if [ -z "${QUIET:-}" ]; then
 cat <<EOF
 
 Lab up:  pi-a  <--socket cable (eth0)-->  pi-b   (cable seated, no IPv4 yet)
@@ -96,3 +98,4 @@ Seat / unseat the cable (Layer 1), from a third pane on the Mac:
 
 Tear it all down with:  ./lab-down.sh   (add --wipe to delete the node disks)
 EOF
+fi
