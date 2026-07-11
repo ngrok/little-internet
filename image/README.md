@@ -91,6 +91,12 @@ file in place so you can fix it and reboot.
   with no prompt.
 - Confirm the networking tools are present: `which tcpdump tshark arping`.
 - Check the I2C bus (for the OLED): `i2cdetect -y 1`.
+- If an OLED is wired up, it shows the node's identity from boot — hostname in
+  the yellow strip, eth0's MAC and each interface's IPv4 in the blue area — so
+  a rack of identical Pis is tellable-apart at a glance (see
+  [`tools/status-oled`](../tools/status-oled/README.md)). The on-demand OLED
+  scripts (`~/oled-test`, `~/arp-oled`) borrow the panel while they run and the
+  status display resumes when they exit.
 - Wi-Fi is management-only by design: you can SSH in and the node reaches the
   internet, but two nodes **can't reach each other over Wi-Fi**. The lessons run
   on a wired link instead. So if a second node seems unreachable _from the first
@@ -132,7 +138,9 @@ image/
     │   ├── 03-run.sh             Lets the user run tshark unprivileged, pre-creates ~/cap, and sets COLORTERM for colored output over SSH.
     │   ├── 04-run.sh             Builds /opt/little-internet/venv with luma.oled to drive the OLED displays.
     │   ├── 05-run.sh             Installs the OLED test scripts into ~/oled-test (staged from tools/oled-test by build.sh).
-    │   └── files/                eth-dhcp.nmconnection — the eth0 DHCP baseline keyfile (build.sh also stages oled-test/ here).
+    │   ├── 06-run.sh             Installs the on-demand ARP-state OLED viewer into ~/arp-oled (staged from tools/arp-oled by build.sh).
+    │   ├── 07-run.sh             Installs + enables the boot-time OLED status display, little-internet-oled.service (staged from tools/status-oled by build.sh).
+    │   └── files/                eth-dhcp.nmconnection + little-internet-oled.service (build.sh also stages oled-test/, arp-oled/, and status-oled/ here).
     ├── 01-firstboot-config/      First-boot hostname + Wi-Fi provisioner for flashed (released) images.
     │   ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
     │   └── files/                The script, systemd unit, and little-internet.txt.example.

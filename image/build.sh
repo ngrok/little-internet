@@ -154,6 +154,13 @@ arp_files="${PIGEN_DIR}/${STAGE_NAME}/00-net-tools/files/arp-oled"
 mkdir -p "${arp_files}"
 cp "${HERE}/../tools/arp-oled/arp_oled.py" "${arp_files}/"
 
+# 3e. Stage the boot-time OLED status display (tools/status-oled is its source
+#     of truth); 00-net-tools/07-run.sh installs it under /opt/little-internet
+#     and enables it as a systemd service.
+status_files="${PIGEN_DIR}/${STAGE_NAME}/00-net-tools/files/status-oled"
+mkdir -p "${status_files}"
+cp "${HERE}/../tools/status-oled/status_oled.py" "${status_files}/"
+
 # 4. Only export our final image, not the intermediate Lite image.
 touch "${PIGEN_DIR}/stage2/SKIP_IMAGES"
 

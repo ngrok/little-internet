@@ -1,0 +1,27 @@
+[Unit]
+Description=Show hostname, MAC, and IPv4 on the OLED (little-internet)
+# The boot-time resident of the panel: with a rack of identical Pis, the OLED
+# is what tells you which node is which. Ordered after the first-boot
+# provisioner so a hostname from little-internet.txt is already set when the
+# first frame paints. No network dependency — the script polls, so addresses
+# appear as DHCP hands them out.
+After=local-fs.target little-internet.service
+
+[Service]
+Type=simple
+# Unbuffered stdout so the script's log lines reach the journal as they
+# happen, not when the buffer fills.
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/opt/little-internet/venv/bin/python3 /opt/little-internet/status-oled/status_oled.py
+Restart=on-failure
+RestartSec=5
+# /run/little-internet is the handoff point for the one panel: on-demand OLED
+# scripts (~/arp-oled, ~/oled-test) create oled.claim there to pause this
+# display and remove it to resume. Group i2c + 0775 lets the unprivileged lab
+# user (already in i2c for the bus itself) create and remove that file.
+Group=i2c
+RuntimeDirectory=little-internet
+RuntimeDirectoryMode=0775
+
+[Install]
+WantedBy=multi-user.target
