@@ -80,6 +80,28 @@ sudo ./scripts/check.sh --virtual
 sudo ./scripts/run.sh --virtual
 ```
 
+### Inspect the recorded captures
+
+You can inspect captures from the real Pis without running either lab. Each
+exchange was recorded at both ends of the cable, so you can compare what
+`pi-foo-01` and `pi-foo-02` observed:
+
+- Link-up chatter: [`pi-foo-01`](./captures/link-up_pi-foo-01.pcapng) and
+  [`pi-foo-02`](./captures/link-up_pi-foo-02.pcapng)
+- ARP and ping: [`pi-foo-01`](./captures/arp_pi-foo-01.pcapng) and
+  [`pi-foo-02`](./captures/arp_pi-foo-02.pcapng)
+
+Open a capture in Wireshark, or read it from the lesson directory with
+`tshark`:
+
+```bash
+tshark -r captures/link-up_pi-foo-01.pcapng -n
+tshark -r captures/arp_pi-foo-02.pcapng -n
+```
+
+These are also the canonical evidence for a read-only walkthrough with a coding
+agent: ask it to show you the decoded rows before explaining what they mean.
+
 ### With a coding agent
 
 Agents should read the root [`AGENTS.md`](../../AGENTS.md) and this lesson's
