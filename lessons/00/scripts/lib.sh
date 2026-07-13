@@ -21,6 +21,10 @@ fi
 A_HOST="${A_HOST:-pi@pi-foo-01.local}"
 B_HOST="${B_HOST:-pi@pi-foo-02.local}"
 
+# The VM lab (scripts/virtual-vm) is SSH-reachable on localhost: pi-a on port
+# 2201, pi-b on 2202, using the key the lab generated. MODE=vm drives those.
+VM_KEY="${VM_KEY:-$HOME/.little-internet/lab00-vm/id_ed25519}"
+
 # ---- presentation ----------------------------------------------------------
 # Colors only when stdout is a terminal and NO_COLOR is unset.
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
@@ -58,22 +62,34 @@ STYLE="h(){ printf '\n${_B}${_C}▸ %s${_X}\n' \"\$*\"; }"
 # terminal attached so sudo can prompt, and the block travels as an argument so
 # your keyboard stays free to type the password.
 _run() {
-  if [ "$MODE" = ssh ]; then
-    local b64; b64="$(printf '%s' "$2" | base64 | tr -d '\n')"
-    # LogLevel=ERROR hides ssh's own chatter (the "Connection to X closed." line
-    # that -t prints at session end) while still surfacing real errors and the
-    # remote sudo prompt.
-    ssh -t -o LogLevel=ERROR "$1" "echo $b64 | base64 -d | sudo bash"
-  else
-    printf '%s' "$2" | sudo ip netns exec "$1" bash
-  fi
+  case "$MODE" in
+    ssh)
+      local b64; b64="$(printf '%s' "$2" | base64 | tr -d '\n')"
+      # LogLevel=ERROR hides ssh's own chatter (the "Connection to X closed." line
+      # that -t prints at session end) while still surfacing real errors and the
+      # remote sudo prompt.
+      ssh -t -o LogLevel=ERROR "$1" "echo $b64 | base64 -d | sudo bash"
+      ;;
+    vm)
+      # Same base64 SSH transport, but the VM nodes are on localhost ports with a
+      # dedicated key, and their pi user has passwordless sudo (so no -t needed).
+      local b64; b64="$(printf '%s' "$2" | base64 | tr -d '\n')"
+      ssh -i "$VM_KEY" -p "$1" \
+        -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+        -o SetEnv=LC_ALL=C.UTF-8 -o LogLevel=ERROR \
+        pi@127.0.0.1 "echo $b64 | base64 -d | sudo bash"
+      ;;
+    *)
+      printf '%s' "$2" | sudo ip netns exec "$1" bash
+      ;;
+  esac
 }
 
-if [ "$MODE" = ssh ]; then
-  A_TGT="$A_HOST"; B_TGT="$B_HOST"
-else
-  A_TGT="pi-a"; B_TGT="pi-b"
-fi
+case "$MODE" in
+  ssh) A_TGT="$A_HOST"; B_TGT="$B_HOST" ;;
+  vm)  A_TGT="2201"; B_TGT="2202" ;;
+  *)   A_TGT="pi-a"; B_TGT="pi-b" ;;
+esac
 
 node_a() { _run "$A_TGT" "$1"; }
 node_b() { _run "$B_TGT" "$1"; }
@@ -101,15 +117,3 @@ printf '%s\n' "$existing" | grep -qx eth-dhcp || \
 nmcli connection up eth-dhcp >/dev/null 2>&1 || true
 EOF
 }
-
-# Context line, every step: you run from THIS machine; it reaches both nodes.
-if [ "$MODE" = ssh ]; then
-  note <<EOF
-Running from this machine against pi-a=$A_HOST and pi-b=$B_HOST.
-Each node's sudo may prompt once. (MODE=ssh; set A_HOST/B_HOST to retarget.)
-EOF
-else
-  note <<EOF
-Running from this machine against the local namespace lab (pi-a, pi-b). (MODE=netns)
-EOF
-fi
