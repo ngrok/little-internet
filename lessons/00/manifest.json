@@ -35,6 +35,17 @@
         "Link-up chatter differs from physical hardware."
       ]
     },
+    "vm": {
+      "description": "Boot two separate Debian VMs joined by one QEMU socket cable, driven over SSH, with a real toggleable carrier.",
+      "run": "./scripts/run.sh --vm",
+      "check": "./scripts/check.sh --vm",
+      "cleanup": "./scripts/virtual-vm/lab-down.sh",
+      "requirements": ["QEMU", "macOS or Linux host", "about 2GB RAM and disk", "internet on first boot"],
+      "limitations": [
+        "No real speed, duplex, or autonegotiation: a virtio NIC has no PHY.",
+        "Short frames are not padded to Ethernet's 60-byte minimum."
+      ]
+    },
     "read_only": {
       "description": "Teach from the README, diary, and manifest when hardware or Linux namespaces are unavailable.",
       "run": null
@@ -68,6 +79,10 @@
         "command": "sudo ./scripts/virtual/lab-down.sh"
       },
       {
+        "situation": "VM lab interrupted or left behind.",
+        "command": "./scripts/virtual-vm/lab-down.sh"
+      },
+      {
         "situation": "Hardware lesson should return eth0 to a blank wire.",
         "command": "./scripts/reset.sh"
       }
@@ -79,15 +94,15 @@
       "script": "scripts/00-link.sh",
       "question": "Is there even a wire?",
       "concept": "Layer 1: carrier and autonegotiation.",
-      "mode": "hardware_only",
-      "human_action": "Unplug and then seat the Ethernet cable.",
+      "mode": "hardware_or_vm",
+      "human_action": "Unplug and then seat the Ethernet cable (hardware); the VM lab toggles the carrier with link.sh.",
       "expected_observations": [
         "Before link-up, eth0 shows NO-CARRIER and state DOWN.",
         "After link-up, eth0 shows LOWER_UP and state UP.",
-        "ethtool reports Link detected: yes, speed, and duplex after the cable is seated."
+        "ethtool reports Link detected: yes, speed, and duplex after the cable is seated (hardware only; a virtio NIC has no PHY)."
       ],
       "common_failures": [
-        "The virtual lab skips this beat because veth has no physical layer.",
+        "The namespace lab skips this beat (veth has no physical layer); the VM lab runs it with a controllable virtio carrier.",
         "If LOWER_UP never appears, check both cable ends, power, and the interface name."
       ]
     },

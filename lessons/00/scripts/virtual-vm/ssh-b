@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Drop into pi-b over its management NAT. With no args you get an interactive
+# shell; any args are run as a remote command. This is your "right pane".
+set -euo pipefail
+cd "$(dirname "$0")"
+source ./common.sh
+exec ssh "${ssh_opts[@]}" -p "$(ssh_port b)" pi@127.0.0.1 "$@"

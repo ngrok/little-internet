@@ -80,6 +80,14 @@ sudo ./scripts/check.sh --virtual
 sudo ./scripts/run.sh --virtual
 ```
 
+Want something closer to the real bench? There's a heavier virtual lab in
+[`scripts/virtual-vm/`](./scripts/virtual-vm/) that boots two separate Debian VMs
+(two real kernels) joined by one QEMU socket cable. It costs a QEMU install and a
+few minutes to boot, but it buys two things the namespace lab can't: genuinely
+independent machines, and a Layer 1 carrier you can seat and unseat by hand
+(`./link.sh a off`), so the "is there even a wire?" beat works in software too.
+See its [`README.md`](./scripts/virtual-vm/README.md) for the two-terminal runbook.
+
 ### Inspect the recorded captures
 
 You can inspect captures from the real Pis without running either lab. Each
@@ -138,3 +146,8 @@ physical details. That includes no:
   veth doesn't pad to Ethernet's 60-byte minimum
 - `b8:27:eb`<->Raspberry Pi vendor prefix on MACs, because virtual interfaces
   get random MACs.
+
+Two of these come back in the heavier VM lab
+([`scripts/virtual-vm/`](./scripts/virtual-vm/)): it drives a real carrier, so the
+link up/down beat is live (though Speed/Duplex still aren't, with no PHY), and it
+assigns the `b8:27:eb` prefix to its cable NICs, so that observation holds there.
