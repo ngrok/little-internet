@@ -88,12 +88,52 @@ independent machines, and a Layer 1 carrier you can seat and unseat by hand
 (`./link.sh a off`), so the "is there even a wire?" beat works in software too.
 See its [`README.md`](./scripts/virtual-vm/README.md) for the two-terminal runbook.
 
+### Inspect the recorded captures
+
+You can inspect captures from the real Pis without running either lab. Each
+exchange was recorded at both ends of the cable, so you can compare what
+`pi-foo-01` and `pi-foo-02` observed:
+
+- Link-up chatter: [`pi-foo-01`](./captures/link-up_pi-foo-01.pcapng) and
+  [`pi-foo-02`](./captures/link-up_pi-foo-02.pcapng)
+- ARP and ping: [`pi-foo-01`](./captures/arp_pi-foo-01.pcapng) and
+  [`pi-foo-02`](./captures/arp_pi-foo-02.pcapng)
+
+Open a capture in Wireshark, or read it from the lesson directory with
+`tshark`:
+
+```bash
+tshark -r captures/link-up_pi-foo-01.pcapng -n
+tshark -r captures/arp_pi-foo-02.pcapng -n
+```
+
+These are also the canonical evidence for a read-only walkthrough with a coding
+agent: ask it to show you the decoded rows before explaining what they mean.
+
 ### With a coding agent
 
 Agents should read the root [`AGENTS.md`](../../AGENTS.md) and this lesson's
 [`manifest.json`](./manifest.json) before running anything. The manifest lists
 the lesson beats, which scripts drive them, what output to look for, and how to
 recover from interrupted hardware or virtual runs.
+
+Ask the agent to **teach the lesson one beat at a time**. It should show you the
+command and the relevant raw output, help you read the evidence, and wait for
+your prediction or questions before continuing. A collapsed tool message like
+"Ran 4 shell commands" is not the experiment—you should see the `ip`,
+`ethtool`, routing, capture, and ARP evidence that supports each conclusion.
+
+For packet captures in particular, expect to see the actual `tshark` or
+`tcpdump` rows in a code block before the agent explains them. Frame-by-frame
+prose is useful only when you can look back at the corresponding timestamps,
+source and destination addresses, protocols, and summaries yourself. If the
+capture is too long, the agent should label any excerpt and tell you what it
+left out—not silently replace the capture with its conclusions.
+
+For an interactive walkthrough, the agent should use the individual step
+scripts rather than batch-running `scripts/run.sh`. The full runner is handy for
+an unattended demonstration or functional check, but a coding agent's job here
+is to provide the pacing and instruction that a shell script cannot.
 
 #### What you can't see with virtualization
 
