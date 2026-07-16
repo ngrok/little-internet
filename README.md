@@ -13,27 +13,12 @@ your own little internet and follow along.
 
 _And have some fun along the way._
 
-## How I'm rolling out the little internet
+## Where this is going
 
-I'm going from single network, then two networks, and then a working facsimile
-of the internet you know and love.
-
-As I go, I'll write [diaries](./diaries/) that track questions I'm asking about
-the little internet and the paths I've taken to unpuzzle and understand them.
-Each of those gets a hands-on [lesson](./lessons) you can run yourself. I'll
-also peel off particularly tasty deep-dives on different protocols over to the
-[ngrok blog](https://ngrok.com/blog) and
-[YouTube](https://www.youtube.com/@ngrokHQ).
-
-Every numbered entry comes in two halves: the diary tells the story and the
-lesson is the version you run yourself. Read them in order, or jump to whatever
-question hooks you:
-
-| #  | The question                             | Read the story                                 | Run it yourself         |
-| -- | ---------------------------------------- | ---------------------------------------------- | ----------------------- |
-| 00 | Two Pis, one cable: can they just talk?  | [Diary 00](./diaries/00_two-pis-one-cable.md)  | [Lesson 00](./lessons/00/) |
-
-Here's the whole big picture:
+The little internet is "done" when I have three networks, one acting as a
+transit AS between the other two, and every host can talk to every other host
+over BGP without any of them knowing the whole map. Getting there happens in
+three phases:
 
 - **Phase 1: a network.** Two Pis and a managed switch. How do devices on the
   same network find and talk to each other? _ARP, MAC addresses, broadcast
@@ -45,6 +30,17 @@ Here's the whole big picture:
 - **Phase 3: the little internet.** Multiple autonomous networks that have to
   advertise their reachability to one another. _Autonomous systems, BGP, path
   selection, convergence_, plus side quests like DNS, TLS, and Pi-hole.
+
+Each step along the way is a question I'm unpuzzling. The
+[diary](./diaries/) tells the story and the [lesson](./lessons) is the version
+you run yourself. Particularly tasty protocol deep-dives get peeled off to the
+[ngrok blog](https://ngrok.com/blog) and
+[YouTube](https://www.youtube.com/@ngrokHQ). Read them in order, or jump to
+whatever question hooks you:
+
+| #  | The question                             | Read the story                                 | Run it yourself         |
+| -- | ---------------------------------------- | ---------------------------------------------- | ----------------------- |
+| 00 | Two Pis, one cable: can they just talk?  | [Diary 00](./diaries/00_two-pis-one-cable.md)  | [Lesson 00](./lessons/00/) |
 
 ## Want to build your own little internet?
 
@@ -58,8 +54,7 @@ Here's the whole big picture:
    cable: can they just talk?"
 4. Read the diaries for the story behind it all. They're the running build log
    of putting this together, in the order each piece came to life. The
-   [table above](#how-im-rolling-out-the-little-internet) pairs each diary with
-   its lesson.
+   [table above](#where-this-is-going) pairs each diary with its lesson.
 
 ## Repo layout
 
