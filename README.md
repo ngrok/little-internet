@@ -38,9 +38,9 @@ you run yourself. Particularly tasty protocol deep-dives get peeled off to the
 [YouTube](https://www.youtube.com/@ngrokHQ). Read them in order, or jump to
 whatever question hooks you:
 
-| #  | The question                             | Read the story                                 | Run it yourself         |
-| -- | ---------------------------------------- | ---------------------------------------------- | ----------------------- |
-| 00 | Two Pis, one cable: can they just talk?  | [Diary 00](./diaries/00_two-pis-one-cable.md)  | [Lesson 00](./lessons/00/) |
+| #  | The question                             | Read the story                                 | Run it yourself         | Watch it                |
+| -- | ---------------------------------------- | ---------------------------------------------- | ----------------------- | ----------------------- |
+| 00 | Two Pis, one cable: can they just talk?  | [Diary 00](./diaries/00_two-pis-one-cable.md)  | [Lesson 00](./lessons/00/) | [Video](https://www.youtube.com/watch?v=XIlKS4TVt74) |
 
 ## Want to build your own little internet?
 

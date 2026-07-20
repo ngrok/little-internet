@@ -11,6 +11,10 @@ networking fundamentals than you might expect.
 Let's learn _just as much as we need_ to answer those questions as we actually
 build our way to a working connection.
 
+This diary is also a video, if you'd rather watch the story unfold:
+
+[![Diary 00 as a video: two Pis, one cable, can they just talk?](https://img.youtube.com/vi/XIlKS4TVt74/maxresdefault.jpg)](https://www.youtube.com/watch?v=XIlKS4TVt74)
+
 ## BC: Before Connection
 
 In the beginning, the two Pis are not connected by an Ethernet cable.
