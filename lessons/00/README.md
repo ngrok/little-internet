@@ -86,6 +86,8 @@ Want something closer to the real bench? There's a heavier virtual lab in
 few minutes to boot, but it buys two things the namespace lab can't: genuinely
 independent machines, and a Layer 1 carrier you can seat and unseat by hand
 (`./link.sh a off`), so the "is there even a wire?" beat works in software too.
+It also ships a live web dashboard (`./dashboard.sh`): both nodes' link state,
+address, ARP cache, and serial console, plus every frame crossing the wire.
 See its [`README.md`](./scripts/virtual-vm/README.md) for the two-terminal runbook.
 
 ### Inspect the recorded captures
