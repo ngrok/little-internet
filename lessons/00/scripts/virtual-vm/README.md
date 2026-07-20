@@ -87,6 +87,31 @@ Note `seq 2` is faster than `seq 1` — that's the ARP cache. Check it with
 `ip neigh show dev eth0` on pi-a (expect `10.10.0.2 ... REACHABLE`), and note the
 `b8:27:eb` Pi vendor prefix, reproduced here on purpose.
 
+## Or watch it on the dashboard
+
+One command stands up the lab (if it isn't already) and opens a live
+black-and-white view of both nodes in your browser:
+
+```bash
+./dashboard.sh         # serves http://127.0.0.1:8099 and opens it
+```
+
+- **pi-a and pi-b side by side**: link state (`LINK UP` / `NO CARRIER`), the
+  `eth0` address, and the ARP cache, with each neighbor's state color-coded
+  (`REACHABLE` green, `STALE`/`DELAY` amber, `FAILED` red).
+- **Each node's serial console**, following the newest lines.
+- **The wire**: every frame crossing `eth0`, streamed via `tshark` and
+  color-coded (ARP amber, ICMP request green, ICMP reply cyan).
+
+Panels refresh once a second with sticky auto-scroll: pinned to the newest
+line, but you can scroll up to read without it snapping back. It pairs well
+with the runbook above: run the beats in the two SSH panes and watch the
+dashboard react, or `./link.sh a off` and watch pi-a flip to `NO CARRIER`.
+
+Ctrl-C stops the dashboard; the lab keeps running. `dashboard.py` is Python
+stdlib only (nothing to install), and the wire view uses the `tshark` that
+`lab-up.sh` puts on the nodes. Set `DASH_PORT` to serve on a different port.
+
 ## Reset a node to the blank wire
 
 ```bash
