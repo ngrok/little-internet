@@ -27,8 +27,8 @@ The scripts live on your machine where you clone this repo and drive two nodes.
 
 For anyone who's built a [hardware version](../../BOM.md) of the little internet
 themselves (bless you), those nodes will be your two Pis. If you don't want or
-can't build the hardware version, there's also a **virtualized version** you can
-run on any Linux machine (or a VM on Windows or macOS).
+can't build the hardware version, there are two **virtualized versions**: a
+two-VM lab on macOS, and a lighter network-namespace lab on Linux.
 
 ### On hardware
 
@@ -65,30 +65,33 @@ Each step is also its own script, so you can run or re-run just one:
 
 ### Virtually
 
-No Pis? `./scripts/run.sh --virtual` recreates the whole thing in software. A
-veth pair is the closest thing to a single cable—two ends, nothing in between—so
-it stands up two network namespaces (`pi-a` and `pi-b`) joined by one veth,
-walks the same steps (pausing for you between each, just like the hardware
-path), and tears it all down when you're done.
+No Pis? The closest thing to the real bench is the VM lab in
+[`scripts/virtual-vm/`](./scripts/virtual-vm/): two separate Debian VMs (two
+real kernels) joined by one QEMU socket cable. It costs a QEMU install and a
+few minutes to boot, but it delivers the beats no lighter setup can: a Layer 1
+carrier you can seat and unseat by hand (`./link.sh a off`), so the "is there
+even a wire?" question is live in software too; two genuinely independent
+machines; and cable NICs that wear the Pi's `b8:27:eb` vendor prefix. It also
+ships a live web dashboard (`./dashboard.sh`): both nodes' link state, address,
+ARP cache, and serial console, plus every frame crossing the wire. It runs on
+macOS today; see its [`README.md`](./scripts/virtual-vm/README.md) for the
+two-terminal runbook.
 
-Network namespaces are a Linux feature, so on macOS or Windows, run it inside a
-Linux VM ([colima](https://github.com/abiosoft/colima) and
-[lima](https://github.com/lima-vm/lima) both work).
+Want something quicker, or you're on Linux (or CI)? `./scripts/run.sh
+--virtual` recreates the lesson with network namespaces instead. A veth pair is
+the closest thing to a single cable—two ends, nothing in between—so it stands
+up two namespaces (`pi-a` and `pi-b`) joined by one veth, walks the same steps
+(pausing for you between each, just like the hardware path), and tears it all
+down when you're done.
 
 ```bash
 sudo ./scripts/check.sh --virtual
 sudo ./scripts/run.sh --virtual
 ```
 
-Want something closer to the real bench? There's a heavier virtual lab in
-[`scripts/virtual-vm/`](./scripts/virtual-vm/) that boots two separate Debian VMs
-(two real kernels) joined by one QEMU socket cable. It costs a QEMU install and a
-few minutes to boot, but it buys two things the namespace lab can't: genuinely
-independent machines, and a Layer 1 carrier you can seat and unseat by hand
-(`./link.sh a off`), so the "is there even a wire?" beat works in software too.
-It also ships a live web dashboard (`./dashboard.sh`): both nodes' link state,
-address, ARP cache, and serial console, plus every frame crossing the wire.
-See its [`README.md`](./scripts/virtual-vm/README.md) for the two-terminal runbook.
+Network namespaces are a Linux feature, so this path needs a Linux machine—on
+macOS or Windows, a Linux VM ([colima](https://github.com/abiosoft/colima) and
+[lima](https://github.com/lima-vm/lima) both work).
 
 ### Inspect the recorded captures
 
@@ -139,17 +142,15 @@ is to provide the pacing and instruction that a shell script cannot.
 
 #### What you can't see with virtualization
 
-A network namespace runs the same Linux stack as the Pi, but you can't see the
-physical details. That includes no:
+Even the VM lab ([`scripts/virtual-vm/`](./scripts/virtual-vm/)) has no PHY, so
+some physical details are gone in any virtual run:
 
-- Carrier or Speed/Duplex details on the `eth0` device
+- Speed/Duplex details on the `eth0` device
 - mDNS or DHCP firing on link-up
-- 42-vs-60-byte tell on whether your device sent or received ARP frames, because
-  veth doesn't pad to Ethernet's 60-byte minimum
-- `b8:27:eb`<->Raspberry Pi vendor prefix on MACs, because virtual interfaces
-  get random MACs.
+- the 42-vs-60-byte tell on whether your device sent or received ARP frames
 
-Two of these come back in the heavier VM lab
-([`scripts/virtual-vm/`](./scripts/virtual-vm/)): it drives a real carrier, so the
-link up/down beat is live (though Speed/Duplex still aren't, with no PHY), and it
-assigns the `b8:27:eb` prefix to its cable NICs, so that observation holds there.
+The namespace lab loses two more. There's no carrier to seat or unseat, and no
+`b8:27:eb`<->Raspberry Pi vendor prefix on MACs, because virtual interfaces get
+random ones. The VM lab keeps both: it drives a real carrier, so the link
+up/down beat is live, and it assigns the `b8:27:eb` prefix to its cable NICs on
+purpose.
