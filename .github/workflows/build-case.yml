@@ -1,0 +1,95 @@
+name: Build case STL
+
+# Renders the Pi 3 half-case + OLED stand from hardware/pi3-oled-case/pi3-oled.scad
+# and publishes the STLs — as workflow artifacts for every run, and as Release
+# assets when you push a version tag (e.g. v1.0.0), alongside the node image.
+#
+# Unlike the image build this takes seconds, so it runs on every PR that touches
+# the model.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    paths:
+      - 'hardware/**'
+      - '.github/workflows/build-case.yml'
+      # A docs-only change to the case shouldn't re-render geometry. A later '!'
+      # pattern overrides an earlier match.
+      - '!hardware/**/*.md'
+
+concurrency:
+  group: build-case-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: write   # needed to attach the STLs to a Release on tag pushes
+
+jobs:
+  render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v6
+
+      # xvfb because OpenSCAD still wants a display to initialise, even for a
+      # headless CGAL render that never draws anything.
+      - name: Install OpenSCAD
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openscad xvfb
+          openscad --version
+
+      # part="both" is the real printable unit; the split halves are there for
+      # anyone iterating on one end without reprinting the other.
+      - name: Render the STLs
+        working-directory: hardware/pi3-oled-case
+        run: |
+          set -euo pipefail
+          mkdir -p ../../stl
+          render() {
+            echo "::group::$1"
+            # Add --hardwarnings here to make any OpenSCAD warning fatal, once
+            # you're confident the model renders warning-free.
+            xvfb-run -a openscad -o "../../stl/$1" -D "part=\"$2\"" pi3-oled.scad
+            echo "::endgroup::"
+          }
+          render pi3-oled-case.stl        both
+          render pi3-oled-case-tray.stl   tray
+          render pi3-oled-case-stand.stl  oled
+
+      # OpenSCAD exits 0 after writing an empty solid if the geometry collapses,
+      # so a syntax-clean model that renders to nothing would sail through the
+      # step above. Anything under 10 KB is not this model.
+      - name: Check the STLs are real geometry
+        run: |
+          set -euo pipefail
+          ls -l stl/
+          for f in stl/*.stl; do
+            size="$(stat -c%s "$f")"
+            if [ "$size" -lt 10000 ]; then
+              echo "::error file=$f::$f is only ${size} bytes — empty or degenerate render"
+              exit 1
+            fi
+          done
+
+      - name: Upload the STLs as a workflow artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: pi3-oled-case-stl
+          path: stl/*.stl
+          if-no-files-found: error
+
+      # Only the fused unit ships publicly. The split halves don't join, so a
+      # release asset for each would just invite someone to print both and look
+      # for the joint; they stay in the workflow artifact for iterating.
+      - name: Attach the STL to the Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v3
+        with:
+          files: stl/pi3-oled-case.stl
+          fail_on_unmatched_files: true

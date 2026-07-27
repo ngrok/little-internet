@@ -31,16 +31,16 @@ three phases:
   advertise their reachability to one another. _Autonomous systems, BGP, path
   selection, convergence_, plus side quests like DNS, TLS, and Pi-hole.
 
-Each step along the way is a question I'm unpuzzling. The
-[diary](./diaries/) tells the story and the [lesson](./lessons) is the version
-you run yourself. Particularly tasty protocol deep-dives get peeled off to the
+Each step along the way is a question I'm unpuzzling. The [diary](./diaries/)
+tells the story and the [lesson](./lessons) is the version you run yourself.
+Particularly tasty protocol deep-dives get peeled off to the
 [ngrok blog](https://ngrok.com/blog) and
 [YouTube](https://www.youtube.com/@ngrokHQ). Read them in order, or jump to
 whatever question hooks you:
 
-| #  | The question                             | Read the story                                 | Run it yourself         | Watch it                |
-| -- | ---------------------------------------- | ---------------------------------------------- | ----------------------- | ----------------------- |
-| 00 | Two Pis, one cable: can they just talk?  | [Diary 00](./diaries/00_two-pis-one-cable.md)  | [Lesson 00](./lessons/00/) | [Video](https://www.youtube.com/watch?v=XIlKS4TVt74) |
+| #   | The question                            | Read the story                                | Run it yourself            | Watch it                                             |
+| --- | --------------------------------------- | --------------------------------------------- | -------------------------- | ---------------------------------------------------- |
+| 00  | Two Pis, one cable: can they just talk? | [Diary 00](./diaries/00_two-pis-one-cable.md) | [Lesson 00](./lessons/00/) | [Video](https://www.youtube.com/watch?v=XIlKS4TVt74) |
 
 ## Want to build your own little internet?
 
@@ -50,9 +50,12 @@ whatever question hooks you:
    Either way, see [`image/`](./image/) for getting the Raspberry Pi OS image
    (built with [pi-gen](https://github.com/RPi-Distro/pi-gen)) and flashing it
    to your microSD cards.
-3. Follow the lessons. Start with [`lesson 00`](./lessons/00/), "two Pis, one
+3. Optionally, print a stand. Every release also has an STL for a
+   [Pi 3 half-case with an integrated OLED stand](./hardware/pi3-oled-case/):
+   the Pi drops in without screws and the display sits up where you can read it.
+4. Follow the lessons. Start with [`lesson 00`](./lessons/00/), "two Pis, one
    cable: can they just talk?"
-4. Read the diaries for the story behind it all. They're the running build log
+5. Read the diaries for the story behind it all. They're the running build log
    of putting this together, in the order each piece came to life. The
    [table above](#where-this-is-going) pairs each diary with its lesson.
 
@@ -69,6 +72,11 @@ whatever question hooks you:
 ├── lessons/      One directory per lesson: an explainer, the scripts to run
 │                 it yourself, and recorded packet captures. Start with
 │                 lessons/00.
+├── tools/        Small scripts that run on a node: OLED smoke tests, the
+│                 boot-time status display, the ARP-state viewer.
+├── hardware/     Things you make: 3D-printable models for mounting the kit.
+│                 See hardware/pi3-oled-case for the Pi 3 half-case with an
+│                 integrated OLED stand.
 └── AGENTS.md     Guidance for coding agents that teach or operate the labs.
 ```
 
