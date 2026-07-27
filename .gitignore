@@ -8,3 +8,10 @@ __pycache__/
 # Rendered STLs (CI writes them to stl/; nothing here is committed)
 *.stl
 
+# Camera originals. Photos in the repo are stripped of EXIF (which includes GPS
+# coordinates) and resized first; don't let an untouched IMG_1234.jpeg slip in.
+IMG_*.jpeg
+IMG_*.JPEG
+IMG_*.jpg
+IMG_*.JPG
+

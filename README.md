@@ -13,6 +13,10 @@ your own little internet and follow along.
 
 _And have some fun along the way._
 
+![Two Raspberry Pi 3s in red printed cases, screwed to a pine board and joined by a green Ethernet cable, each with an OLED showing its hostname, eth0 MAC, and IP addresses: pi-foo-01 at 10.10.0.1 and pi-foo-02 at 10.10.0.2](./photos/two-nodes.jpeg)
+
+_Phase 1 as it stands: two nodes, one cable, each panel showing who it is._
+
 ## Where this is going
 
 The little internet is "done" when I have three networks, one acting as a
@@ -77,6 +81,7 @@ whatever question hooks you:
 ├── hardware/     Things you make: 3D-printable models for mounting the kit.
 │                 See hardware/pi3-oled-case for the Pi 3 half-case with an
 │                 integrated OLED stand.
+├── photos/       Photos of the lab as it actually is, EXIF stripped.
 └── AGENTS.md     Guidance for coding agents that teach or operate the labs.
 ```
 

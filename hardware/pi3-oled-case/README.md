@@ -5,6 +5,8 @@ the **Raspberry Pi 3** drops into, a raised pedestal that holds an
 [ELEGOO SSD1306](../../BOM.md) OLED flat, and two flanges so you can screw the
 whole thing to a desk or a board and look at it cleanly from top-down.
 
+![Two printed cases in red PLA, each holding a Raspberry Pi 3 with its OLED raised on the pedestal beside the GPIO header, jumper wires running from the display down through the pedestal doorway to the header](./assembled.jpeg)
+
 First, measure your OLED.
 
 The defaults are designed around the BOM parts, but yours might vary even by a
@@ -68,3 +70,5 @@ openscad -o fit-test.stl -D 'part="oled"' -D 'oled_stub=true' pi3-oled.scad
 `"tray"` and `"oled"` exist so you can iterate on one half without reprinting
 the other. They are **not** two halves that clip together: there's no joint
 between them, so a separately-printed pedestal just sits loose next to the tray.
+
+![The bare print in red PLA, tray and pedestal in one piece: four chamfered pegs on standoffs, two flanged screw tabs with counterbored holes, and the hollow pedestal's interior showing the four corner pads the OLED rests on](./bare-print.jpeg)
