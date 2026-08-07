@@ -4,9 +4,10 @@
 This is the boot-time resident of the panel: little-internet-oled.service
 starts it at boot so a powered node permanently shows who it is. The yellow
 strip gets the hostname; the blue body gets eth0's MAC (the node's layer-2
-identity in the lessons) and the current IPv4 address of each interface —
-eth0 (the lab wire) and wlan0 (your SSH path). Everything refreshes once a
-second, so a DHCP lease landing or a cable pull shows up as it happens.
+identity in the lessons) on a small row, then eth0's current IPv4 address as
+big as the panel can paint it — the address is what you read from across the
+bench. Everything refreshes once a second, so a DHCP lease landing or a cable
+pull shows up as it happens.
 
 On-demand scripts (~/arp-oled, ~/oled-test) borrow the panel by dropping a
 claim file at /run/little-internet/oled.claim; while it exists this display
@@ -16,7 +17,7 @@ Run it by hand the same way the service does:
 
     /opt/little-internet/venv/bin/python3 status_oled.py
     status_oled.py --address 0x3d --controller sh1106
-    status_oled.py --interfaces eth0        # lab wire only
+    status_oled.py --interfaces eth0 wlan0  # show the Wi-Fi address too
 """
 import argparse
 import json
@@ -39,9 +40,14 @@ CLAIM_FILE = "/run/little-internet/oled.claim"
 
 # The Phase 1 BOM panel is a dual-colour 0.96" SSD1306: its top 16 pixel rows
 # emit yellow and the bottom 48 emit blue — fixed in the glass, not settable in
-# software. Yellow band: the hostname. Blue body: MAC + one IPv4 line per
-# interface. Set to 0 for a single-colour panel.
+# software. Yellow band: the hostname. Blue body: MAC + IPv4. Set to 0 for a
+# single-colour panel.
 YELLOW_H = 16
+
+# Height of the MAC row at the top of the blue body. Everything below it goes
+# to the IPv4 line(s), which get the biggest font that fits — the address is
+# the thing this panel exists to show.
+MAC_H = 16
 
 # Monospace TrueType, in preference order: JetBrains Mono (ngrok's mono, from
 # fonts-jetbrains-mono on the image), then DejaVu Sans Mono as a fallback on
@@ -53,10 +59,10 @@ FONTS = (
     "/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf",
     "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
 )
-# The body font is sized once against the widest line we might render, so the
-# layout doesn't jump when an address arrives (a fixed-width font keeps the
-# columns steady too).
-WIDEST_BODY = "wlan0 255.255.255.255"
+# The MAC row's font is sized once against a full-width MAC so its layout
+# never jumps. The IPv4 font is instead fitted to the text actually shown —
+# lab addresses are short, so they render far bigger than the worst case.
+MAC_SAMPLE = "88:88:88:88:88:88"
 
 
 def fit_font(sample, max_w, max_h, path=None):
@@ -116,33 +122,37 @@ def interfaces():
         return {}
 
 
-def body_lines(ifnames):
-    """The blue-body text: the first interface's MAC, then one IPv4 line each.
+def body(ifnames):
+    """The blue-body text: the first interface's MAC, plus one IPv4 line each.
 
     An interface with no address distinguishes "no cable" (down) from "no
-    lease yet" (no IPv4) — the difference lesson 00 is built on.
+    lease yet" (no IPv4) — the difference lesson 00 is built on. With one
+    interface the line is just the address, full width; with several, each
+    line carries its interface name.
     """
     table = interfaces()
-    mac = (table.get(ifnames[0]) or (None,))[0]
-    lines = [mac or f"(no {ifnames[0]})"]
+    mac = (table.get(ifnames[0]) or (None,))[0] or f"(no {ifnames[0]})"
+    lines = []
     for name in ifnames:
         entry = table.get(name)
         if entry is None:
-            lines.append(f"{name} (missing)")
+            text = "(missing)"
         elif entry[1]:
-            lines.append(f"{name} {entry[1]}")
+            text = entry[1]
         elif entry[2] == "DOWN":
-            lines.append(f"{name} (down)")
+            text = "(down)"
         else:
-            lines.append(f"{name} (no IPv4)")
-    return lines
+            text = "(no IPv4)"
+        lines.append(f"{name} {text}" if len(ifnames) > 1 else text)
+    return mac, lines
 
 
-def render(device, hostname, lines, beat, head_font, body_font):
+def render(device, hostname, mac, ips, beat, head_font, mac_font, ip_font):
     """Draw one frame across the panel's two colour bands (see YELLOW_H).
 
     Yellow strip: the hostname, plus a heartbeat so a steady screen still
-    reads as "running". Blue body: the MAC/IPv4 lines, one per row slot.
+    reads as "running". Blue body: the MAC on its small row, then the IPv4
+    line(s) as big as they fit.
     """
     small = ImageFont.load_default()
     frame = Image.new("1", (device.width, device.height))
@@ -156,11 +166,16 @@ def render(device, hostname, lines, beat, head_font, body_font):
     if beat:
         draw.rectangle((device.width - 3, 1, device.width - 1, 3), fill=1)
 
-    pitch = (device.height - YELLOW_H) // len(lines)
-    font = body_font or small
-    for i, line in enumerate(lines):
+    font = mac_font or small
+    b = font.getbbox(mac)
+    draw.text((2 - b[0], YELLOW_H + (MAC_H - (b[3] - b[1])) // 2 - b[1]),
+              mac, fill=1, font=font)
+
+    pitch = (device.height - YELLOW_H - MAC_H) // len(ips)
+    font = ip_font or small
+    for i, line in enumerate(ips):
         b = font.getbbox(line)
-        y = YELLOW_H + i * pitch + (pitch - (b[3] - b[1])) // 2 - b[1]
+        y = YELLOW_H + MAC_H + i * pitch + (pitch - (b[3] - b[1])) // 2 - b[1]
         draw.text((2 - b[0], y), line, fill=1, font=font)
 
     device.display(frame)
@@ -186,9 +201,9 @@ def open_display(args, tries=5, delay=2.0):
 def main():
     p = argparse.ArgumentParser(
         description="Show this node's hostname, MAC, and IPv4 on the OLED.")
-    p.add_argument("--interfaces", nargs="+", default=["eth0", "wlan0"],
+    p.add_argument("--interfaces", nargs="+", default=["eth0"],
                    help="interfaces to show, one IPv4 line each; the first "
-                        "one's MAC is shown too (default: eth0 wlan0)")
+                        "one's MAC is shown too (default: eth0)")
     p.add_argument("--interval", type=float, default=1.0,
                    help="seconds between refreshes (default 1.0)")
     p.add_argument("--port", type=int, default=1,
@@ -210,10 +225,14 @@ def main():
         # inactive instead of restart-looping against an empty bus.
         sys.exit(0)
 
-    body_h = (device.height - YELLOW_H) // (len(args.interfaces) + 1)
+    ip_h = (device.height - YELLOW_H - MAC_H) // len(args.interfaces)
     head_font = fit_font(socket.gethostname(), device.width - 4, YELLOW_H - 3,
                          args.font)
-    body_font = fit_font(WIDEST_BODY, device.width - 4, body_h - 2, args.font)
+    mac_font = fit_font(MAC_SAMPLE, device.width - 4, MAC_H - 2, args.font)
+    # The IPv4 font is refitted when the widest line changes, so a short lab
+    # address paints far bigger than 255.255.255.255 would. The cache stays
+    # tiny — a node sees a handful of distinct addresses per boot.
+    ip_fonts = {}
 
     # systemd stops us with SIGTERM; turn it into a clean exit so the finally
     # below blanks the panel instead of leaving a ghost frame.
@@ -236,8 +255,13 @@ def main():
                     # we paint lands on dark glass.
                     device.show()
                     paused = False
-                render(device, socket.gethostname(),
-                       body_lines(args.interfaces), beat, head_font, body_font)
+                mac, ips = body(args.interfaces)
+                widest = max(ips, key=len)
+                if widest not in ip_fonts:
+                    ip_fonts[widest] = fit_font(widest, device.width - 4,
+                                                ip_h - 2, args.font)
+                render(device, socket.gethostname(), mac, ips, beat,
+                       head_font, mac_font, ip_fonts[widest])
                 beat = not beat
             time.sleep(args.interval)
     except KeyboardInterrupt:

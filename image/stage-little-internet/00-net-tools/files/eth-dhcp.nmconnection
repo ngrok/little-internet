@@ -4,7 +4,12 @@
 # and mDNS — with nothing configured by the reader, exactly the moment the
 # lesson 00 diary opens on. On a two-Pi link no DHCP server answers, so eth0
 # never gets an IPv4 address: "a live wire with no identity," which is precisely
-# where the lesson begins. lessons/00/scripts/reset.sh restores this profile.
+# where the lesson begins. dhcp-timeout=10 and ra-timeout=10 keep that
+# no-answer case cheap: NetworkManager declares the activation failed only when
+# BOTH families give up, so both are capped — when a static lesson profile also
+# exists on the device, it takes over about 10 seconds after link-up instead of
+# 45 — and the phase 2 router, a real DHCP server on this wire, answers well
+# inside 10s anyway. lessons/00/scripts/reset.sh restores this profile.
 [connection]
 id=eth-dhcp
 uuid=ea4302a7-a8e0-43f3-8aae-d9bb45eed4db
@@ -15,8 +20,10 @@ autoconnect-priority=0
 
 [ipv4]
 method=auto
+dhcp-timeout=10
 never-default=true
 
 [ipv6]
 method=auto
+ra-timeout=10
 never-default=true
