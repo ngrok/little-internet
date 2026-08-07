@@ -100,8 +100,11 @@ node_b() { _run "$B_TGT" "$1"; }
 # imaged Pi has out of the box, and it's what makes a blank eth0 chatter the
 # instant the link comes up—the spontaneous burst the whole lesson is built on.
 # DHCP finds no server on a two-Pi link, so the wire stays addressless ("no
-# identity") while still talking. Idempotent. NetworkManager only; the netns lab
-# has no NM, so this no-ops there.
+# identity") while still talking. Each DHCP try and IPv6 RA wait is capped at
+# 10s to match the image profile (see image/.../files/eth-dhcp.nmconnection
+# for the why).
+# Idempotent. NetworkManager only; the netns lab has no NM, so this no-ops
+# there.
 baseline_block() {
 cat <<'EOF'
 command -v nmcli >/dev/null 2>&1 || exit 0
@@ -112,8 +115,11 @@ for c in eth eth0 "Wired connection 1"; do
 done
 printf '%s\n' "$existing" | grep -qx eth-dhcp || \
   nmcli connection add type ethernet ifname eth0 con-name eth-dhcp \
-    ipv4.method auto ipv6.method auto connection.autoconnect yes \
-    ipv4.never-default yes ipv6.never-default yes >/dev/null
-nmcli connection up eth-dhcp >/dev/null 2>&1 || true
+    ipv4.method auto ipv4.dhcp-timeout 10 ipv6.method auto ipv6.ra-timeout 10 \
+    connection.autoconnect yes ipv4.never-default yes ipv6.never-default yes \
+    >/dev/null
+# --wait 0: don't sit out the doomed DHCP/RA activation — on a serverless wire
+# it only ever resolves to the addressless resting state we're after anyway.
+nmcli --wait 0 connection up eth-dhcp >/dev/null 2>&1 || true
 EOF
 }
