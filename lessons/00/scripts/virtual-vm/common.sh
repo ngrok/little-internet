@@ -31,18 +31,39 @@ WIRE_PORT="${WIRE_PORT:-10000}"
 # PATH (e.g. the Android SDK's) can't be picked up by accident.
 QEMU="${QEMU:-$QEMU_DEFAULT}"
 if ! command -v "$QEMU" >/dev/null 2>&1; then
-  echo "error: '$QEMU' not found. Install QEMU first:  brew install qemu" >&2
+  echo "error: '$QEMU' not found. Install QEMU (macOS: brew install qemu; Debian/Ubuntu: sudo apt-get install qemu-system)." >&2
   exit 1
 fi
 QEMU_IMG="${QEMU_IMG:-$(dirname "$(command -v "$QEMU")")/qemu-img}"
+
+# Accelerator + CPU model by host OS. macOS uses Hypervisor.framework (HVF);
+# Linux uses KVM when /dev/kvm is usable, otherwise slow tcg emulation. Windows
+# runs this inside WSL2, which presents as Linux.
+case "$(uname -s)" in
+  Darwin) ACCEL=hvf ;;
+  Linux)
+    if [ -w "${KVM_DEV:-/dev/kvm}" ]; then ACCEL=kvm
+    else ACCEL=tcg; echo "warning: /dev/kvm not usable (add yourself to the kvm group?); using slow tcg emulation" >&2; fi ;;
+  MINGW*|MSYS*|CYGWIN*)
+    echo "error: native Windows shells aren't supported. Run this inside WSL2 (Ubuntu), which uses the Linux path." >&2; exit 1 ;;
+  *) ACCEL=tcg; echo "warning: unrecognized host OS $(uname -s); using tcg emulation" >&2 ;;
+esac
+# -cpu host needs a hardware accelerator; tcg emulation takes the generic model.
+if [ "$ACCEL" = tcg ]; then CPU=max; else CPU=host; fi
 
 # x86_64 QEMU has a default board and BIOS; aarch64 has neither, so it gets the
 # generic "virt" machine plus the EDK2 UEFI firmware that ships with QEMU.
 # (Always non-empty: bash 3.2, macOS's default, chokes on empty arrays + set -u.)
 if [ "$GUEST_ARCH" = arm64 ]; then
-  EDK2_FW="$(dirname "$(command -v "$QEMU")")/../share/qemu/edk2-aarch64-code.fd"
-  if [ ! -f "$EDK2_FW" ]; then
-    echo "error: EDK2 firmware not found at $EDK2_FW (reinstall QEMU?)" >&2
+  EDK2_FW=""
+  for _fw in "$(dirname "$(command -v "$QEMU")")/../share/qemu/edk2-aarch64-code.fd" \
+             /usr/share/qemu/edk2-aarch64-code.fd \
+             /usr/share/AAVMF/AAVMF_CODE.fd \
+             /usr/share/edk2/aarch64/QEMU_EFI.fd; do
+    [ -f "$_fw" ] && { EDK2_FW="$_fw"; break; }
+  done
+  if [ -z "$EDK2_FW" ]; then
+    echo "error: EDK2 aarch64 firmware not found (reinstall QEMU, or install the EDK2/AAVMF package)" >&2
     exit 1
   fi
   machine_args=( -M virt -bios "$EDK2_FW" )
@@ -117,9 +138,21 @@ ethernets:
 EOF
 
   rm -f "$iso"
-  # hdiutil (built into macOS) writes an ISO9660+Joliet image labeled CIDATA,
-  # which is what cloud-init's NoCloud datasource looks for.
-  hdiutil makehybrid -quiet -o "$iso" -iso -joliet -default-volume-name CIDATA "$dir"
+  # An ISO9660+Joliet image labeled CIDATA is what cloud-init's NoCloud datasource
+  # looks for. hdiutil ships with macOS; xorriso/genisoimage/mkisofs cover Linux.
+  if command -v hdiutil >/dev/null 2>&1; then
+    hdiutil makehybrid -quiet -o "$iso" -iso -joliet -default-volume-name CIDATA "$dir"
+  elif command -v xorriso >/dev/null 2>&1; then
+    xorriso -as mkisofs -quiet -o "$iso" -V CIDATA -J -r "$dir"
+  elif command -v genisoimage >/dev/null 2>&1; then
+    genisoimage -quiet -o "$iso" -V CIDATA -J -r "$dir"
+  elif command -v mkisofs >/dev/null 2>&1; then
+    mkisofs -quiet -o "$iso" -V CIDATA -J -r "$dir"
+  else
+    echo "error: need hdiutil (macOS) or xorriso/genisoimage/mkisofs (Linux) to build the seed ISO." >&2
+    echo "  Debian/Ubuntu: sudo apt-get install xorriso" >&2
+    exit 1
+  fi
   rm -rf "$dir"
 }
 
@@ -130,8 +163,8 @@ boot_node() {
   "$QEMU" \
     -name "pi-$n" \
     "${machine_args[@]}" \
-    -accel hvf \
-    -cpu host \
+    -accel "$ACCEL" \
+    -cpu "$CPU" \
     -m 1024 -smp 2 \
     -drive if=virtio,format=qcow2,file="$LAB_HOME/pi-$n.qcow2" \
     -drive if=virtio,format=raw,file="$LAB_HOME/seed-$n.iso",readonly=on \
