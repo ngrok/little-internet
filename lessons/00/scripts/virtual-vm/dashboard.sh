@@ -16,5 +16,6 @@ if ! pgrep -f qemu-system >/dev/null 2>&1; then
 fi
 
 echo "opening dashboard at http://127.0.0.1:$DASH_PORT"
-( sleep 1; open "http://127.0.0.1:$DASH_PORT" >/dev/null 2>&1 || true ) &
+( sleep 1; open "http://127.0.0.1:$DASH_PORT" >/dev/null 2>&1 \
+  || xdg-open "http://127.0.0.1:$DASH_PORT" >/dev/null 2>&1 || true ) &
 exec python3 ./dashboard.py
