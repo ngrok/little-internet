@@ -25,11 +25,17 @@ hardware image enforces — so anything you see on `eth0` really crossed the wir
 
 ## Requirements
 
-- A Mac with **QEMU**: `brew install qemu` (HVF acceleration, no sudo needed).
-  Apple Silicon and Intel both work — the lab picks the matching QEMU binary
-  and Debian image automatically.
-- Built-in `hdiutil`, `python3`, and `curl` — already present on macOS.
-- ~2GB RAM free and ~2GB disk. First boot needs internet (downloads the image
+Runs on **macOS** and **Linux**, and on **Windows** via WSL2 (which is Linux). The
+lab auto-detects your CPU and picks the matching QEMU binary and Debian image
+(Apple Silicon / arm64 or Intel / amd64).
+
+- **QEMU**, plus a tool to build the seed ISO:
+  - macOS: `brew install qemu` (uses HVF, no sudo; `hdiutil` is built in).
+  - Debian/Ubuntu: `sudo apt-get install qemu-system xorriso` (uses KVM; you need
+    access to `/dev/kvm`, e.g. add yourself to the `kvm` group).
+  - Windows: do everything inside **WSL2** (Ubuntu), then follow the Linux steps.
+- `python3` and `curl` (built into macOS; preinstalled on most Linux).
+- About 2GB RAM free and 2GB disk. First boot needs internet (downloads the image
   and installs `tcpdump` in the guests).
 
 ## Bring it up
