@@ -15,7 +15,7 @@ wlan0 192.168.1.77     ← your SSH path
 
 It refreshes once a second, so a DHCP lease landing or a cable pull shows up
 live: an interface reads `(down)` with no cable, `(no IPv4)` while it waits
-for an address — the difference lesson 00 is built on.
+for an address — the difference lesson 01 is built on.
 
 ## On the image
 

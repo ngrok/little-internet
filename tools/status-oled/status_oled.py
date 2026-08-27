@@ -120,7 +120,7 @@ def body_lines(ifnames):
     """The blue-body text: the first interface's MAC, then one IPv4 line each.
 
     An interface with no address distinguishes "no cable" (down) from "no
-    lease yet" (no IPv4) — the difference lesson 00 is built on.
+    lease yet" (no IPv4) — the difference lesson 01 is built on.
     """
     table = interfaces()
     mac = (table.get(ifnames[0]) or (None,))[0]

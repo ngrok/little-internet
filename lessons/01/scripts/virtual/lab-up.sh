@@ -23,10 +23,10 @@ Run it inside a Linux VM. With colima (brew install colima):
   colima start
   colima ssh
   # then, from the repo root inside the VM:
-  sudo ./lessons/00/scripts/run.sh --virtual
+  sudo ./lessons/01/scripts/run.sh --virtual
 
 Or skip the lab entirely and drive real Pis over SSH with MODE=ssh. See
-lessons/00/README.md.
+lessons/01/README.md.
 MSG
   exit 1
 fi
@@ -67,7 +67,7 @@ echo "Lab up:  $A  <--veth(eth0)-->  $B   (link up, no IPv4 yet)"
 # Verbose hints when run by hand; quiet when driven by run.sh --virtual (QUIET=1).
 if [ -z "${QUIET:-}" ]; then
   echo
-  echo "Drive the steps against this lab from lessons/00 (they auto-detect it):"
+  echo "Drive the steps against this lab from lessons/01 (they auto-detect it):"
   echo "  ./scripts/02-no-address.sh    # the ping fails, no identity"
   echo "  ./scripts/03-address.sh       # give each node an identity"
   echo "  ./scripts/04-arp.sh           # the ARP introduction"

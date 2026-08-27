@@ -1,12 +1,12 @@
-# Lesson 00: two Pis, one cable—do it yourself
+# Lesson 01: two Pis, one cable—do it yourself
 
 This is the hands-on version of [diary
-00](../../diaries/00_two-pis-one-cable.md): two machines, one cable, and a
+01](../../diaries/01_two-pis-one-cable.md): two machines, one cable, and a
 question that sounds trivial until you try it: _Can they just... talk?_ You run
 each step yourself and watch every answer show up on the wire.
 
 This part is all procedure, not story. For the _why_, read the
-[diary](../../diaries/00_two-pis-one-cable.md) or [watch the video
+[diary](../../diaries/01_two-pis-one-cable.md) or [watch the video
 version](https://www.youtube.com/watch?v=XIlKS4TVt74). For a frame-by-frame deep-dive
 into what the Address Resolution Protocol is, from cache states to actually
 poisoning it, read _ARP from the ground up_ (coming soon!).

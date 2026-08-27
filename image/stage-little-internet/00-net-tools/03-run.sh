@@ -27,7 +27,7 @@ EOF
 on_chroot << 'EOF'
 cat > /etc/profile.d/10-little-internet-color.sh << 'PROFILE'
 # Advertise truecolor so tshark --color produces output over SSH (SSH doesn't
-# forward COLORTERM). Harmless on truecolor-capable terminals; see lessons/00.
+# forward COLORTERM). Harmless on truecolor-capable terminals; see lessons/01.
 export COLORTERM="${COLORTERM:-truecolor}"
 PROFILE
 chmod 644 /etc/profile.d/10-little-internet-color.sh

@@ -1,4 +1,4 @@
-# Lesson 00 — the VM lab: two machines, one bare cable
+# Lesson 01 — the VM lab: two machines, one bare cable
 
 This is the heavier virtual lab: two **separate Debian VMs** (their own kernels)
 joined by one **bare QEMU socket cable**, driven from **two terminals side by

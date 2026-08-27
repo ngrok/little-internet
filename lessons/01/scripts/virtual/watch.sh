@@ -19,7 +19,7 @@ HERE="$(cd "$(dirname "$0")" && pwd)"
 WATCH="$(dirname "$HERE")/arp-watch.py"
 SESSION="little-internet"
 
-[ "$(uname -s)" = Linux ] || { echo "Linux only (network namespaces). See lessons/00/README.md." >&2; exit 1; }
+[ "$(uname -s)" = Linux ] || { echo "Linux only (network namespaces). See lessons/01/README.md." >&2; exit 1; }
 [ "$(id -u)" -eq 0 ]       || { echo "Needs root (namespaces + tmux server). Re-run with sudo." >&2; exit 1; }
 command -v tmux >/dev/null || { echo "Needs tmux. Install it, e.g. sudo apt-get install -y tmux." >&2; exit 1; }
 ip netns list | grep -qw pi-a || { echo "The lab isn't up. Run 'sudo ./lab-up.sh' first." >&2; exit 1; }

@@ -1,12 +1,12 @@
 {
   "schema_version": 1,
   "lesson": {
-    "id": "00",
+    "id": "01",
     "title": "Two Pis, one cable: can they just talk?",
     "summary": "A guided lab that shows the difference between link, frames, and reachability by connecting two nodes with one Ethernet cable."
   },
   "primary_docs": {
-    "story": "../../diaries/00_two-pis-one-cable.md",
+    "story": "../../diaries/01_two-pis-one-cable.md",
     "runbook": "README.md",
     "scripts": "scripts/"
   },
@@ -53,7 +53,7 @@
   },
   "agent_defaults": {
     "no_color": true,
-    "safe_first_step": "Read README.md, diaries/00_two-pis-one-cable.md, and lessons/00/README.md before running scripts.",
+    "safe_first_step": "Read README.md, diaries/01_two-pis-one-cable.md, and lessons/01/README.md before running scripts.",
     "walkthrough_intent": "Requests to walk through, teach, or do the lesson are tutoring requests, not requests to test the scripts.",
     "pacing": "Run one beat or conceptual checkpoint at a time and wait for the learner before advancing.",
     "evidence_policy": [

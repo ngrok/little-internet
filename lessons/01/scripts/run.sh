@@ -9,7 +9,7 @@
 #
 # --virtual needs Linux + root + the virtual/ deps (tcpdump, ping). On macOS or
 # Windows, run that inside a Linux VM. --vm needs QEMU (brew install qemu). See
-# lessons/00/README.md.
+# lessons/01/README.md.
 set -uo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 

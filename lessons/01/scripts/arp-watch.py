@@ -13,7 +13,7 @@ separate from the rendering so an OLED backend can reuse them later. See
 
 Run it ON a node. In the namespace lab:
 
-    sudo ip netns exec pi-a python3 lessons/00/scripts/arp-watch.py --name pi-a
+    sudo ip netns exec pi-a python3 lessons/01/scripts/arp-watch.py --name pi-a
 
 Then, from another shell, poke the cache and watch the states move:
 
@@ -33,7 +33,7 @@ import time
 # the cache" — so it never highlights for an entry that exists.)
 LIFECYCLE = ["NONE", "INCOMPLETE", "REACHABLE", "STALE", "DELAY", "PROBE", "FAILED"]
 
-# Colors, TTY-aware — matches lessons/00/scripts/lib.sh. Off when piped or NO_COLOR.
+# Colors, TTY-aware — matches lessons/01/scripts/lib.sh. Off when piped or NO_COLOR.
 if sys.stdout.isatty() and not os.environ.get("NO_COLOR"):
     BOLD, CYAN, YEL, DIM, RST = "\033[1m", "\033[36m", "\033[33m", "\033[2m", "\033[0m"
 else:

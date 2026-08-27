@@ -40,7 +40,7 @@ whatever question hooks you:
 
 | #  | The question                             | Read the story                                 | Run it yourself         | Watch it                |
 | -- | ---------------------------------------- | ---------------------------------------------- | ----------------------- | ----------------------- |
-| 00 | Two Pis, one cable: can they just talk?  | [Diary 00](./diaries/00_two-pis-one-cable.md)  | [Lesson 00](./lessons/00/) | [Video](https://www.youtube.com/watch?v=XIlKS4TVt74) |
+| 01 | Two Pis, one cable: can they just talk?  | [Diary 01](./diaries/01_two-pis-one-cable.md)  | [Lesson 01](./lessons/01/) | [Video](https://www.youtube.com/watch?v=XIlKS4TVt74) |
 
 ## Want to build your own little internet?
 
@@ -50,7 +50,7 @@ whatever question hooks you:
    Either way, see [`image/`](./image/) for getting the Raspberry Pi OS image
    (built with [pi-gen](https://github.com/RPi-Distro/pi-gen)) and flashing it
    to your microSD cards.
-3. Follow the lessons. Start with [`lesson 00`](./lessons/00/), "two Pis, one
+3. Follow the lessons. Start with [`lesson 01`](./lessons/01/), "two Pis, one
    cable: can they just talk?"
 4. Read the diaries for the story behind it all. They're the running build log
    of putting this together, in the order each piece came to life. The
@@ -68,7 +68,7 @@ whatever question hooks you:
 │                 prose file per session, in the order things happened.
 ├── lessons/      One directory per lesson: an explainer, the scripts to run
 │                 it yourself, and recorded packet captures. Start with
-│                 lessons/00.
+│                 lessons/01.
 └── AGENTS.md     Guidance for coding agents that teach or operate the labs.
 ```
 
@@ -76,8 +76,8 @@ whatever question hooks you:
 
 Coding agents can teach from the docs, run the Linux virtual lab, or drive real
 Pis over SSH while you handle the cable and hardware. Point them at
-[`AGENTS.md`](./AGENTS.md) first; lesson 00 also has a machine-readable
-[`manifest.json`](./lessons/00/manifest.json) with beats, commands, expected
+[`AGENTS.md`](./AGENTS.md) first; lesson 01 also has a machine-readable
+[`manifest.json`](./lessons/01/manifest.json) with beats, commands, expected
 observations, and recovery steps.
 
 ## Contributing

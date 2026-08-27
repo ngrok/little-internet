@@ -7,8 +7,8 @@ the mode that matches the user's environment, and stop for physical actions.
 
 ## Default to teaching, not testing
 
-Treat requests such as "walk me through lesson 00," "teach me lesson 00," or
-"let's do lesson 00" as an interactive tutoring session. The learner is not
+Treat requests such as "walk me through lesson 01," "teach me lesson 01," or
+"let's do lesson 01" as an interactive tutoring session. The learner is not
 asking you to validate that the scripts pass. Do not batch-run the lesson and
 report a summary.
 
@@ -62,9 +62,9 @@ substitute for it.
 Read these in order before making changes or walking a user through the lab:
 
 1. `README.md` for the project shape and phases.
-2. `diaries/00_two-pis-one-cable.md` for the story behind lesson 00.
-3. `lessons/00/README.md` for the hands-on run path.
-4. `lessons/00/manifest.json` for the machine-readable lesson beats, expected
+2. `diaries/01_two-pis-one-cable.md` for the story behind lesson 01.
+3. `lessons/01/README.md` for the hands-on run path.
+4. `lessons/01/manifest.json` for the machine-readable lesson beats, expected
    observations, and recovery commands.
 
 Use `rg --files` to inspect the repo. The `.context/` directory is private
@@ -75,7 +75,7 @@ it.
 
 - Read-only tutoring: use the diary, lesson README, and manifest to explain the
   lesson without running commands. This works from any machine.
-- Virtual lab: run lesson 00 in Linux with network namespaces. This is the best
+- Virtual lab: run lesson 01 in Linux with network namespaces. This is the best
   runnable mode when there is no hardware. Explain its Layer 1 limitations
   before beginning. For tutoring, create the lab and run individual beat
   scripts; reserve `sudo env NO_COLOR=1 ./scripts/run.sh --virtual` for a full
@@ -86,7 +86,7 @@ it.
 
 ## Commands and safety
 
-Lesson 00 scripts live in `lessons/00/scripts/`.
+Lesson 01 scripts live in `lessons/01/scripts/`.
 
 - `./scripts/check.sh --hardware` checks SSH access, required tools, sudo
   readiness, and whether `eth0` already has lesson state.
@@ -129,7 +129,7 @@ Stop and ask the user to perform physical work when the lesson requires it:
 The agent can interpret output and troubleshoot, but it cannot verify physical
 state directly.
 
-## Expected lesson 00 arc
+## Expected lesson 01 arc
 
 The lesson answers three questions:
 
