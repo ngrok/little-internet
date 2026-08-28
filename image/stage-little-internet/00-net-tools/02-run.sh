@@ -11,6 +11,13 @@ install -d -m 700 "${ROOTFS_DIR}/etc/NetworkManager/system-connections"
 install -m 600 files/eth-dhcp.nmconnection \
 	"${ROOTFS_DIR}/etc/NetworkManager/system-connections/eth-dhcp.nmconnection"
 
+# The DHCP server's identity on the lab wire, shipped with autoconnect=false so
+# no node comes up holding it. Lesson 02 turns a node into the lab's DHCP server
+# by bringing this profile up by hand; until then every node's eth0 rests on
+# eth-dhcp and stays blank. See the comments in the file itself.
+install -m 600 files/eth-lab-static.nmconnection \
+	"${ROOTFS_DIR}/etc/NetworkManager/system-connections/eth-lab-static.nmconnection"
+
 # Install a pre-provisioned Wi-Fi connection if build.sh generated one from
 # image/config.local (LI_WIFI_SSID / LI_WIFI_PSK). No file means no Wi-Fi is
 # baked in — which is the correct, credential-free default for the committed

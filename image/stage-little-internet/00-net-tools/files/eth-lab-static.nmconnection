@@ -1,0 +1,35 @@
+# The DHCP server's identity on the lab wire, shipped inert.
+#
+# autoconnect=false is the whole point: no node comes up holding this address,
+# so every freshly flashed Pi still boots into eth-dhcp with a blank eth0, which
+# is where lesson 01 begins. Bring it up by hand on whichever node you want
+# serving addresses:
+#
+#   sudo nmcli connection up eth-lab-static
+#
+# NetworkManager runs one connection per device, so that deactivates eth-dhcp on
+# eth0 for as long as this profile is up. A reboot puts the node back on
+# eth-dhcp and the lab resets itself. To make the role stick across reboots:
+#
+#   sudo nmcli connection modify eth-lab-static connection.autoconnect yes
+#
+# The address matches the plan in /etc/dnsmasq.d/little-internet.conf: .254,
+# deliberately outside the pool it hands out. never-default keeps management on
+# wlan0, same as eth-dhcp. NM ignores keyfiles that are group/world readable,
+# hence mode 600 at install time.
+[connection]
+id=eth-lab-static
+uuid=dddff2f4-f031-4247-9e57-4e48601a5065
+type=ethernet
+interface-name=eth0
+autoconnect=false
+autoconnect-priority=10
+
+[ipv4]
+method=manual
+address1=10.10.0.254/24
+never-default=true
+
+[ipv6]
+method=link-local
+never-default=true

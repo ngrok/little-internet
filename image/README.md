@@ -134,13 +134,14 @@ image/
     │   ├── 00-debconf            Preseeds iperf3 to not autostart (keeps the build non-interactive).
     │   ├── 00-packages           apt packages to install (capture, ARP, VLAN, I2C…).
     │   ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays + adds the user to the i2c group.
-    │   ├── 02-run.sh             Installs eth0's DHCP baseline (eth-dhcp) + a pre-provisioned Wi-Fi connection, if generated.
+    │   ├── 02-run.sh             Installs eth0's DHCP baseline (eth-dhcp), the inert DHCP-server profile (eth-lab-static), + a pre-provisioned Wi-Fi connection, if generated.
     │   ├── 03-run.sh             Lets the user run tshark unprivileged, pre-creates ~/cap, and sets COLORTERM for colored output over SSH.
     │   ├── 04-run.sh             Builds /opt/little-internet/venv with luma.oled to drive the OLED displays.
     │   ├── 05-run.sh             Installs the OLED test scripts into ~/oled-test (staged from tools/oled-test by build.sh).
     │   ├── 06-run.sh             Installs the on-demand ARP-state OLED viewer into ~/arp-oled (staged from tools/arp-oled by build.sh).
     │   ├── 07-run.sh             Installs + enables the boot-time OLED status display, little-internet-oled.service (staged from tools/status-oled by build.sh).
-    │   └── files/                eth-dhcp.nmconnection + little-internet-oled.service (build.sh also stages oled-test/, arp-oled/, and status-oled/ here).
+    │   ├── 08-run.sh             Installs the inert DHCP drop-in (/etc/dnsmasq.d/little-internet.conf) and leaves dnsmasq disabled.
+    │   └── files/                eth-dhcp.nmconnection, eth-lab-static.nmconnection, little-internet-dnsmasq.conf + little-internet-oled.service (build.sh also stages oled-test/, arp-oled/, and status-oled/ here).
     ├── 01-firstboot-config/      First-boot hostname + Wi-Fi provisioner for flashed (released) images.
     │   ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
     │   └── files/                The script, systemd unit, and little-internet.txt.example.
@@ -158,6 +159,41 @@ There are two Wi-Fi paths, for two audiences:
 - **Building from source:** set `LI_WIFI_*` in `config.local` and the
   credentials are baked in at build time (`00-net-tools/02-run.sh`). See
   [Optional: pre-provision Wi-Fi](#optional-pre-provision-wi-fi).
+
+### Promoting a node to the lab's DHCP server
+
+Every node ships the pieces needed to hand out addresses, and no node does it
+until you say so. `dnsmasq` is installed but disabled. The drop-in at
+`/etc/dnsmasq.d/little-internet.conf` has its `dhcp-range` commented out. And
+`eth-lab-static.nmconnection` is present with `autoconnect=false`. A freshly
+flashed card still boots with a blank `eth0` resting on `eth-dhcp`, which is
+where lesson 01 opens.
+
+Pick any node, then give it an identity and switch the range on:
+
+```sh
+# 1. this node -> 10.10.0.254 on the lab wire
+sudo nmcli connection up eth-lab-static
+
+# 2. uncomment the dhcp-range line, then start serving
+sudo sed -i 's/^#dhcp-range/dhcp-range/' /etc/dnsmasq.d/little-internet.conf
+sudo systemctl enable --now dnsmasq
+```
+
+To hand the role back, re-comment the range, then run `sudo systemctl disable
+--now dnsmasq` and `sudo nmcli connection up eth-dhcp`. A reboot alone returns
+`eth0` to DHCP, because `eth-lab-static` never autoconnects.
+
+The address plan the drop-in encodes:
+
+| | |
+| --- | --- |
+| `10.10.0.1`–`10.10.0.50` | the DHCP pool. Includes `.1` and `.2` so a node can request the address matching its hostname. |
+| `10.10.0.254` | the server itself, deliberately outside the pool. |
+| 12h | lease time. |
+
+Both files carry the long version of this in comments, because they're meant to
+be read on the Pi.
 
 ### The build environment
 

@@ -16,6 +16,12 @@ iperf3
 vlan
 bridge-utils
 
+# The lab's DHCP server (lesson 02). Installed on every node and left disabled;
+# 08-run.sh ships an inert /etc/dnsmasq.d/little-internet.conf that explains how
+# to promote a node to server. A node that isn't serving addresses has no
+# business running the daemon, so nothing starts until the reader says so.
+dnsmasq
+
 # Firewall for the wlan0 management-isolation rule (stage 03-wlan0-isolation).
 # RPi OS Lite doesn't ship the nft binary by default.
 nftables
