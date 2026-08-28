@@ -4,7 +4,7 @@
 # node must never reach another node over WiFi. The lessons happen on the wired
 # lab network (eth0); WiFi is the out-of-band path the operator uses to drive
 # them. Without this, two nodes flashed onto the same home WiFi can ping and SSH
-# each other out of the box, which contaminates lesson 00's "why can't they
+# each other out of the box, which contaminates lesson 01's "why can't they
 # talk?" and blurs the management/data-plane split the whole project leans on.
 #
 # The rule, applied to wlan0 only (eth0 and lo are left wide open — the lessons

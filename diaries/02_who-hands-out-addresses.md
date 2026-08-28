@@ -753,14 +753,14 @@ Have ideas of your own? Drop an
 [issue](https://github.com/ngrok/little-internet/issues) or an
 [email](mailto:joel@ngrok.com).
 
-<!-- TK for Joel:
+<!-- TK before publish (delete this block):
 1. Video embed at the top.
-2. Confirm the Realtek 60 frames are loop detection (check the ethertype in
+2. Photo of the cases (the TK up in "the desk got nicer").
+3. Confirm the Realtek 60 frames are loop detection (check the ethertype in
    ~/cap/lesson-02_link-switch_*.pcapng).
-3. Decide whether 10.10.0.0/24 stays the DHCP server's address, and whether the
-   dhcp-range should still start at .0.
 4. Copy ~/cap/dhcp_pi-foo-0{1,2}.pcapng (the 11:58 run) into
    lessons/02/captures/ the way lesson 01 did.
-Also: BOM.md phase 1 lists two Pis and three SD cards. This diary adds a third
-Pi, an OLED, a case, and a PSU. Didn't touch BOM.md; say the word.
+5. BOM.md phase 1 lists two Pis and three SD cards. This episode adds a third
+   Pi, an OLED, a case, and a PSU.
+The .0 address is an image/lesson decision, not diary content — tracked in code.
 -->
