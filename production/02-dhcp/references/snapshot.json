@@ -1,0 +1,39 @@
+{
+  "snapshot_date": "2026-09-09",
+  "source_worktree": "/Users/joelhans/orca/workspaces/little-internet/oled-lesson-01-beyond",
+  "source_branch": "joelhans/oled-lesson-01-beyond",
+  "source_head": "24b535d8abce7d25590e5b66073135ec730e3534",
+  "source_state": "Working-copy diary includes uncommitted edits; four captures were untracked. Originals retained.",
+  "files": [
+    {
+      "source_path": "diaries/02_who-hands-out-addresses.md",
+      "snapshot_path": "diary-02-working-copy.md",
+      "sha256": "92e1f63719d41a565929d2f5c6bca92077c5b515a4e795bb8bd74c2476c2f53e",
+      "bytes": 33798
+    },
+    {
+      "source_path": "lessons/02/captures/dhcp_pi-foo-01.pcapng",
+      "snapshot_path": "captures/dhcp_pi-foo-01.pcapng",
+      "sha256": "d4c75ce02e0f4e5808532d9bc51667e70d6b30770704e1d9c36f6ef628292854",
+      "bytes": 2940
+    },
+    {
+      "source_path": "lessons/02/captures/dhcp_pi-foo-02.pcapng",
+      "snapshot_path": "captures/dhcp_pi-foo-02.pcapng",
+      "sha256": "2727a0a14d104bf4a1222a27b22cfb73fa17ac4be52423805e21de3578d167c6",
+      "bytes": 2296
+    },
+    {
+      "source_path": "lessons/02/captures/lesson-02_link-switch_pi-foo-01.pcapng",
+      "snapshot_path": "captures/lesson-02_link-switch_pi-foo-01.pcapng",
+      "sha256": "16dcee9ca72c027e2c6bc66f8ce1578bdb13979ed88dece78cd7115a15668db1",
+      "bytes": 38160
+    },
+    {
+      "source_path": "lessons/02/captures/lesson-02_link-switch_pi-foo-02.pcapng",
+      "snapshot_path": "captures/lesson-02_link-switch_pi-foo-02.pcapng",
+      "sha256": "699b30522c2ee33609d107bba56866dac28266b461b542c1af78315deab311bf",
+      "bytes": 35508
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+# Notes, footage indexes, and small reference captures are tracked.
+/media/
+/proxies/
+/cache/
+/transcripts/
+/exports/*
+!/exports/.gitkeep
+*.[mM][pP]4
+*.[mM][oO][vV]
+*.[mM][kK][vV]
+*.[mM]4[vV]
+*.[wW][aA][vV]
+*.[mM][pP]3
+*.[mM]4[aA]
+*.[aA][iI][fF]
+*.[aA][iI][fF][fF]
+*.[dD][rR][pP]
+*.[dD][rR][tT]
+*.[dD][rR][aA]/
