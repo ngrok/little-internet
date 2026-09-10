@@ -103,8 +103,14 @@ path still lacks evidence; do not rerun the whole lab merely to polish prose.
 
 ## Image PR and release sequence — 2026-09-10
 
-Verified the repository workflow and GitHub state: latest release is v0.5.3,
-main is b93b570, and there are no open PRs. A PR changing image source triggers
+Execution checkpoint: draft [PR #24](https://github.com/ngrok/little-internet/pull/24)
+is open from `joelhans/image-dhcp-tsharkie` at `50b0343`. Local checks passed;
+the [candidate image build](https://github.com/ngrok/little-internet/actions/runs/34491541652)
+is queued. Step 1 below is complete. Hardware verification, merge, tag, and
+release-artifact checks remain.
+
+At the planning checkpoint, the latest release was v0.5.3, main was
+b93b570, and there were no open PRs. A PR changing image source triggers
 an image build and uploads a workflow artifact. A v* tag triggers a separate
 build and publishes the image as a GitHub Release asset. A tag is not required
 to obtain a candidate image for testing.

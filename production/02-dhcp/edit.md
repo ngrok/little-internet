@@ -5,6 +5,23 @@ supporting work are committed and pushed; publication review and video
 preparation are next. Old-cut transcript and sampled-picture review are complete,
 but continuous playback/listening remain pending. No Resolve timeline edited.
 
+## Latest checkpoint — focused image PR opened
+
+Draft [PR #24](https://github.com/ngrok/little-internet/pull/24) targets main
+from `joelhans/image-dhcp-tsharkie`, head `50b0343`. Its nine files cover only
+image/tool code, documentation, and the image workflow's tsharkie path filters.
+It was prepared in `/tmp/little-internet-image-dhcp-pr`; this production
+worktree and Joel's pending diary edits remain separate.
+
+Local validation passed: shell syntax and executable modes; staging plus
+backend/profile/viewer installation into a temporary rootfs with content and
+permission checks; CLI help/errors; formatter overflow preserving fields and
+alignment; dependencies; and diff whitespace. The PR's
+[image build](https://github.com/ngrok/little-internet/actions/runs/34491541652)
+is queued as of this checkpoint. No fresh-image boot test, merge, or tag has
+occurred. Next: obtain the successful PR build artifact for Joel's hardware
+walkthrough, then review/merge/tag after verification.
+
 ## Latest checkpoint — publication headings and release plan
 
 Joel removed the beat prefixes and opening production status from diary.md.
