@@ -101,6 +101,31 @@ needs another experiment. Preview the Markdown and check selected packet
 references after editing. Retest hardware only where the corrected runnable
 path still lacks evidence; do not rerun the whole lab merely to polish prose.
 
+## Image PR and release sequence — 2026-09-10
+
+Verified the repository workflow and GitHub state: latest release is v0.5.3,
+main is b93b570, and there are no open PRs. A PR changing image source triggers
+an image build and uploads a workflow artifact. A v* tag triggers a separate
+build and publishes the image as a GitHub Release asset. A tag is not required
+to obtain a candidate image for testing.
+
+1. Prepare a focused image PR from current main with the dhclient backend,
+   tsharkie, dependencies, and image/tool documentation. Keep the diary and
+   production archive on this working branch. Include tools/tsharkie/** in the
+   image workflow's PR path filters so subsequent viewer changes rebuild it.
+2. Use the PR artifact for fresh-image boot and diary-path verification on the
+   Pis, including Wi-Fi SSH, unprivileged capture plus saved packets, DHCP,
+   address preferences, and communication. Joel performs flashing/cabling.
+3. After successful review and verification, merge the image PR and tag the
+   merged commit. Proposed version: v0.6.0, subject to the release decision.
+4. The tag build produces a new artifact; verify that release artifact before
+   recommending it in the diary. Record the exact asset and checksum.
+5. Prepare the diary publication PR with stable capture links and the released
+   image version. The video remains a separate track.
+
+No PR was opened, workflow dispatched, merge performed, or tag pushed during
+this planning checkpoint.
+
 ## Video preparation work
 
 Use the corrected diary as source material. Do not read its entire transcript

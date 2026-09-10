@@ -5,6 +5,18 @@ supporting work are committed and pushed; publication review and video
 preparation are next. Old-cut transcript and sampled-picture review are complete,
 but continuous playback/listening remain pending. No Resolve timeline edited.
 
+## Latest checkpoint — publication headings and release plan
+
+Joel removed the beat prefixes and opening production status from diary.md.
+The four video comments are now preserved verbatim, with their beat mapping,
+in [diary-video-notes.md](diary-video-notes.md); they can safely be removed from
+the diary. They also remain in Git history. No footage coverage is implied.
+
+The next image can be tested from a PR workflow artifact before tagging.
+The focused image PR, hardware verification, merge/tag, release-artifact check,
+and separate diary PR sequence is in [the publication plan](publication-and-filming.md).
+No PR or tag has been created yet.
+
 ## Next useful task
 
 Follow [publication-and-filming.md](publication-and-filming.md). Publish the
