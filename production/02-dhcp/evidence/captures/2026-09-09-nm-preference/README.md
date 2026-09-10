@@ -17,6 +17,17 @@ Each capture has 10 packets. Both were recorded with tsharkie on eth0, using
 its default filter and `--no-pager`, under an 18-second `timeout --signal=INT`.
 Exit 124 was the intentional time limit; both captures decode successfully.
 
+For the diary, the saved exchange is also available in tsharkie's table format:
+[client excerpt](pi-foo-02-tsharkie-dora.txt) and
+[server excerpt](pi-foo-dhcp-tsharkie-dora.txt). Generated on 2026-09-10 by
+decoding each original with `tshark -n -r FILE -Y 'dhcp.id == 0x7289b37f'`,
+extracting the same six fields as tools/tsharkie/tsharkie, and running that
+script's unchanged awk formatter with `pager=yes` for compact rows. These
+are saved-capture excerpts, not a new live run. Original frame numbers and
+relative times are retained; times are rounded to milliseconds for display.
+Only the four DHCP packets are shown; the six other packets in each file
+remain in the original capture. The source capture bytes were not changed.
+
 [manifest.json](manifest.json) and [SHA256SUMS](SHA256SUMS) preserve origins
 and hashes. Remote hashes before/after transfer match the local files.
 These files are local workspace copies, not a completed remote backup.

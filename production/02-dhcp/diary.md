@@ -222,7 +222,7 @@ interface=eth0
 dhcp-range=10.10.0.1,10.10.0.10,12h
 ```
 
-I'll also watch the dnsmasq service on `pi-foo-dhcp` to capture how it reacts, then restart it so it picks up the new configuration.
+I'll also watch the dnsmasq service on `pi-foo-dhcp` to capture how it reacts, and in a second terminal, restart it so it picks up the new configuration.
 
 ```
 # Terminal 1: keep watching the server log
@@ -396,21 +396,7 @@ $ sudo dhclient eth0       # ask for a new one
 
 But the OLED still ends in `.8`. What gives?
 
-All the packet capture suggests there's been a new DORA handshake involving `10.10.0.2`!
-
-```
-# NEED TO REPLACE THIS WITH A REAL ONE
-1 0.000000000      0.0.0.0 → 255.255.255.255 DHCP 342 DHCP Discover -
-Transaction ID 0x7289b37f
-3 3.004971917  10.10.0.254 → 10.10.0.2    DHCP 342 DHCP Offer    - Transaction
-ID 0x7289b37f
-4 3.005587290      0.0.0.0 → 255.255.255.255 DHCP 342 DHCP Request  -
-Transaction ID 0x7289b37f
-5 3.013355984  10.10.0.254 → 10.10.0.2    DHCP 345 DHCP ACK      - Transaction
-ID 0x7289b37f
-```
-
-The DHCP journal _seems_ to agree:
+The DHCP journal _seems_ to show that the standalone client received `.2`:
 
 ```
 Sep 09 17:52:24 pi-foo-dhcp dnsmasq-dhcp[13798]: DHCPDISCOVER(eth0) 10.10.0.2 b8:27:eb:7d:e8:ee
@@ -461,9 +447,36 @@ sudo nmcli connection up eth-dhcp
 
 BAM! `pi-foo-02` immediately requests and receives `.2`.
 
+**Successful NetworkManager-managed test:** Both captures below were recorded
+on `eth0` with tsharkie. These excerpts were regenerated from the saved files
+using tsharkie's table format. They show only transaction `0x7289b37f`;
+other packets are omitted, and original frame numbers are retained. Times are
+seconds since each capture's first packet, rounded to three decimal places.
+
+**Client capture:** [pi-foo-02 · frames 1, 3, 4, 5](evidence/captures/2026-09-09-nm-preference/lesson-02_nm-request_pi-foo-02.pcapng).
+
+```text
+ No. |  Time(s) | Source                     | Destination                | Proto    | Info
+   1 |    0.000 | 0.0.0.0                    | 255.255.255.255            | DHCP     | DHCP Discover - Transaction ID 0x7289b37f
+   3 |    3.005 | 10.10.0.254                | 10.10.0.2                  | DHCP     | DHCP Offer    - Transaction ID 0x7289b37f
+   4 |    3.006 | 0.0.0.0                    | 255.255.255.255            | DHCP     | DHCP Request  - Transaction ID 0x7289b37f
+   5 |    3.013 | 10.10.0.254                | 10.10.0.2                  | DHCP     | DHCP ACK      - Transaction ID 0x7289b37f
 ```
-TK PACKET CAPTURE GOES HERE I NEED TO COLLECT IT MYSELF MAYBE
+
+**Server capture:** [pi-foo-dhcp · frames 1, 3, 4, 5](evidence/captures/2026-09-09-nm-preference/lesson-02_nm-request_pi-foo-dhcp.pcapng).
+
+```text
+ No. |  Time(s) | Source                     | Destination                | Proto    | Info
+   1 |    0.000 | 0.0.0.0                    | 255.255.255.255            | DHCP     | DHCP Discover - Transaction ID 0x7289b37f
+   3 |    3.004 | 10.10.0.254                | 10.10.0.2                  | DHCP     | DHCP Offer    - Transaction ID 0x7289b37f
+   4 |    3.006 | 0.0.0.0                    | 255.255.255.255            | DHCP     | DHCP Request  - Transaction ID 0x7289b37f
+   5 |    3.013 | 10.10.0.254                | 10.10.0.2                  | DHCP     | DHCP ACK      - Transaction ID 0x7289b37f
 ```
+
+The same transaction ID connects all four messages in both views. The
+[decoded client fields](evidence/captures/2026-09-09-nm-preference/pi-foo-02-dhcp-fields.tsv)
+show `.2` in the requested-address option in Discover and Request, and `.2`
+in the address assigned by Offer and ACK.
 
 Amazing. Stunning. _Perfect_.
 

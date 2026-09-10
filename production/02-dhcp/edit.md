@@ -11,10 +11,13 @@ Follow [publication-and-filming.md](publication-and-filming.md). Publish the
 diary independently of the video. B04's main causal gap is repaired: Joel added
 the warning, server address/pool explanation, configuration restart, and client
 retry. The log-follow and restart commands now name separate terminals.
-Next, repair B07's procedure and evidence provenance, complete
+Next, repair B07's successful migration procedure, complete
 the accuracy/readability pass, and prepare a focused public diary PR from a
-separate branch. Start with the misplaced B07 capture: transaction 0x7289b37f
-belongs to the later NM-managed success, not the standalone-client detour.
+separate branch. B07's misplaced capture and success placeholder are repaired:
+transaction 0x7289b37f now appears at the NM-managed success, in tsharkie's
+format with separate client/server labels and links. The earlier detour keeps
+its journal and two-address evidence. Next reconcile the abbreviated down/up
+instructions with the actual backend migration and Ethernet-only lease reset.
 Video work follows the corrected journey: evidence/shot list, OLED needs,
 short explainers, rehearsal, footage selection, and filming.
 

@@ -37,11 +37,11 @@ Prepare the following in order, one editorial checkpoint at a time:
    Use the [Pi 02 procedure](evidence/captures/2026-09-09-nm-preference/README.md).
    Replace the end-to-end reset's `/var/lib/NetworkManager/*.lease` deletion
    with Ethernet-only cleanup; the wildcard also targets management Wi-Fi.
-2. **Give every packet excerpt its real source.** B07's placeholder transaction
-   `0x7289b37f` belongs to the later successful NM-managed test, not the earlier
-   standalone-client failure. Do not relabel it as that failure. Use the
-   verified capture for the success placeholder and find the failure capture
-   or retain only the observed interface/log evidence for the detour. Link the
+2. **Give every packet excerpt its real source.** B07 correction completed
+   2026-09-10: transaction `0x7289b37f` now appears at the later successful
+   NM-managed test, with client/server capture labels and tables generated
+   using tsharkie's formatter. The earlier detour retains its interface/log
+   evidence; its misleading capture placeholder is removed. Link the
    three new e2e excerpts to [their archive](evidence/captures/2026-09-09-e2e/README.md).
    Resolve the opening mDNS timestamp mismatch against its source. Preserve
    full captures while choosing shorter, clearly labeled excerpts for reading.
@@ -113,7 +113,6 @@ checkpoint.
 
 ## Next conversation
 
-Start with B07's evidence and successful procedure. Transaction 0x7289b37f
-belongs to the later NM-managed success, not the earlier standalone-client
-failure; move its use to the right moment before filling placeholders. Finish the public
+Continue with B07's successful migration procedure: its evidence placement
+and formatted capture excerpts are complete. Finish the public
 diary pass before expanding the video into scripts and display engineering.
