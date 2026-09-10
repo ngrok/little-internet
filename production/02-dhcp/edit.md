@@ -1,11 +1,31 @@
 # Edit state and next session
 
-Stage: fresh-build diary and first-pass old-cut selection. Entire source-audio
-transcript read; actual picture sampled across the cut and candidate sequences.
-Direct listening and continuous playback were unavailable; candidates remain
-unclear pending that pass. No footage or Resolve timeline edited.
+Stage: Joel has finished the walkthrough diary through B06. The raw draft and
+supporting work are committed and pushed; publication review and video
+preparation are next. Old-cut transcript and sampled-picture review are complete,
+but continuous playback/listening remain pending. No Resolve timeline edited.
 
 ## Next useful task
+
+Follow [publication-and-filming.md](publication-and-filming.md). Publish the
+diary independently of the video, beginning with B04's omitted server address
+and diagnostic. Then repair B07's procedure and evidence provenance, complete
+the accuracy/readability pass, and prepare a focused public diary PR from a
+separate branch. Joel's raw prose was preserved, not rewritten in this review.
+Video work follows the corrected journey: evidence/shot list, OLED needs,
+short explainers, rehearsal, footage selection, and filming.
+
+## Remote backup checkpoint
+
+`70a3f943aa234c5a2faa2dd017c56d25a72117ac` (Preserve DHCP walkthrough diary,
+captures, and filming research) was successfully pushed to
+`origin/joelhans/production-02-dhcp`. Upstream tracking is configured. This
+includes all 62 pending files: diary/research/production notes, 17 packet
+captures and indexes, tsharkie, and image source changes. Original video/audio
+and Resolve state are excluded by design and need their separate media backup.
+No image build/release, merge, or publication PR was performed.
+
+## Earlier checkpoints (historical; current direction is above)
 
 Latest checkpoint: Joel reports the finished-network assembly came up as
 expected, with .1/.2 preferences retained. Copied all three e2e captures from

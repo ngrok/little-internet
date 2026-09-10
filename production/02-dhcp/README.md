@@ -13,6 +13,7 @@ workflow. The outline is a proposal; the research and scripts are unfinished.
 | [beats.md](beats.md) | Recording journey, explainer slots, and coverage checks |
 | [runbook.md](runbook.md) | Fresh-image preparation and interactive walkthrough |
 | [diary.md](diary.md) | New observations, explanations, and display needs |
+| [publication-and-filming.md](publication-and-filming.md) | Review of the completed draft and separate paths to diary publication and filming |
 | [Fresh captures](evidence/captures/2026-09-09/README.md) | Eleven captures from the three Pis, in diary order, with source paths and verified checksums |
 | [Finished-network captures](evidence/captures/2026-09-09-e2e/README.md) | Three e2e captures, with full DORA for .1/.2, source paths, and verified checksums |
 | [prior-state-runbook.md](prior-state-runbook.md) | Superseded investigation of the old setup; retained reference |
@@ -42,8 +43,9 @@ workflow. The outline is a proposal; the research and scripts are unfinished.
 
 Track these notes and small evidence files on `joelhans/production-02-dhcp`.
 Commit useful checkpoints and push the branch regularly for remote backup.
-A local commit alone is not an off-machine backup. This scaffold has not been
-pushed. Record a remote backup checkpoint in edit.md after one succeeds.
+A local commit alone is not an off-machine backup. The completed walkthrough
+checkpoint `70a3f94` has been pushed to `origin/joelhans/production-02-dhcp`.
+See edit.md for the backup checkpoint and current next task.
 
 Keep original video/audio in stable, separately backed-up storage. Record the
 media root in edit.md; paths in footage.csv are relative to that root. Local

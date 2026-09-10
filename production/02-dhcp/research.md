@@ -604,6 +604,14 @@ requesting the same address can become future questions. Client preferences
 for .1/.2 are now included in this episode.
 # Fresh diary review — 2026-09-09
 
+**Completed-draft publication review:** Joel has finished through B06. The
+next work is editorial: restore B04's missing server-address intervention,
+repair B07's successful migration/reset steps and misplaced capture placeholder,
+then correct timing/causal claims and prepare a standalone article. The
+[publication and filming plan](publication-and-filming.md) records the specific
+gaps and treats video production as a separate path. Raw diary preserved in
+remote checkpoint `70a3f94`; no prose edits made in this review.
+
 **Switch retry clarification:** The e2e recording's five-second DHCP Requests
 come from TL-SG108E at .12, with ciaddr=.12 and no option 50/server identifier.
 No ACK for it appears in that recording. A later server journal exchange at
