@@ -17,12 +17,14 @@ on:
   pull_request:
     paths:
       - 'image/**'
+      - 'tools/tsharkie/**'
       - '.github/workflows/build-image.yml'
       # ...but a docs-only change to the image shouldn't trigger a ~37-min build.
       # A later '!' pattern overrides an earlier match, so a PR touching only
       # Markdown under image/ is excluded; one touching real image files still
       # builds.
       - '!image/**/*.md'
+      - '!tools/tsharkie/**/*.md'
 
 # pi-gen builds are long and disk-heavy; don't run two at once for the same ref.
 # On a PR, cancel an in-flight build when a newer commit is pushed so rapid
