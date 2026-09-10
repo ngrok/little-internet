@@ -1,0 +1,33 @@
+{
+  "copied_on": "2026-09-09",
+  "verification": "No tshark/dumpcap processes found before copying. Remote SHA-256 before and after transfer equals local SHA-256. All captures decode with tshark.",
+  "captures": [
+    {
+      "host": "pi-foo-01",
+      "source": "pi@pi-foo-01.local:/home/pi/cap/lesson-02_dhcp-e2e_pi-foo-01.pcapng",
+      "file": "lesson-02_dhcp-e2e_pi-foo-01.pcapng",
+      "bytes": 6484,
+      "sha256": "a49c6c8d5264a6b587025952238072a44021fe13ea1b66dc84780e6fab1e4c45",
+      "packet_count": 28,
+      "dhcp_packet_count": 13
+    },
+    {
+      "host": "pi-foo-02",
+      "source": "pi@pi-foo-02.local:/home/pi/cap/lesson-02_dhcp-e2e_pi-foo-02.pcapng",
+      "file": "lesson-02_dhcp-e2e_pi-foo-02.pcapng",
+      "bytes": 6128,
+      "sha256": "0dc99abe0da9089752371f64e7102a701b09914b75b3b283ae3ef6f06361db9d",
+      "packet_count": 27,
+      "dhcp_packet_count": 12
+    },
+    {
+      "host": "pi-foo-dhcp",
+      "source": "pi@pi-foo-dhcp.local:/home/pi/cap/lesson-02_dhcp-e2e_pi-foo-dhcp.pcapng",
+      "file": "lesson-02_dhcp-e2e_pi-foo-dhcp.pcapng",
+      "bytes": 9180,
+      "sha256": "6f6c2ef51cf617f72e4d039fb1ffb36afeade479f40dd2664a4d4827eb0c979e",
+      "packet_count": 34,
+      "dhcp_packet_count": 21
+    }
+  ]
+}

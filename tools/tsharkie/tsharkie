@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+# Print live packet fields in aligned columns while saving the original packets.
+set -euo pipefail
+
+usage() {
+    cat <<'EOF'
+Usage: tsharkie NAME.pcapng [-f 'CAPTURE FILTER'] [-i INTERFACE] [--no-pager]
+
+Watch live packets and save them. Bare filenames go under ~/cap/; paths
+containing / are used as given. Existing capture files are overwritten.
+
+  -f FILTER     Capture filter (default: DHCP, ARP, and IPv4 ping)
+  -i INTERFACE  Capture interface (default: eth0)
+  --no-pager    Print directly, with a blank line between packets
+  -h, --help    Show this help
+
+Examples:
+  tsharkie first-dora.pcapng
+  tsharkie switch.pcapng -f 'arp or (udp port 67 or udp port 68)'
+  tsharkie /tmp/traffic.pcapng -i eth0 -f ''
+
+The filter controls what is SAVED as well as displayed; -f '' captures all
+traffic. Address columns reserve 26 characters to fit this lab's IPv4, MAC,
+and compressed IPv6 addresses. Protocols reserve 8 characters. Longer values
+wrap onto continuation lines so the column separators stay aligned.
+On a terminal, less follows live rows without wrapping. Ctrl+C then q exits.
+When piped or redirected, output streams directly with a blank line between
+packets. Capture permissions are
+the same as tshark; the little-internet image allows capture as the pi user.
+EOF
+}
+
+die() { printf 'tsharkie: %s\n' "$*" >&2; exit 1; }
+
+capture_name=''
+capture_filter='arp or icmp or (udp port 67 or udp port 68)'
+interface=eth0
+pager=yes
+while (($#)); do
+    case "$1" in
+        -h|--help) usage; exit 0 ;;
+        -f|-i)
+            (($# >= 2)) || die "$1 requires a value"
+            if [[ $1 == -f ]]; then capture_filter=$2; else interface=$2; fi
+            shift 2
+            ;;
+        --no-pager) pager=no; shift ;;
+        --)
+            shift
+            (($# == 1)) && [[ -z $capture_name ]] || die 'provide one capture filename'
+            capture_name=$1
+            shift
+            ;;
+        -*) die "unknown option: $1 (try --help)" ;;
+        *)
+            [[ -z $capture_name ]] || die 'provide only one capture filename'
+            capture_name=$1
+            shift
+            ;;
+    esac
+done
+[[ -n $capture_name ]] || die 'provide a capture filename (try --help)'
+[[ -n $interface ]] || die 'interface must not be empty'
+
+case "$capture_name" in
+    */*) capture_path=$capture_name ;;
+    *) capture_path="$HOME/cap/$capture_name" ;;
+esac
+[[ ! -L $capture_path ]] || die "capture path is a symbolic link: $capture_path"
+[[ ! -e $capture_path || -f $capture_path ]] || die "capture path is not a regular file: $capture_path"
+for dependency in tshark awk; do
+    command -v "$dependency" >/dev/null || die "missing dependency: $dependency"
+done
+if [[ $pager == yes && -t 1 ]]; then
+    command -v less >/dev/null || die 'missing dependency: less (or use --no-pager)'
+else
+    pager=no
+fi
+mkdir -p -- "$(dirname -- "$capture_path")"
+
+# mawk can buffer pipe INPUT even with fflush() after every output record.
+# Use its interactive mode when available; the system awk is the fallback
+# for platforms such as macOS, where mawk's -W flag is not supported.
+formatter=(awk)
+if command -v mawk >/dev/null; then formatter=(mawk -W interactive); fi
+
+# stdout is a pipe, so tshark otherwise paints a separate progress counter on
+# stderr. That counter and startup messages corrupt the formatter/pager display.
+# -Q suppresses capture status; -P still requests packet rows. Keep diagnostics.
+capture=(tshark -i "$interface" -n -l -Q -P --log-level warning -w "$capture_path")
+if [[ -n $capture_filter ]]; then capture+=(-f "$capture_filter"); fi
+capture+=(-T fields -E separator=/t
+    -e frame.number -e frame.time_relative
+    -e _ws.col.Source -e _ws.col.Destination
+    -e _ws.col.Protocol -e _ws.col.Info)
+
+show_packets() {
+    "${capture[@]}" | "${formatter[@]}" -v pager="$pager" -F '\t' '
+        # printf widths are minimums, not limits. Split overflowing fields
+        # into continuation lines instead of shifting the columns to the right.
+        function row(number, time, source, destination, protocol, info) {
+            do {
+                printf "%4s | %8s | %-26s | %-26s | %-8s | %s\n",
+                       substr(number, 1, 4), substr(time, 1, 8),
+                       substr(source, 1, 26), substr(destination, 1, 26),
+                       substr(protocol, 1, 8), info
+                number = substr(number, 5)
+                time = substr(time, 9)
+                source = substr(source, 27)
+                destination = substr(destination, 27)
+                protocol = substr(protocol, 9)
+                info = ""
+            } while (length(number) || length(time) || length(source) ||
+                     length(destination) || length(protocol))
+            fflush()
+        }
+        BEGIN {
+            row("No.", "Time(s)", "Source", "Destination", "Proto", "Info")
+        }
+        {
+            if (pager == "no" && NR > 1) print ""
+            row($1, sprintf("%.3f", $2), $3, $4, $5, $6)
+        }
+    '
+}
+
+printf 'Saving packets to %s\n' "$capture_path" >&2
+if [[ $pager == yes ]]; then
+    show_packets | less -S +F
+else
+    show_packets
+fi

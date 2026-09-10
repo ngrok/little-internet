@@ -1,0 +1,5 @@
+frame.number	dhcp.id	dhcp.option.dhcp	dhcp.option.requested_ip_address	dhcp.ip.your
+1	0x7289b37f	1	10.10.0.2	0.0.0.0
+3	0x7289b37f	2		10.10.0.2
+4	0x7289b37f	3	10.10.0.2	0.0.0.0
+5	0x7289b37f	5		10.10.0.2

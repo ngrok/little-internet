@@ -1,0 +1,15 @@
+[
+  {
+    "file": "lesson-02_nm-request-verified_pi-foo-01.pcapng",
+    "source": "pi-foo-01:/home/pi/cap/lesson-02_nm-request-verified_pi-foo-01.pcapng",
+    "bytes": 2264,
+    "sha256": "3b1be4b5150557247668b4e731aa39812b2bba135ce2e880c8fd92eb47e50d31",
+    "dhcp_frames": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "transaction_id": "0x7d1abb3a"
+  }
+]

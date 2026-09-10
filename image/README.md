@@ -111,6 +111,35 @@ file in place so you can fix it and reboot.
 
 ## Building the image yourself
 
+### DHCP client baseline
+
+The current image source explicitly installs `isc-dhcp-client` and configures
+NetworkManager to use `dhclient` through
+`/etc/NetworkManager/conf.d/20-little-internet-dhcp-client.conf`. NetworkManager
+continues to own the interfaces, launch the DHCP clients, and apply their
+leases. Use `nmcli` to activate connections; do not also launch a standalone
+`dhclient` on an interface managed by NetworkManager.
+
+This is the baseline for the repository's Bookworm image, tested on its
+NetworkManager 1.42.4. The backend selection applies to Wi-Fi as well as
+Ethernet. The previously published v0.5.3 image used the internal backend;
+these source changes require a new build and release to reach downloaded images.
+
+The shared image does not request a particular lab address. During the DHCP
+lesson, a client can add an Ethernet-specific preference, for example on Pi 02:
+
+```conf
+# /etc/NetworkManager/dhclient-eth0.conf
+send dhcp-requested-address 10.10.0.2;
+```
+
+Keep that preference out of global `/etc/dhcp/dhclient.conf`, where it could
+also affect management Wi-Fi. The server decides whether to grant a requested
+address; an existing lease does not change merely because this file is edited.
+Client/server lease preparation and a new capture are part of that experiment.
+
+### Build workflow
+
 Everything below is for changing what's in the image. If you just want to flash
 a node, the quickstart above is all you need.
 
@@ -134,13 +163,13 @@ image/
     │   ├── 00-debconf            Preseeds iperf3 to not autostart (keeps the build non-interactive).
     │   ├── 00-packages           apt packages to install (capture, ARP, VLAN, I2C…).
     │   ├── 01-run.sh             Enables the I2C bus for the SSD1306 OLED displays + adds the user to the i2c group.
-    │   ├── 02-run.sh             Installs eth0's DHCP baseline (eth-dhcp) + a pre-provisioned Wi-Fi connection, if generated.
+    │   ├── 02-run.sh             Installs the NM dhclient backend, eth0's DHCP profile, and optional pre-provisioned Wi-Fi.
     │   ├── 03-run.sh             Lets the user run tshark unprivileged, pre-creates ~/cap, and sets COLORTERM for colored output over SSH.
     │   ├── 04-run.sh             Builds /opt/little-internet/venv with luma.oled to drive the OLED displays.
     │   ├── 05-run.sh             Installs the OLED test scripts into ~/oled-test (staged from tools/oled-test by build.sh).
     │   ├── 06-run.sh             Installs the on-demand ARP-state OLED viewer into ~/arp-oled (staged from tools/arp-oled by build.sh).
     │   ├── 07-run.sh             Installs + enables the boot-time OLED status display, little-internet-oled.service (staged from tools/status-oled by build.sh).
-    │   └── files/                eth-dhcp.nmconnection + little-internet-oled.service (build.sh also stages oled-test/, arp-oled/, and status-oled/ here).
+    │   └── files/                NM backend config, eth-dhcp.nmconnection, little-internet-oled.service, and staged OLED tools.
     ├── 01-firstboot-config/      First-boot hostname + Wi-Fi provisioner for flashed (released) images.
     │   ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
     │   └── files/                The script, systemd unit, and little-internet.txt.example.

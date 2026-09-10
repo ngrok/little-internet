@@ -1,0 +1,12 @@
+    1 0.000000000      0.0.0.0 → 255.255.255.255 DHCP 342 DHCP Discover - Transaction ID 0x329ce6b
+    3 0.170969938      0.0.0.0 → 255.255.255.255 DHCP 342 DHCP Discover - Transaction ID 0x3449fa25
+    4 2.202819221   10.10.0.12 → 255.255.255.255 DHCP 321 DHCP Request  - Transaction ID 0x3de2
+    5 3.005133613  10.10.0.254 → 10.10.0.2    DHCP 342 DHCP Offer    - Transaction ID 0x329ce6b
+    6 3.005534441      0.0.0.0 → 255.255.255.255 DHCP 342 DHCP Request  - Transaction ID 0x329ce6b
+    7 6.010442290      0.0.0.0 → 255.255.255.255 DHCP 342 DHCP Request  - Transaction ID 0x3449fa25
+    8 6.019091859  10.10.0.254 → 10.10.0.2    DHCP 345 DHCP ACK      - Transaction ID 0x329ce6b
+   11 7.209261767   10.10.0.12 → 255.255.255.255 DHCP 321 DHCP Request  - Transaction ID 0x3de3
+   18 12.209965395   10.10.0.12 → 255.255.255.255 DHCP 321 DHCP Request  - Transaction ID 0x3de4
+   19 17.213774564   10.10.0.12 → 255.255.255.255 DHCP 321 DHCP Request  - Transaction ID 0x3de5
+   24 22.217564314   10.10.0.12 → 255.255.255.255 DHCP 321 DHCP Request  - Transaction ID 0x3de6
+   27 27.224065960   10.10.0.12 → 255.255.255.255 DHCP 321 DHCP Request  - Transaction ID 0x3de7

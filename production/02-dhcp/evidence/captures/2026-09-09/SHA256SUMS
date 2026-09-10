@@ -1,0 +1,11 @@
+3ce3854cfef8788db3b2c48aef8240b7279ff5f5bf274d1f43a0e659c3325029  pi-foo-01/lesson-02_link-switch_pi-foo-01.pcapng
+af9e02dcacf514b317f62dbffb83fe0982a3253a688559555d5f6ec872ba3579  pi-foo-01/lesson-02_link-switch-manual_pi-foo-01.pcapng
+32203fee00b1122e9a97843a3effd922ead26d66f96f6d74544a519752933451  pi-foo-01/lesson-02_dhcp_pi-foo-01.pcapng
+b2d9ce3f85d027cb247c726dd428d9e7856fddc6517ee26caeb248373340dea6  pi-foo-01/lesson-02_dhcp-ping_pi-foo-01.pcapng
+8e4fe0cde242ca894ad08961224682bcc1903a4974427260bf576d65517c1adb  pi-foo-02/lesson-02_link-switch_pi-foo-02.pcapng
+b99422cb83aee451f8527cbf00735b7202c8d926e2d8e0d9f64cc69630c77b8b  pi-foo-02/lesson-02_link-switch-manual_pi-foo-02.pcapng
+cdcb37ff4a111b0f991681c4f86750c0e2e6e3e3fbdff7bae46adb4b0d02d1ba  pi-foo-02/lesson-02_dhcp_pi-foo-02.pcapng
+1ce6c6922cec9475f8b804bac60ef71fc9d1676ba23ce11e3e5fb25aba9a1cc4  pi-foo-02/lesson-02_dhcp-ping_pi-foo-02.pcapng
+5a2e354daba2c3f0e0703db0d6c6ebda320be9e51a5df5b2dbd026c87b3e074c  pi-foo-dhcp/lesson-02_dhcp_pi-foo-dhcp.pcapng
+055d3b318b85b9cb2ebd9a2efd9e975c15057dbb7c6597b94c9b266e14637394  pi-foo-dhcp/lesson-02_dhcp-02_pi-foo-dhcp.pcapng
+4422672e8b31647afba0cc7bcd4a74ecbbb6545d2cb0c2adcc06ab425db37615  pi-foo-dhcp/lesson-02_dhcp-ping_pi-foo-dhcp.pcapng

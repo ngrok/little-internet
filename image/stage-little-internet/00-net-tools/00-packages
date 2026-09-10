@@ -2,6 +2,9 @@
 tcpdump
 tshark
 
+# NetworkManager's DHCP backend, including client address preferences.
+isc-dhcp-client
+
 # Layer-2 / ARP tooling
 iputils-arping
 ethtool

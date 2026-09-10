@@ -11,21 +11,31 @@ workflow. The outline is a proposal; the research and scripts are unfinished.
 | [brief.md](brief.md) | Audience, promise, scope, and creative decisions |
 | [research.md](research.md) | Questions, sources, claims, and unresolved gaps |
 | [beats.md](beats.md) | Recording journey, explainer slots, and coverage checks |
+| [runbook.md](runbook.md) | Fresh-image preparation and interactive walkthrough |
+| [diary.md](diary.md) | New observations, explanations, and display needs |
+| [Fresh captures](evidence/captures/2026-09-09/README.md) | Eleven captures from the three Pis, in diary order, with source paths and verified checksums |
+| [Finished-network captures](evidence/captures/2026-09-09-e2e/README.md) | Three e2e captures, with full DORA for .1/.2, source paths, and verified checksums |
+| [prior-state-runbook.md](prior-state-runbook.md) | Superseded investigation of the old setup; retained reference |
 | [footage.csv](footage.csv) | Actual source selections connected to beat IDs |
+| [old-cut-review.md](old-cut-review.md) | Ranked old-cut candidates, evidence, and playback limitations |
 | [edit.md](edit.md) | Edit decisions, missing coverage, Resolve state, and handoff |
 | [references/README.md](references/README.md) | Provenance of the previous diary and captures |
 | exports/ | Ignored local review renders and Resolve project exports |
 
 ## Working loop
 
-1. Use the old cut to name the missing explanations and transitions. Record
-   those gaps in research.md; do not assume the diary identifies all of them.
-2. Research the essential questions, then write short explainers inside their
-   beats, including the sentences entering and leaving them.
-3. Record the journey with room for detours. Before leaving the bench, play
+1. Begin with the latest repository image and document its actual starting
+   state. Reconstructing the old setup is no longer a prerequisite.
+2. Walk the beats one checkpoint at a time, writing diary.md from actual
+   observations and saving evidence. Research questions as they arise.
+3. Use the diary to refine the journey and write explainers with entry and exit
+   sentences. Develop OLED requirements and build/reuse tools alongside script
+   finalization and filming preparation. Rehearse the final setup; review the
+   old cut for material that serves this journey.
+4. Record the journey with room for detours. Before leaving the bench, play
    back the crucial takes and check explanation, evidence, and transition.
-4. Index actual footage in footage.csv and audit coverage before polishing.
-5. Edit in Resolve, carrying decisions and current project/timeline identity
+5. Index actual footage in footage.csv and audit coverage before polishing.
+6. Edit in Resolve, carrying decisions and current project/timeline identity
    forward in edit.md so another session can resume.
 
 ## Versioning and storage

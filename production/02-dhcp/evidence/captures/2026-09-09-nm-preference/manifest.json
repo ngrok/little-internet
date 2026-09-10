@@ -1,0 +1,28 @@
+[
+  {
+    "file": "lesson-02_nm-request_pi-foo-02.pcapng",
+    "source": "pi-foo-02:/home/pi/cap/lesson-02_nm-request_pi-foo-02.pcapng",
+    "bytes": 2360,
+    "sha256": "a2760325fdd3e8b40b23414de38df9442c1748ee30f501ace312d86a6d79347c",
+    "dhcp_frames": [
+      "1",
+      "3",
+      "4",
+      "5"
+    ],
+    "transaction_id": "0x7289b37f"
+  },
+  {
+    "file": "lesson-02_nm-request_pi-foo-dhcp.pcapng",
+    "source": "pi-foo-dhcp:/home/pi/cap/lesson-02_nm-request_pi-foo-dhcp.pcapng",
+    "bytes": 2408,
+    "sha256": "ef8e4d11badbec0d82b3340496de41a415bbc77a42a9fe133aeaee5bcc44b146",
+    "dhcp_frames": [
+      "1",
+      "3",
+      "4",
+      "5"
+    ],
+    "transaction_id": "0x7289b37f"
+  }
+]

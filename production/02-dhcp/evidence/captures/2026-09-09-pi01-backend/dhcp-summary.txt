@@ -1,0 +1,4 @@
+    1 0.000000000      0.0.0.0 → 255.255.255.255 DHCP 342 DHCP Discover - Transaction ID 0x7d1abb3a
+    2 0.001157806  10.10.0.254 → 10.10.0.1    DHCP 342 DHCP Offer    - Transaction ID 0x7d1abb3a
+    3 0.001474315      0.0.0.0 → 255.255.255.255 DHCP 342 DHCP Request  - Transaction ID 0x7d1abb3a
+    4 0.008114226  10.10.0.254 → 10.10.0.1    DHCP 345 DHCP ACK      - Transaction ID 0x7d1abb3a

@@ -1,0 +1,106 @@
+{
+  "copied_on": "2026-09-09",
+  "verification": "Remote SHA-256 before and after transfer equals local SHA-256. No running tshark processes found on source hosts before transfer.",
+  "captures": [
+    {
+      "host": "pi-foo-01",
+      "event": "link-switch",
+      "source": "pi@pi-foo-01.local:/home/pi/cap/lesson-02_link-switch_pi-foo-01.pcapng",
+      "file": "pi-foo-01/lesson-02_link-switch_pi-foo-01.pcapng",
+      "bytes": 10072,
+      "sha256": "3ce3854cfef8788db3b2c48aef8240b7279ff5f5bf274d1f43a0e659c3325029",
+      "packet_count": 54
+    },
+    {
+      "host": "pi-foo-01",
+      "event": "link-switch-manual",
+      "source": "pi@pi-foo-01.local:/home/pi/cap/lesson-02_link-switch-manual_pi-foo-01.pcapng",
+      "file": "pi-foo-01/lesson-02_link-switch-manual_pi-foo-01.pcapng",
+      "bytes": 928,
+      "sha256": "af9e02dcacf514b317f62dbffb83fe0982a3253a688559555d5f6ec872ba3579",
+      "packet_count": 6
+    },
+    {
+      "host": "pi-foo-01",
+      "event": "dhcp",
+      "source": "pi@pi-foo-01.local:/home/pi/cap/lesson-02_dhcp_pi-foo-01.pcapng",
+      "file": "pi-foo-01/lesson-02_dhcp_pi-foo-01.pcapng",
+      "bytes": 21204,
+      "sha256": "32203fee00b1122e9a97843a3effd922ead26d66f96f6d74544a519752933451",
+      "packet_count": 64
+    },
+    {
+      "host": "pi-foo-01",
+      "event": "dhcp-ping",
+      "source": "pi@pi-foo-01.local:/home/pi/cap/lesson-02_dhcp-ping_pi-foo-01.pcapng",
+      "file": "pi-foo-01/lesson-02_dhcp-ping_pi-foo-01.pcapng",
+      "bytes": 964,
+      "sha256": "b2d9ce3f85d027cb247c726dd428d9e7856fddc6517ee26caeb248373340dea6",
+      "packet_count": 6
+    },
+    {
+      "host": "pi-foo-02",
+      "event": "link-switch",
+      "source": "pi@pi-foo-02.local:/home/pi/cap/lesson-02_link-switch_pi-foo-02.pcapng",
+      "file": "pi-foo-02/lesson-02_link-switch_pi-foo-02.pcapng",
+      "bytes": 10936,
+      "sha256": "8e4fe0cde242ca894ad08961224682bcc1903a4974427260bf576d65517c1adb",
+      "packet_count": 59
+    },
+    {
+      "host": "pi-foo-02",
+      "event": "link-switch-manual",
+      "source": "pi@pi-foo-02.local:/home/pi/cap/lesson-02_link-switch-manual_pi-foo-02.pcapng",
+      "file": "pi-foo-02/lesson-02_link-switch-manual_pi-foo-02.pcapng",
+      "bytes": 928,
+      "sha256": "b99422cb83aee451f8527cbf00735b7202c8d926e2d8e0d9f64cc69630c77b8b",
+      "packet_count": 6
+    },
+    {
+      "host": "pi-foo-02",
+      "event": "dhcp",
+      "source": "pi@pi-foo-02.local:/home/pi/cap/lesson-02_dhcp_pi-foo-02.pcapng",
+      "file": "pi-foo-02/lesson-02_dhcp_pi-foo-02.pcapng",
+      "bytes": 3368,
+      "sha256": "cdcb37ff4a111b0f991681c4f86750c0e2e6e3e3fbdff7bae46adb4b0d02d1ba",
+      "packet_count": 15
+    },
+    {
+      "host": "pi-foo-02",
+      "event": "dhcp-ping",
+      "source": "pi@pi-foo-02.local:/home/pi/cap/lesson-02_dhcp-ping_pi-foo-02.pcapng",
+      "file": "pi-foo-02/lesson-02_dhcp-ping_pi-foo-02.pcapng",
+      "bytes": 964,
+      "sha256": "1ce6c6922cec9475f8b804bac60ef71fc9d1676ba23ce11e3e5fb25aba9a1cc4",
+      "packet_count": 6
+    },
+    {
+      "host": "pi-foo-dhcp",
+      "event": "dhcp-first-client",
+      "source": "pi@pi-foo-dhcp.local:/home/pi/cap/lesson-02_dhcp_pi-foo-dhcp.pcapng",
+      "file": "pi-foo-dhcp/lesson-02_dhcp_pi-foo-dhcp.pcapng",
+      "bytes": 21932,
+      "sha256": "5a2e354daba2c3f0e0703db0d6c6ebda320be9e51a5df5b2dbd026c87b3e074c",
+      "packet_count": 66
+    },
+    {
+      "host": "pi-foo-dhcp",
+      "event": "dhcp-second-client",
+      "source": "pi@pi-foo-dhcp.local:/home/pi/cap/lesson-02_dhcp-02_pi-foo-dhcp.pcapng",
+      "file": "pi-foo-dhcp/lesson-02_dhcp-02_pi-foo-dhcp.pcapng",
+      "bytes": 3368,
+      "sha256": "055d3b318b85b9cb2ebd9a2efd9e975c15057dbb7c6597b94c9b266e14637394",
+      "packet_count": 15
+    },
+    {
+      "host": "pi-foo-dhcp",
+      "event": "dhcp-ping",
+      "source": "pi@pi-foo-dhcp.local:/home/pi/cap/lesson-02_dhcp-ping_pi-foo-dhcp.pcapng",
+      "file": "pi-foo-dhcp/lesson-02_dhcp-ping_pi-foo-dhcp.pcapng",
+      "bytes": 456,
+      "sha256": "4422672e8b31647afba0cc7bcd4a74ecbbb6545d2cb0c2adcc06ab425db37615",
+      "packet_count": 1
+    }
+  ],
+  "validation": "All 11 files decoded through tshark successfully; packet counts recorded below."
+}

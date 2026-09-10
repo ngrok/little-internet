@@ -2,6 +2,13 @@
 
 # Install NetworkManager connection profiles into the image.
 
+# Use the same NM-managed DHCP client throughout the lessons. The package is
+# explicitly installed by 00-packages. Do not bake a lab address preference
+# into the shared image: each client configures that during the DHCP lesson.
+install -d -m 755 "${ROOTFS_DIR}/etc/NetworkManager/conf.d"
+install -m 644 files/20-little-internet-dhcp-client.conf \
+	"${ROOTFS_DIR}/etc/NetworkManager/conf.d/20-little-internet-dhcp-client.conf"
+
 # eth0's stock resting state: a DHCP, autoconnect wired profile (eth-dhcp). It's
 # what lets a freshly flashed Pi chatter the instant the cable is seated (DHCP
 # Discover, IPv6 SLAAC, mDNS) with nothing configured by the reader — the opening
