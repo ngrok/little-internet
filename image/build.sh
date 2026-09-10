@@ -161,6 +161,12 @@ status_files="${PIGEN_DIR}/${STAGE_NAME}/00-net-tools/files/status-oled"
 mkdir -p "${status_files}"
 cp "${HERE}/../tools/status-oled/status_oled.py" "${status_files}/"
 
+# 3f. Stage the live capture viewer from its single source in tools/tsharkie;
+#     00-net-tools/08-run.sh installs it on the default PATH.
+tsharkie_files="${PIGEN_DIR}/${STAGE_NAME}/00-net-tools/files/tsharkie"
+mkdir -p "${tsharkie_files}"
+cp "${HERE}/../tools/tsharkie/tsharkie" "${tsharkie_files}/"
+
 # 4. Only export our final image, not the intermediate Lite image.
 touch "${PIGEN_DIR}/stage2/SKIP_IMAGES"
 

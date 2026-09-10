@@ -1,6 +1,12 @@
 # Packet capture & inspection
 tcpdump
 tshark
+# Live, aligned tsharkie output and interactive capture viewing.
+mawk
+less
+
+# NetworkManager's DHCP backend, including client address preferences.
+isc-dhcp-client
 
 # Layer-2 / ARP tooling
 iputils-arping
