@@ -9,9 +9,9 @@ The diary can publish before the video. Its completed arc is: the switch
 connects the devices, a Pi supplies DHCP, automatic assignment works, address
 preferences improve the result, and a finished-network assembly proves it.
 The remaining writing work is to make the explanation and commands match the
-recorded evidence. The diary itself has not been rewritten in this review.
+recorded evidence. Joel is revising the diary one editorial checkpoint at a time.
 
-## B04 checkpoint complete; next is B07
+## B04 checkpoint complete
 
 2026-09-10: Joel restored the server warning, the addition of 10.10.0.254/24,
 the reason for choosing an address outside the client pool, and the client
@@ -28,23 +28,17 @@ Assumed first destination: the repository's public `diaries/` collection,
 matching diary 00. A blog adaptation can follow without blocking that release.
 Prepare the following in order, one editorial checkpoint at a time:
 
-1. **Restore the working setup.** B04's main repair is complete. In B07, preserve the
-   two-address detour as history, then document the actual correction: release
-   the standalone client, remove its global preference, deactivate Ethernet,
-   configure the NM backend and eth0-only request, load the backend, prepare
-   lease state, and activate through NM. The present down/up pair does not
-   describe the whole migration. Activation also does not recreate a profile.
-   Use the [Pi 02 procedure](evidence/captures/2026-09-09-nm-preference/README.md).
-   Replace the end-to-end reset's `/var/lib/NetworkManager/*.lease` deletion
-   with Ethernet-only cleanup; the wildcard also targets management Wi-Fi.
-2. **Give every packet excerpt its real source.** B07 correction completed
-   2026-09-10: transaction `0x7289b37f` now appears at the later successful
-   NM-managed test, with client/server capture labels and tables generated
-   using tsharkie's formatter. The earlier detour retains its interface/log
-   evidence; its misleading capture placeholder is removed. Link the
-   three new e2e excerpts to [their archive](evidence/captures/2026-09-09-e2e/README.md).
-   Resolve the opening mDNS timestamp mismatch against its source. Preserve
-   full captures while choosing shorter, clearly labeled excerpts for reading.
+1. **Use one consistent image baseline.** Joel chose to release a new image
+   with the diary. Its source includes NetworkManager-managed dhclient and
+   tsharkie. The diary no longer needs the historical two-client migration
+   detour or manual tool installation. Keep the per-client address preferences
+   and Ethernet-only lease resets inline; those are part of the experiment.
+   Historical migration evidence remains in research and the capture archive.
+2. **Give every packet excerpt its real source.** B07 now has client/server
+   capture labels and tables generated with tsharkie's formatter. The three
+   e2e excerpts link to their archived captures, and the opening mDNS timestamp
+   is corrected. Keep these historical capture labels accurate when describing
+   the revised walkthrough on the new image.
 3. **Correct claims at the point they occur.** The review list below gives
    concrete locations and evidence boundaries. Finish this before polishing
    sentences so attractive phrasing does not cement unsupported explanations.
@@ -64,13 +58,15 @@ Prepare the following in order, one editorial checkpoint at a time:
    reader-facing material and required tools into that PR; the production
    archive is not the publication diff.
 
-The currently published image does not contain the new backend configuration
-or tsharkie. State the tested Bookworm/NM 1.42.4 baseline and provide explicit
-setup steps for that image. Publishing the diary need not wait for a new image
-release. If a new image is promised instead, build/boot validation and release
-become real prerequisites; source edits alone are not a downloadable artifact.
+**Image release decision, 2026-09-10:** publish a new image alongside the
+standalone diary, without waiting for the video. Image source now includes
+both the NM dhclient backend and tsharkie. Build the image, verify first boot,
+management Wi-Fi, unprivileged live capture plus saved pcapng, and the diary's
+DHCP/preference path on that artifact before release. Record its version and
+checksum and point the diary at that release. No image has been built or
+released for this change yet; source integration is not a downloadable image.
 
-### Accuracy review list
+### Accuracy review list (original findings; many now corrected)
 
 | Location | Required correction or boundary |
 | --- | --- |
@@ -113,6 +109,7 @@ checkpoint.
 
 ## Next conversation
 
-Continue with B07's successful migration procedure: its evidence placement
-and formatted capture excerpts are complete. Finish the public
-diary pass before expanding the video into scripts and display engineering.
+Finish the diary's accuracy/readability pass against the new-image baseline.
+Replace manual backend/tool setup with a concise baseline note when the image
+is ready. Build, boot-test, and release that image before diary publication.
+Then expand the corrected journey into video scripts and display requirements.

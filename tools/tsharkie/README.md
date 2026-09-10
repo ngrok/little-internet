@@ -41,9 +41,13 @@ TShark's startup messages and live packet counter are suppressed with `-Q` and
 `--log-level warning`, while `-P` keeps packet rows visible. Warnings and errors
 remain on stderr; the wrapper prints the capture path once before the table.
 
-## Install on a Pi
+## Image integration and manual installation
 
-Copy `tsharkie` to the Pi, then:
+The image build now includes tsharkie at `/usr/local/bin/tsharkie`, together
+with its dependencies. This is a source change for the next image release;
+the previously published v0.5.3 image does not include it.
+
+For an older image, copy `tsharkie` to the Pi, then:
 
 ```bash
 sudo install -m 755 tsharkie /usr/local/bin/tsharkie
@@ -52,5 +56,4 @@ tsharkie --help
 
 Dependencies: Bash, tshark, awk (mawk on the image), and less for interactive
 viewing. Use the image's normal `pi` capture permissions; sudo is needed for
-the installation above, not routine capture. This tool is separate from the
-released image and has not been added to the image build.
+the installation above, not routine capture.

@@ -11,13 +11,19 @@ Follow [publication-and-filming.md](publication-and-filming.md). Publish the
 diary independently of the video. B04's main causal gap is repaired: Joel added
 the warning, server address/pool explanation, configuration restart, and client
 retry. The log-follow and restart commands now name separate terminals.
-Next, repair B07's successful migration procedure, complete
-the accuracy/readability pass, and prepare a focused public diary PR from a
-separate branch. B07's misplaced capture and success placeholder are repaired:
-transaction 0x7289b37f now appears at the NM-managed success, in tsharkie's
-format with separate client/server labels and links. The earlier detour keeps
-its journal and two-address evidence. Next reconcile the abbreviated down/up
-instructions with the actual backend migration and Ethernet-only lease reset.
+B07 now uses one consistent NM-managed client path; the historical two-address
+migration detour is removed. Client/server success tables use tsharkie's format
+with capture links. E2E excerpts are linked and Ethernet lease resets are scoped.
+Continue the accuracy/readability pass one fix at a time.
+
+Joel decided to publish a new image with the diary. Image source now installs
+tsharkie and its display dependencies, alongside the already-configured dhclient
+backend. Manual installation/backend selection can become a baseline note in
+the diary. The new artifact still needs a build, fresh-boot verification, and
+release before publication; no build or release was performed here.
+Local validation passed: Bash syntax, the actual build staging block in a
+temporary directory, rootfs installation with identical contents and mode 755,
+the installed command's help output, and required package entries.
 Video work follows the corrected journey: evidence/shot list, OLED needs,
 short explainers, rehearsal, footage selection, and filming.
 

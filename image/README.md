@@ -138,6 +138,22 @@ also affect management Wi-Fi. The server decides whether to grant a requested
 address; an existing lease does not change merely because this file is edited.
 Client/server lease preparation and a new capture are part of that experiment.
 
+### Live capture viewer
+
+The current image source installs `tsharkie` in `/usr/local/bin`, with `mawk`
+for immediate packet output and `less` for interactive viewing. It displays
+aligned live packet rows while saving the capture:
+
+```bash
+tsharkie first-dora.pcapng -f 'arp or (udp port 67 or udp port 68)'
+```
+
+Bare filenames go into `~/cap/`; reusing a filename overwrites that capture.
+Run it as the normal capture user, without sudo. See
+[the tool documentation](../tools/tsharkie/README.md) for options.
+Like the DHCP backend change, this requires a new build and release; it is
+not included in the previously published v0.5.3 image.
+
 ### Build workflow
 
 Everything below is for changing what's in the image. If you just want to flash
@@ -169,7 +185,8 @@ image/
     │   ├── 05-run.sh             Installs the OLED test scripts into ~/oled-test (staged from tools/oled-test by build.sh).
     │   ├── 06-run.sh             Installs the on-demand ARP-state OLED viewer into ~/arp-oled (staged from tools/arp-oled by build.sh).
     │   ├── 07-run.sh             Installs + enables the boot-time OLED status display, little-internet-oled.service (staged from tools/status-oled by build.sh).
-    │   └── files/                NM backend config, eth-dhcp.nmconnection, little-internet-oled.service, and staged OLED tools.
+    │   ├── 08-run.sh             Installs tsharkie on PATH (staged from tools/tsharkie by build.sh).
+    │   └── files/                NM backend config, eth-dhcp.nmconnection, little-internet-oled.service, and staged tools.
     ├── 01-firstboot-config/      First-boot hostname + Wi-Fi provisioner for flashed (released) images.
     │   ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.
     │   └── files/                The script, systemd unit, and little-internet.txt.example.

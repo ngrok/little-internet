@@ -7,6 +7,21 @@ automated audio transcript and sampled picture have now been inspected;
 listening and continuous playback remain pending. Historical interpretations
 still need checking.
 
+## Publication baseline decision — 2026-09-10
+
+Joel will publish a new image alongside the standalone diary, with tsharkie
+included. The image source now stages the existing tool from `tools/tsharkie`,
+installs it on PATH, and explicitly includes mawk and less. NetworkManager's
+dhclient backend was already added to the source. Address preferences remain
+lesson configuration, introduced after the first automatic assignment.
+
+This resolves the diary's setup gap without requiring a manual tool install or
+an abrupt client migration in the story. Joel removed the two-address detour
+from the revised diary; its original observations remain in this archive.
+Source integration does not establish a working released image. Build, boot,
+live-capture, and DHCP/preference checks on the actual artifact remain before
+release and publication. See [the publication plan](publication-and-filming.md).
+
 ## Current direction — fresh repository image
 
 Joel decided on 2026-09-09 to stop reconstructing the old setup and begin from
