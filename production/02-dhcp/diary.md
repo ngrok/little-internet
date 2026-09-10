@@ -1,10 +1,4 @@
-# DHCP walkthrough diary — production draft
-
-Status: the full walkthrough is documented and copyedited. The new image still
-needs build and boot verification before publication. Production-only headings
-and video notes remain for the publication pass; see [edit.md](edit.md).
-
-## B01: Introduction
+# Diary 02: Who the heck hands out IP addresses on a local network?
 
 Okay, we're finally back for a little more of the little internet.
 
@@ -18,7 +12,7 @@ Today, we're bringing in the switch to answer one seemingly simple question:
 
 *Who the heck hands out IP addresses on a local network?*
 
-## B02: What the switch can do (and can't)
+## What the switch can do (and can't)
 
 Before I jump right in, a refresher: I'm building a little internet out of Raspberry Pis so that I can understand exactly how the internet works. I want to make this whole thing deeply tangible not just for myself, but for you, so everything has to be recorded, visualized, and reproducible. I'll consider this little internet done when one Pi, on one network, can ping a Pi on any other network, without knowing the whole "map."
 
@@ -30,15 +24,15 @@ But for now, I want to know exactly what happens when I plug the two Pis into th
 
 If not, *why not*?
 
-### A short aside about NetworkManager
+### A short aside and reminder about the setup
 
-The image prepared for this diary includes [`tsharkie`](../../tools/tsharkie/README.md), a little utility I made to make captures more readable. It also configures NetworkManager to use dhclient for DHCP. NetworkManager manages the interfaces throughout, and later, I'll configure the Pis to request particular addresses.
+All the Pis start with the same little-internet image. I connect over Wi-Fi for SSH, leaving Ethernet for the experiments. I've named the two existing Pis `pi-foo-01` and `pi-foo-02`, and they start with their cables unplugged.
+
+Said image prepared for this diary includes [`tsharkie`](../../tools/tsharkie/README.md), a little utility I made to make captures more readable. It also configures NetworkManager to use dhclient for DHCP. NetworkManager manages the interfaces throughout, and later, I'll configure the Pis to request particular addresses.
 
 Every packet excerpt below links to its saved capture, recorded on `eth0`. The frame numbers match those files, and the times are seconds since the first packet in each capture, rounded to three decimal places.
 
 ### Time to test the switch
-
-{/* VIDEO: At this point, we transition into a screen recording of the following content, down to the end of the beat, to show the packet capture. There will be interspersed close-ups of plugging in the Pis and the OLEDs going from (down)->(no IPv4)->IP address. */}
 
 On both Pis, I have two SSH terminals running. One keeps `tsharkie` running, and I use the second for configuration and `ping` commands. That keeps the capture recording even as I change things.
 
@@ -99,7 +93,7 @@ PING 10.10.0.2 (10.10.0.2) 56(84) bytes of data.
 rtt min/avg/max/mdev = 1.302/1.302/1.302/0.000 ms
 ```
 
-And I can see the ARP introduction and ICMP `ping` on both Pis, meaning they can now communicate. Here’s how it looks [from pi-foo-01](evidence/captures/2026-09-09/pi-foo-01/lesson-02_link-switch-manual_pi-foo-01.pcapng).
+And I can see the ARP introduction and ICMP `ping` on both Pis, meaning they can now communicate. Here's how it looks [from pi-foo-01](evidence/captures/2026-09-09/pi-foo-01/lesson-02_link-switch-manual_pi-foo-01.pcapng).
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -111,7 +105,7 @@ And I can see the ARP introduction and ICMP `ping` on both Pis, meaning they can
    6 |    5.196 | b8:27:eb:3a:e2:c8          | b8:27:eb:7d:e8:ee          | ARP      | 10.10.0.1 is at b8:27:eb:3a:e2:c8
 ```
 
-And here’s [the same exchange from pi-foo-02](evidence/captures/2026-09-09/pi-foo-02/lesson-02_link-switch-manual_pi-foo-02.pcapng).
+And here's [the same exchange from pi-foo-02](evidence/captures/2026-09-09/pi-foo-02/lesson-02_link-switch-manual_pi-foo-02.pcapng).
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -125,9 +119,7 @@ And here’s [the same exchange from pi-foo-02](evidence/captures/2026-09-09/pi-
 
 The switch provides connectivity, and the IPv4 addresses I assigned let them communicate just as they had before, but I still had to do it all myself. What could do that job automatically?
 
-## B03: A third Pi enters the ring: `pi-foo-dhcp`
-
-{/* VIDEO: We step back into the overhead shot to point this out as it's happening and explain why the Raspberry Pi has been sitting there all along. */}
+## A third Pi enters the ring: `pi-foo-dhcp`
 
 I've confirmed this switch can connect the Pis, but I still need something else to answer their requests for IPv4 addresses.
 
@@ -136,8 +128,6 @@ I need another Raspberry Pi. This is a blessing in disguise: I can SSH into it, 
 Here's the plan: This third Pi, which I've named `pi-foo-dhcp`, will run [dnsmasq](https://en.wikipedia.org/wiki/Dnsmasq) operating as this network's DHCP server.
 
 ### What's DHCP?
-
-{/* VIDEO: We move into a Remotion-style visualization of this. */}
 
 The Dynamic Host Configuration Protocol automatically assigns IP addresses and other settings to each device on a network. It's what makes the Wi-Fi at home feel seamless. You don't have to choose an address yourself.
 
@@ -154,11 +144,9 @@ Once DORA's wrapped up and the lease is given, the DHCP client on the Pi adds th
 
 Earlier, I told NetworkManager which address to use with `nmcli`. With DHCP in play, NetworkManager will simply apply the lease it receives, automating the entire process.
 
-{/* VIDEO: Cut back to the table. */}
-
 Exciting. What configuration will let `pi-foo-dhcp` serve as the DHCP server?
 
-## B04: A quick tour through dnsmasq configuration
+## A quick tour through dnsmasq configuration
 
 To start, before I even consider plugging this new Pi into the switch, I need to install dnsmasq and start the service.
 
@@ -337,7 +325,7 @@ Now here's an interesting bit: `pi-foo-02` got an IP address of `10.10.0.8`. Tha
 
 Is there anything that I can do about the IP addresses these devices get?
 
-## B07: You can just ask for what you want
+## You can just ask for what you want
 
 With DHCP, you have two ways of getting a specific IPv4 address: first, by the client _politely_ requesting it; and second, by configuring the DHCP server itself to associate specific MAC addresses with specific IPs. The former has to be polite, because the DHCP server gets the final say as to which addresses go where.
 
@@ -682,7 +670,7 @@ Sep 09 21:58:49 pi-foo-dhcp dnsmasq-dhcp[26951]: DHCPREQUEST(eth0) 10.10.0.3 3c:
 Sep 09 21:58:49 pi-foo-dhcp dnsmasq-dhcp[26951]: DHCPACK(eth0) 10.10.0.3 3c:78:95:3e:f4:62 TL-SG108E
 ```
 
-## B06: Where does the little internet stand now?
+## Where does the little internet stand now?
 
 Okay. Let's turn back to the question that started this session.
 
