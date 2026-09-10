@@ -11,22 +11,16 @@ preferences improve the result, and a finished-network assembly proves it.
 The remaining writing work is to make the explanation and commands match the
 recorded evidence. The diary itself has not been rewritten in this review.
 
-## First: repair B04's missing causal step
+## B04 checkpoint complete; next is B07
 
-The current draft goes from configuring dnsmasq and retrying the client to
-“Boom. Magic.” It omits the server's missing-address diagnostic and the
-addition of 10.10.0.254/24 that made assignment work. This is the first edit to
-make because it answers the episode's central question and repairs the same
-kind of explanatory gap that weakened the old cut.
-
-Use [the experiment record](evidence/2026-09-09-server-no-address-warning.md)
-to restore the sequence: incoming Discover, “eth0 which has no address,” add
-the server address/prefix, retry, then the successful exchange. Explain what
-the address/prefix supplies and why it sits outside the pool. Keep the observed
-temporary address setup distinct from any later persistent configuration.
-The draft also edits dnsmasq configuration after starting the service without
-showing how the process loads those settings; reconcile that sequence with the
-actual run before presenting it as instructions.
+2026-09-10: Joel restored the server warning, the addition of 10.10.0.254/24,
+the reason for choosing an address outside the client pool, and the client
+retry leading to success. He also added the configuration restart before the
+experiment; the log-follow and restart commands are labeled for two terminals.
+The main causal gap is repaired. The more specific “eth0 which has no address”
+diagnostic remains available in [the experiment record](evidence/2026-09-09-server-no-address-warning.md)
+if useful during final polishing. The observed address configuration is
+temporary, not a claim of persistence across reboot.
 
 ## Diary publication work
 
@@ -34,7 +28,7 @@ Assumed first destination: the repository's public `diaries/` collection,
 matching diary 00. A blog adaptation can follow without blocking that release.
 Prepare the following in order, one editorial checkpoint at a time:
 
-1. **Restore the working setup.** Complete B04 as above. In B07, preserve the
+1. **Restore the working setup.** B04's main repair is complete. In B07, preserve the
    two-address detour as history, then document the actual correction: release
    the standalone client, remove its global preference, deactivate Ethernet,
    configure the NM backend and eth0-only request, load the backend, prepare
@@ -119,6 +113,7 @@ checkpoint.
 
 ## Next conversation
 
-Start with B04's missing server-address step. Make that passage accurate and
-clear, then move to B07's evidence and successful procedure. Finish the public
+Start with B07's evidence and successful procedure. Transaction 0x7289b37f
+belongs to the later NM-managed success, not the earlier standalone-client
+failure; move its use to the right moment before filling placeholders. Finish the public
 diary pass before expanding the video into scripts and display engineering.

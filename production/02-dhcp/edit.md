@@ -8,10 +8,13 @@ but continuous playback/listening remain pending. No Resolve timeline edited.
 ## Next useful task
 
 Follow [publication-and-filming.md](publication-and-filming.md). Publish the
-diary independently of the video, beginning with B04's omitted server address
-and diagnostic. Then repair B07's procedure and evidence provenance, complete
+diary independently of the video. B04's main causal gap is repaired: Joel added
+the warning, server address/pool explanation, configuration restart, and client
+retry. The log-follow and restart commands now name separate terminals.
+Next, repair B07's procedure and evidence provenance, complete
 the accuracy/readability pass, and prepare a focused public diary PR from a
-separate branch. Joel's raw prose was preserved, not rewritten in this review.
+separate branch. Start with the misplaced B07 capture: transaction 0x7289b37f
+belongs to the later NM-managed success, not the standalone-client detour.
 Video work follows the corrected journey: evidence/shot list, OLED needs,
 short explainers, rehearsal, footage selection, and filming.
 

@@ -204,7 +204,7 @@ Next, I want to start capturing frames, particularly those related to ARP or DHC
 $ tsharkie lesson-02_dhcp_$(hostname).pcapng -f 'arp or icmp or (udp and (port 67 or port 68))'
 ```
 
-I can now pop into `/etc/dnsmasq.conf` and configure it in two meaningful ways. First, to listen for DHCP requsets on its `eth0` interface, and to create a pool of 10 IP addresses available to lease out, for 12 hours each, to clients.
+I can now pop into `/etc/dnsmasq.conf` and configure it in two meaningful ways. First, to listen for DHCP requests on its `eth0` interface, and to create a pool of 10 IP addresses available to lease out, for 12 hours each, to clients.
 
 ```conf
 ...
@@ -222,19 +222,35 @@ interface=eth0
 dhcp-range=10.10.0.1,10.10.0.10,12h
 ```
 
-I'll also watch the dnsmasq service on `pi-foo-dhcp` to capture how it reacts.
+I'll also watch the dnsmasq service on `pi-foo-dhcp` to capture how it reacts, then restart it so it picks up the new configuration.
 
 ```
+# Terminal 1: keep watching the server log
 sudo journalctl -u dnsmasq -f -n 20
+
+# Terminal 2, also on pi-foo-dhcp: load the new configuration
+sudo systemctl restart dnsmasq
 ```
 
-Now it's time to assemble. I start by plugging in both `pi-foo-01` and `pi-foo-dhcp`. Nothing changes on the Pis except for the fact their OLEDs recognize that there's now a wire but no IPv4 address. There's actually a good reason for this: `pi-foo-01` only tries to find a DHCP server for 10 seconds, then gives up. What if I ask it to try again?
+Now it's time to assemble. I start by plugging in both `pi-foo-01` and `pi-foo-dhcp`. Nothing changes on the Pis except for the fact their OLEDs recognize that there's now a wire but no IPv4 address. When I look in the dnsmasq logs, I see an interesting warning:
+
+```
+Sep 09 17:14:48 pi-foo-dhcp dnsmasq[13798]: warning: interface eth0 does not currently exist
+```
+
+I'd configured dnsmasq to hand out IP addresses on an interface, but maybe it needs an IP address of its own to do so? I give the server `10.10.0.254/24`, which is an address on the same subnet as the clients, but outside the `.1-.10` pool it can hand out.
+
+```
+sudo ip addr add 10.10.0.254/24 dev eth0
+```
+
+All I have to do now is ask `pi-foo-01` to try finding a DHCP server again, because by now, it's given up.
 
 ```
 sudo nmcli --wait 0 connection up eth-dhcp
 ```
 
-Boom. Magic. Take a look at all that goodness from `pi-foo-01`.
+Boom. _Magic_. Take a look at all that goodness from `pi-foo-01`.
 
 **Capture:** [pi-foo-01 · frames 51–64](evidence/captures/2026-09-09/pi-foo-01/lesson-02_dhcp_pi-foo-01.pcapng). The full file also preserves the earlier acquisition attempts.
 
