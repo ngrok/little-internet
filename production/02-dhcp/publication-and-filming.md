@@ -22,6 +22,21 @@ diagnostic remains available in [the experiment record](evidence/2026-09-09-serv
 if useful during final polishing. The observed address configuration is
 temporary, not a claim of persistence across reboot.
 
+## Copyedit checkpoint — 2026-09-10
+
+The central narrative and evidence explanations have been revised. Joel added
+standalone reset commands, terminal guidance, a direct tshark inspection of
+option 50, and clearer reset/payoff wording. At his request, the copyedit fixes
+prose and replaces formal capture captions with links in the sentences that
+introduce each excerpt. Commands and raw packet/log output are unchanged by
+that pass. All 16 distinct capture links are retained and local links resolve.
+
+Remaining work is publication layout and starting-state context, followed by
+verification of the written path on the new image. Keep beat IDs and video
+notes in this production draft until preparing the public copy. The original
+accuracy checklist below is historical review context, not a new list of
+unresolved corrections.
+
 ## Diary publication work
 
 Assumed first destination: the repository's public `diaries/` collection,

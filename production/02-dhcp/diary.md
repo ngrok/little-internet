@@ -1,33 +1,20 @@
 # DHCP walkthrough diary — production draft
 
-Status: walkthrough documented through DHCP assignment and client communication;
-B07 address preferences is next. These are new observations from the chosen
-repository image. Historical evidence is identified separately in research.md.
-
-The [capture archive](evidence/captures/2026-09-09/README.md) contains all eleven
-files in diary order, with source paths and verified checksums. Capture links
-below identify the recording Pi and frame numbers; all captures use `eth0`.
-
-For each checkpoint, record the question and prediction, starting state,
-exact action/command, raw evidence or capture path, and supported explanation.
-Record surprises and remaining questions honestly. Note what viewers need to
-see, including OLED improvements suggested by the experiment. Develop prose
-and script passages from these observations.
-
-Record the image artifact/checksum and fresh-boot verification with the first
-session. See [runbook.md](runbook.md) for preparation and pacing.
+Status: the full walkthrough is documented and copyedited. The new image still
+needs build and boot verification before publication. Production-only headings
+and video notes remain for the publication pass; see [edit.md](edit.md).
 
 ## B01: Introduction
 
 Okay, we're finally back for a little more of the little internet.
 
-Last time, I left off with plugging in two Raspberry Pis together over Ethernet, manually set identities for them in the form of IPv4 addresses, and got them to chat with one another over `ping`. I also promised that, next, I'd throw a switch into the mix to see what happens.
+Last time, I plugged two Raspberry Pis together over Ethernet, manually gave them identities in the form of IPv4 addresses, and got them to chat with one another over `ping`. I also promised that, next, I'd throw a switch into the mix to see what happens.
 
-Why? Well, two Pis connected to one another directly doesn't work the way I expect a local network to. It doesn't *just work*. And it's only two devices connected directly together, which means no room for any other devices or, eventually, a way for them to communicate with the rest of the internet. It doesn't work the way my home Wi-Fi does. Or, can you imagine having to ask the baristas at the coffee shop not just for the Wi-Fi password, but for them to manually configure the Wi-Fi for your phone and laptop?
+Why? Well, connecting two Pis directly doesn't work the way I expect a local network to. It doesn't *just work*. And it's only two devices connected directly together, which means no room for any other devices or, eventually, a way for them to communicate with the rest of the internet. It doesn't work the way my home Wi-Fi does. Or, can you imagine having to ask the baristas at the coffee shop not just for the Wi-Fi password, but for them to manually configure the Wi-Fi for your phone and laptop?
 
 There's something else going on here.
 
-Today, we're bringing in the switch to answer one seemingly question:
+Today, we're bringing in the switch to answer one seemingly simple question:
 
 *Who the heck hands out IP addresses on a local network?*
 
@@ -35,60 +22,34 @@ Today, we're bringing in the switch to answer one seemingly question:
 
 Before I jump right in, a refresher: I'm building a little internet out of Raspberry Pis so that I can understand exactly how the internet works. I want to make this whole thing deeply tangible not just for myself, but for you, so everything has to be recorded, visualized, and reproducible. I'll consider this little internet done when one Pi, on one network, can ping a Pi on any other network, without knowing the whole "map."
 
-Okay. With that out of the way, it's time to say hello the TP-Link TL-SG108E: 8-port switch. I got it for this build because it's relatively inexpensive and has more than enough ports to hook up *anything* I could possibly want here. If I need more than 8 ports, I've gone off the rails completely.
+Okay. With that out of the way, it's time to say hello to the TP-Link TL-SG108E, an 8-port switch. I got it for this build because it's relatively inexpensive and has more than enough ports to hook up *anything* I could possibly want here. If I need more than 8 ports, I've gone off the rails completely.
 
-When I bought this switch, I assumed that it was capable of handing out IP addresses. I thought this lesson would be very short and sweet. Boy was I wrong! Just before embarking on this build, I realized this particular one doesn't have a DHCP server built in. That's actually _good news_. It means that I need figure out a different way to run said DHCP server. It also means that way can, as I said before, be recorded, visualized, and reproduced.
+When I bought this switch, I assumed that it was capable of handing out IP addresses. I thought this lesson would be very short and sweet. Boy, was I wrong! Just before embarking on this build, I realized this particular one doesn't have a DHCP server built in. That's actually _good news_. It means that I need to figure out a different way to run said DHCP server. It also means I can record, visualize, and reproduce how it works.
 
-But for now, I want to know exactly what happens when I plug the two Pis in to the switch. Do they just start working now?
+But for now, I want to know exactly what happens when I plug the two Pis into the switch. Do they just start working now?
 
 If not, *why not*?
 
 ### A short aside about NetworkManager
 
-For this session, I've made a small change: NetworkManager manages both Pis' network interfaces and uses dhclient to handle DHCP.
+The image prepared for this diary includes [`tsharkie`](../../tools/tsharkie/README.md), a little utility I made to make captures more readable. It also configures NetworkManager to use dhclient for DHCP. NetworkManager manages the interfaces throughout, and later, I'll configure the Pis to request particular addresses.
 
-With ethernet unplugged:
+Every packet excerpt below links to its saved capture, recorded on `eth0`. The frame numbers match those files, and the times are seconds since the first packet in each capture, rounded to three decimal places.
 
-```
-sudo apt install isc-dhcp-client
-sudo nvim /etc/NetworkManager/conf.d/20-little-internet-dhcp-client.conf
-```
-
-And I add two lines of configuration.
-
-```
-[main]
-dhcp=dhclient
-```
-
-Finally, I restart NetworkManager to pick up that change.
-
-```
-sudo systemctl restart NetworkManager
-```
-
-Now, when the time is right, I can request particular addresses without changing networking tools.
-
-### Time to test the swith
+### Time to test the switch
 
 {/* VIDEO: At this point, we transition into a screen recording of the following content, down to the end of the beat, to show the packet capture. There will be interspersed close-ups of plugging in the Pis and the OLEDs going from (down)->(no IPv4)->IP address. */}
 
-On both Pis, I'll start up `tshark` exactly as I have before—
-
-Actually, I've actually developed a little utililty called [`tsharkie`](/tools/tsharkie) to make the output more readable.
+On both Pis, I have two SSH terminals running. One keeps `tsharkie` running, and I use the second for configuration and `ping` commands. That keeps the capture recording even as I change things.
 
 ```shell
-# equivalent to:
-# tshark -i eth0 -nPtd -f '' -w ~/cap/lesson-02_link-switch_$(hostname).pcapng
-
+# on both pi-foo-01 and pi-foo-02
 $ tsharkie lesson-02_link-switch_$(hostname).pcapng -f ''
 ```
 
-When I plug them in to the switch, their OLEDs flip from **(down)** to **(no IPv4)**. That much hasn't changed, at least.
+When I plug them into the switch, their OLEDs flip from **(down)** to **(no IPv4)**. That much hasn't changed, at least.
 
-I see the familiar flood of frames. There's mDNS! There's IPv6! Perhaps most importantly, there are frames sent by `pi-foo-02`, which proves the switch has given these Pis **connectivity**.
-
-**Capture:** [pi-foo-01 · frame 19](evidence/captures/2026-09-09/pi-foo-01/lesson-02_link-switch_pi-foo-01.pcapng). Companion view: [pi-foo-02 · full capture](evidence/captures/2026-09-09/pi-foo-02/lesson-02_link-switch_pi-foo-02.pcapng).
+I see the familiar flood of frames. There's mDNS! There's IPv6! Perhaps most importantly, [the capture from pi-foo-01](evidence/captures/2026-09-09/pi-foo-01/lesson-02_link-switch_pi-foo-01.pcapng) includes frames sent by `pi-foo-02`, which proves the switch has given these Pis **connectivity**. Here's one of them. I saved [pi-foo-02's view](evidence/captures/2026-09-09/pi-foo-02/lesson-02_link-switch_pi-foo-02.pcapng), too.
 
 ```txt
 19 |    3.253 | fe80::ba27:ebff:fe7d:e8ee  | ff02::fb                   | MDNS     | Standard query response 0x0000 TXT, cache flush AAAA, cache flush fe80::ba27:ebff:fe7d:e8ee PTR, cache flush pi-foo-02.local SRV, cache flush 0 0 9 pi-foo-02.local
@@ -110,9 +71,6 @@ Not yet. This switch carries frames between them, but neither Pi has the IPv4 ad
 
 ```shell
 # on both pi-foo-01 and pi-foo-02
-# equivalent to:
-# tshark -i eth0 -nPtd -f 'arp or icmp' -w ~/cap/lesson-02_link-switch-manual_$(hostname).pcapng
-
 $ tsharkie lesson-02_link-switch-manual_$(hostname).pcapng -f 'arp or icmp'
 ```
 
@@ -141,9 +99,7 @@ PING 10.10.0.2 (10.10.0.2) 56(84) bytes of data.
 rtt min/avg/max/mdev = 1.302/1.302/1.302/0.000 ms
 ```
 
-And I can see the ARP introduction and ICMP `ping` on both Pis, meaning they can now communicate.
-
-**Capture:** [pi-foo-01 · frames 1–6](evidence/captures/2026-09-09/pi-foo-01/lesson-02_link-switch-manual_pi-foo-01.pcapng).
+And I can see the ARP introduction and ICMP `ping` on both Pis, meaning they can now communicate. Here’s how it looks [from pi-foo-01](evidence/captures/2026-09-09/pi-foo-01/lesson-02_link-switch-manual_pi-foo-01.pcapng).
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -155,7 +111,7 @@ And I can see the ARP introduction and ICMP `ping` on both Pis, meaning they can
    6 |    5.196 | b8:27:eb:3a:e2:c8          | b8:27:eb:7d:e8:ee          | ARP      | 10.10.0.1 is at b8:27:eb:3a:e2:c8
 ```
 
-**Capture:** [pi-foo-02 · frames 1–6](evidence/captures/2026-09-09/pi-foo-02/lesson-02_link-switch-manual_pi-foo-02.pcapng).
+And here’s [the same exchange from pi-foo-02](evidence/captures/2026-09-09/pi-foo-02/lesson-02_link-switch-manual_pi-foo-02.pcapng).
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -183,16 +139,16 @@ Here's the plan: This third Pi, which I've named `pi-foo-dhcp`, will run [dnsmas
 
 {/* VIDEO: We move into a Remotion-style visualization of this. */}
 
-The Dynamic Host Configuration Protocol automatically assigns IP addresses and other settings to each device on a network. It's what makes your the Wi-Fi at home seamless. You don't have to choose an address yourself.
+The Dynamic Host Configuration Protocol automatically assigns IP addresses and other settings to each device on a network. It's what makes the Wi-Fi at home feel seamless. You don't have to choose an address yourself.
 
 For the little internet, the DHCP server will hand out identities to individual Pis. It'll work over this four-step process known as **DORA**:
 
 1. **D**iscover: The Pi asks, "Does anyone out there have an IPv4 address for me?"
 2. **O**ffer: The DHCP server says, "Sure, I've got one at `10.10.0.1`."
 3. **R**equest: The Pi accepts the address.
-4. **A**cknowledge: The DCHP server confirms this and leases the IP address to the Pi.
+4. **A**cknowledge: The DHCP server confirms this and leases the IP address to the Pi.
 
-A **lease** is a temporary assignment of IP address to device with a configurable unit of time. If the assignments were permanent, then many DHCP servers would simply run out of IP addresses to hand out. A coffee shop certainly doesn't want to be figuring _that_ out while also trying to make a flat white.
+A **lease** assigns an IP address to a device for a configurable amount of time. If the assignments were permanent, then many DHCP servers would simply run out of IP addresses to hand out. A coffee shop certainly doesn't want to be figuring _that_ out while also trying to make a flat white.
 
 Once DORA's wrapped up and the lease is given, the DHCP client on the Pi adds that address to its networking stack.
 
@@ -204,29 +160,27 @@ Exciting. What configuration will let `pi-foo-dhcp` serve as the DHCP server?
 
 ## B04: A quick tour through dnsmasq configuration
 
-To start, before I even consider plugging this new Pi into the switch, I need to install dnsmasq and start the service (and install neovim!).
+To start, before I even consider plugging this new Pi into the switch, I need to install dnsmasq and start the service.
 
 ```
 sudo apt install dnsmasq
 sudo service dnsmasq start
 ```
 
-I also need to reset my two Pis to the original state, which means first disconnecting them from the switch and deleting the `eth` profiles I created manually with NetworkManager.
+I also need to reset my two Pis to the original state, which means first disconnecting them from the switch and deleting the `eth` profiles I created manually with NetworkManager. The image's baked-in `eth-dhcp` profile is still ready to request an address when I reconnect the cable.
 
 ```
-MODE=ssh NO_COLOR=1 \
-A_HOST=pi@pi-foo-01.local \
-B_HOST=pi@pi-foo-02.local \
-./lessons/00/scripts/reset.sh
+sudo nmcli connection delete eth
+sudo nmcli connection modify eth-dhcp connection.autoconnect yes
 ```
 
-Next, I want to start capturing frames, particularly those related to ARP or DHCP, which is what the `udp and (port 67 or port 68)` bit is all about, to capture the moment I get DHCP working. I'm doing this on _all three Pis_.
+Next, I want to capture the moment I get DHCP working. I'm watching for ARP, ICMP, and DHCP—the `udp and (port 67 or port 68)` bit selects DHCP traffic. I'm doing this on _all three Pis_.
 
 ```
 $ tsharkie lesson-02_dhcp_$(hostname).pcapng -f 'arp or icmp or (udp and (port 67 or port 68))'
 ```
 
-I can now pop into `/etc/dnsmasq.conf` and configure it in two meaningful ways. First, to listen for DHCP requests on its `eth0` interface, and to create a pool of 10 IP addresses available to lease out, for 12 hours each, to clients.
+I can now pop into `/etc/dnsmasq.conf` and configure it to do two things: listen for DHCP requests on `eth0`, and offer a pool of ten IP addresses with 12-hour leases.
 
 ```conf
 ...
@@ -272,9 +226,7 @@ All I have to do now is ask `pi-foo-01` to try finding a DHCP server again, beca
 sudo nmcli --wait 0 connection up eth-dhcp
 ```
 
-Boom. _Magic_. Take a look at all that goodness from `pi-foo-01`.
-
-**Capture:** [pi-foo-01 · frames 51–64](evidence/captures/2026-09-09/pi-foo-01/lesson-02_dhcp_pi-foo-01.pcapng). The full file also preserves the earlier acquisition attempts.
+Boom. _Magic_. Take a look at all that goodness [from pi-foo-01](evidence/captures/2026-09-09/pi-foo-01/lesson-02_dhcp_pi-foo-01.pcapng). The full file also preserves the earlier acquisition attempts.
 
 ```
   51 |  457.648 | b8:27:eb:ba:c7:ba          | ff:ff:ff:ff:ff:ff          | ARP      | Who has 10.10.0.1? Tell 10.10.0.254
@@ -293,9 +245,7 @@ Boom. _Magic_. Take a look at all that goodness from `pi-foo-01`.
   64 |  465.754 | b8:27:eb:3a:e2:c8          | b8:27:eb:ba:c7:ba          | ARP      | 10.10.0.1 is at b8:27:eb:3a:e2:c8
 ```
 
-And from `pi-foo-dhcp`!
-
-**Capture:** [pi-foo-dhcp · frames 53–66](evidence/captures/2026-09-09/pi-foo-dhcp/lesson-02_dhcp_pi-foo-dhcp.pcapng).
+And [from pi-foo-dhcp](evidence/captures/2026-09-09/pi-foo-dhcp/lesson-02_dhcp_pi-foo-dhcp.pcapng)!
 
 ```
   53 |  463.562 | b8:27:eb:ba:c7:ba          | ff:ff:ff:ff:ff:ff          | ARP      | Who has 10.10.0.1? Tell 10.10.0.254
@@ -314,9 +264,7 @@ And from `pi-foo-dhcp`!
   66 |  471.668 | b8:27:eb:3a:e2:c8          | b8:27:eb:ba:c7:ba          | ARP      | 10.10.0.1 is at b8:27:eb:3a:e2:c8
 ```
 
-And finally, the DHCP server acknowledging the whole DORA handshake.
-
-**Log source:** [Server experiment record](evidence/2026-09-09-server-no-address-warning.md), including the no-address diagnostic and the successful exchange.
+And finally, [the DHCP server’s log](evidence/2026-09-09-server-no-address-warning.md) records the whole DORA handshake.
 
 ```
 Sep 09 17:20:50 pi-foo-dhcp dnsmasq-dhcp[13798]: DHCPDISCOVER(eth0) b8:27:eb:3a:e2:c8
@@ -327,9 +275,7 @@ Sep 09 17:20:50 pi-foo-dhcp dnsmasq-dhcp[13798]: DHCPREQUEST(eth0) 10.10.0.1 b8:
 Sep 09 17:20:50 pi-foo-dhcp dnsmasq-dhcp[13798]: DHCPACK(eth0) 10.10.0.1 b8:27:eb:3a:e2:c8 pi-foo-01
 ```
 
-What about `pi-foo-02`? It's been sitting here, not plugged in, waiting for its moment to shine. I plug it in, and...
-
-**Capture:** [pi-foo-02 · frames 1–15](evidence/captures/2026-09-09/pi-foo-02/lesson-02_dhcp_pi-foo-02.pcapng). Companion server view: [pi-foo-dhcp · full capture](evidence/captures/2026-09-09/pi-foo-dhcp/lesson-02_dhcp-02_pi-foo-dhcp.pcapng).
+What about `pi-foo-02`? It's been sitting here, not plugged in, waiting for its moment to shine. I plug it in, and [watch its capture](evidence/captures/2026-09-09/pi-foo-02/lesson-02_dhcp_pi-foo-02.pcapng), with [the server recording its side](evidence/captures/2026-09-09/pi-foo-dhcp/lesson-02_dhcp-02_pi-foo-dhcp.pcapng), too...
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -356,9 +302,7 @@ Finally, we can come to the whole point of this: **Can the Pis now communicate w
 
 **Yes!**
 
-`pi-foo-01` starts the cycle of ARP and ICMP...
-
-**Capture:** [pi-foo-01 · frames 1–6](evidence/captures/2026-09-09/pi-foo-01/lesson-02_dhcp-ping_pi-foo-01.pcapng).
+[On pi-foo-01, the cycle of ARP and ICMP begins](evidence/captures/2026-09-09/pi-foo-01/lesson-02_dhcp-ping_pi-foo-01.pcapng).
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -370,9 +314,7 @@ Finally, we can come to the whole point of this: **Can the Pis now communicate w
    6 |    5.158 | b8:27:eb:3a:e2:c8          | b8:27:eb:7d:e8:ee          | ARP      | 10.10.0.1 is at b8:27:eb:3a:e2:c8
 ```
 
-And `pi-foo-02` responds with a mirror image...
-
-**Capture:** [pi-foo-02 · frames 1–6](evidence/captures/2026-09-09/pi-foo-02/lesson-02_dhcp-ping_pi-foo-02.pcapng).
+[Pi-foo-02 records the same exchange from the other end](evidence/captures/2026-09-09/pi-foo-02/lesson-02_dhcp-ping_pi-foo-02.pcapng).
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -384,22 +326,20 @@ And `pi-foo-02` responds with a mirror image...
    6 |    5.158 | b8:27:eb:3a:e2:c8          | b8:27:eb:7d:e8:ee          | ARP      | 10.10.0.1 is at b8:27:eb:3a:e2:c8
 ```
 
-Even `pi-foo-dhcp` hears a bit, once again proving how observable a local network is.
-
-**Capture:** [pi-foo-dhcp · frame 1 (entire capture)](evidence/captures/2026-09-09/pi-foo-dhcp/lesson-02_dhcp-ping_pi-foo-dhcp.pcapng).
+Even [pi-foo-dhcp hears the broadcast ARP request](evidence/captures/2026-09-09/pi-foo-dhcp/lesson-02_dhcp-ping_pi-foo-dhcp.pcapng).
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
    1 |    0.000 | b8:27:eb:3a:e2:c8          | ff:ff:ff:ff:ff:ff          | ARP      | Who has 10.10.0.8? Tell 10.10.0.1
 ```
 
-Now here's an intesting bit: `pi-foo-02` got an IP address of `10.10.0.8`. That's a little... unexpected. What happened there? It bugs me to no end because I'm a bit of a stickler for consistenty. I want `pi-foo-02` to end in `.2`.
+Now here's an interesting bit: `pi-foo-02` got an IP address of `10.10.0.8`. That's a little... unexpected. What happened there? It bugs me to no end because I'm a bit of a stickler for consistency. I want `pi-foo-02` to end in `.2`.
 
 Is there anything that I can do about the IP addresses these devices get?
 
 ## B07: You can just ask for what you want
 
-With DHCP, you have two ways getting a specific IPv4 address: first, by the client _politely_ requesting it; and second, by configuring the DHCP server itself to associate specific MAC addresses with specific IPs. The former has to be polite, because the DHCP server gets final say as to what addresses go where.
+With DHCP, you have two ways of getting a specific IPv4 address: first, by the client _politely_ requesting it; and second, by configuring the DHCP server itself to associate specific MAC addresses with specific IPs. The former has to be polite, because the DHCP server gets the final say as to which addresses go where.
 
 Still, I'd like to have the Pis politely ask. Doing so requires a single line of configuration.
 
@@ -430,7 +370,7 @@ With everything reset, I can restart `tsharkie` on `pi-foo-02` and `pi-foo-dhcp`
 $ tsharkie lesson-02_nm-request_$(hostname).pcapng -f 'arp or icmp or (udp and (port 67 or port 68))'
 ```
 
-Finally, I can recreate the connection from `pi-foo-02`:
+In the second terminal on `pi-foo-02`, I reactivate the existing connection.
 
 ```
 $ sudo nmcli connection up eth-dhcp
@@ -438,13 +378,7 @@ $ sudo nmcli connection up eth-dhcp
 
 BAM! `pi-foo-02` immediately requests and receives `.2`.
 
-**Successful NetworkManager-managed test:** Both captures below were recorded
-on `eth0` with tsharkie. These excerpts were regenerated from the saved files
-using tsharkie's table format. They show only transaction `0x7289b37f`;
-other packets are omitted, and original frame numbers are retained. Times are
-seconds since each capture's first packet, rounded to three decimal places.
-
-**Client capture:** [pi-foo-02 · frames 1, 3, 4, 5](evidence/captures/2026-09-09-nm-preference/lesson-02_nm-request_pi-foo-02.pcapng).
+Here's [pi-foo-02's side of the exchange](evidence/captures/2026-09-09-nm-preference/lesson-02_nm-request_pi-foo-02.pcapng). These excerpts were regenerated from the saved captures with tsharkie's formatting. They show only transaction `0x7289b37f`, with the original frame numbers intact.
 
 ```text
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -454,7 +388,7 @@ seconds since each capture's first packet, rounded to three decimal places.
    5 |    3.013 | 10.10.0.254                | 10.10.0.2                  | DHCP     | DHCP ACK      - Transaction ID 0x7289b37f
 ```
 
-**Server capture:** [pi-foo-dhcp · frames 1, 3, 4, 5](evidence/captures/2026-09-09-nm-preference/lesson-02_nm-request_pi-foo-dhcp.pcapng).
+And here’s [the server’s view](evidence/captures/2026-09-09-nm-preference/lesson-02_nm-request_pi-foo-dhcp.pcapng).
 
 ```text
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -469,13 +403,30 @@ The same transaction ID connects all four messages in both views. The
 show `.2` in the requested-address option in Discover and Request, and `.2`
 in the address assigned by Offer and ACK.
 
-Amazing. Stunning. _Perfect_.
+I can also use `tshark` to look inside a single frame. What happens if I take a look at just that first frame? Will I see the preference I set there?
+
+```shell
+$ tshark -n -r ~/cap/lesson-02_nm-request_pi-foo-02.pcapng \
+    -Y 'frame.number == 1' \
+    -O dhcp
+
+...
+
+      Option: (53) DHCP Message Type (Discover)
+          Length: 1
+          DHCP: Discover (1)
+      Option: (50) Requested IP Address (10.10.0.2)
+          Length: 4
+          Requested IP Address: 10.10.0.2
+```
+
+Yep. The Pi politely asks for `10.10.0.2`. In the frames that follow, the server offers it, the Pi requests it, and the server ACKs it. Amazing. Stunning. _Perfect_.
 
 I can now give `pi-foo-01` the matching preference for `10.10.0.1`. Both Pis will ask for addresses that match their names, and the server will decide whether to grant them. Time to put the whole network back together and see it happen.
 
 ## Ready for an end-to-end rip?
 
-That begins by unplugging all those Ethernet cables and bringing the two client Pis back to their original state.
+That begins by unplugging all the Ethernet cables and clearing the clients' leases. Their `.1` and `.2` preferences stay.
 
 ```shell
 $ sudo nmcli connection down eth-dhcp
@@ -483,7 +434,7 @@ $ lease_uuid=$(nmcli -g connection.uuid connection show eth-dhcp)
 $ sudo rm -f "/var/lib/NetworkManager/dhclient-${lease_uuid}-eth0.lease"
 ```
 
-For `pi-foo-dhcp`. We need to say bye-bye to its DHCP server and current leases.
+On `pi-foo-dhcp`, I stop `dnsmasq` and empty its lease file. Its configuration and the `10.10.0.254/24` address I added earlier stay in place.
 
 ```shell
 $ sudo systemctl stop dnsmasq
@@ -492,7 +443,7 @@ $ sudo truncate -s 0 /var/lib/misc/dnsmasq.leases
 
 One final check to make sure that everything is down. Yep? Yep.
 
-Time to rip it. Start `tshark` everywhere.
+Time to rip it. Start `tsharkie` everywhere.
 
 ```shell
 # on pi-foo-01, pi-foo-02, and pi-foo-dhcp
@@ -511,11 +462,9 @@ And then plug the Pis in.
 ...
 ...
 
-They come up on `10.10.0.1` and `10.0.0.2`. I send a ping from `pi-foo-01` to `pi-foo-02`. It works. And the whole story is recorded in the captures.
+They come up on `10.10.0.1` and `10.10.0.2`. I send a ping from `pi-foo-01` to `pi-foo-02`. It works. And the whole story is recorded in the captures.
 
-On `pi-foo-01` as it gets `10.10.0.1` and sends a ping to `10.10.0.2`.
-
-**Capture:** [pi-foo-01 · frames 1–27](evidence/captures/2026-09-09-e2e/lesson-02_dhcp-e2e_pi-foo-01.pcapng). Captured on `eth0`; times are seconds relative to this capture’s first packet.
+Here’s [pi-foo-01 getting its address and sending a ping](evidence/captures/2026-09-09-e2e/lesson-02_dhcp-e2e_pi-foo-01.pcapng).
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -548,9 +497,7 @@ On `pi-foo-01` as it gets `10.10.0.1` and sends a ping to `10.10.0.2`.
   27 |   27.126 | 10.10.0.12                 | 255.255.255.255            | DHCP     | DHCP Request  - Transaction ID 0x3de7
 ```
 
-On `pi-foo-02` as it gets `10.10.0.2` and receives a ping from `10.10.0.1`.
-
-**Capture:** [pi-foo-02 · frames 1–27](evidence/captures/2026-09-09-e2e/lesson-02_dhcp-e2e_pi-foo-02.pcapng). Captured on `eth0`; times are seconds relative to this capture’s first packet.
+And [pi-foo-02 getting its address and answering](evidence/captures/2026-09-09-e2e/lesson-02_dhcp-e2e_pi-foo-02.pcapng).
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -583,9 +530,7 @@ On `pi-foo-02` as it gets `10.10.0.2` and receives a ping from `10.10.0.1`.
   27 |   27.224 | 10.10.0.12                 | 255.255.255.255            | DHCP     | DHCP Request  - Transaction ID 0x3de7
 ```
 
-On `pi-foo-dhcp` as it receives multiple DHCP Discover frames in a matter of milliseconds.
-
-**Capture:** [pi-foo-dhcp · frames 1–34](evidence/captures/2026-09-09-e2e/lesson-02_dhcp-e2e_pi-foo-dhcp.pcapng). Captured on `eth0`; times are seconds relative to this capture’s first packet.
+Meanwhile, [pi-foo-dhcp sees both clients asking for addresses](evidence/captures/2026-09-09-e2e/lesson-02_dhcp-e2e_pi-foo-dhcp.pcapng).
 
 ```
  No. |  Time(s) | Source                     | Destination                | Proto    | Info
@@ -638,15 +583,15 @@ Sep 09 21:11:53 pi-foo-dhcp dnsmasq-dhcp[26951]: DHCPREQUEST(eth0) 10.10.0.1 b8:
 Sep 09 21:11:53 pi-foo-dhcp dnsmasq-dhcp[26951]: DHCPACK(eth0) 10.10.0.1 b8:27:eb:3a:e2:c8 pi-foo-01
 ```
 
-I can now plug in a Pi and get an IPv4 address, which means I have both connectivity and identity and thus reachability to any other Pi on the local network.
+I can now plug in both Pis, watch them automatically receive their IPv4 addresses, and `ping` between them. The switch carries their frames, DHCP supplies their addresses, and the successful `ping` proves they can communicate.
 
-I couldn't also done that by buying a fancier router and plopping that in place of the switch, but then I wouldn't have gotten all these amazing captures. I wouldn't have seen it end to end. I wouldn't have been able to visaully see it all come together on this old desk. And I wouldn't be able to share all that into this project to make it tangible, visual, and reproducible anywhere else.
+I could've also done that by buying a fancier router and plopping that in place of the switch, but then I wouldn't have gotten all these amazing captures. I wouldn't have seen it end to end. I wouldn't have watched it all come together on this old desk. And I wouldn't be able to share it all here to make this project tangible, visual, and reproducible anywhere else.
 
 To me, that's well worth the extra trouble.
 
 ### What happened, frame by frame
 
-Let's look at this from the point of view of `pi-foo-01`.
+Let's look at this from [pi-foo-01's point of view](evidence/captures/2026-09-09-e2e/lesson-02_dhcp-e2e_pi-foo-01.pcapng).
 
 #### Frames 2, 6, 7, and 8: DORA in one go
 
@@ -657,11 +602,11 @@ Let's look at this from the point of view of `pi-foo-01`.
    8 |    5.926 | 10.10.0.254                | 10.10.0.1                  | DHCP     | DHCP ACK      - Transaction ID 0x3449fa25 
 ```
 
-Rembemer how I described the 4 steps of DORA? Discover, Offer, Request, and Acknowledge? Here it is in the frames themselves.
+Remember how I described the four steps of DORA? Discover, Offer, Request, and Acknowledge? Here they are in the frames themselves.
 
-In frame 2, `pi-foo-01` broadcasts its Discover from `0.0.0.0`, because it doesn't have an IPv4 address yet. In frame 6, the server offers `10.10.0.1`. The Pi requests that offer in frame 7, and the server confirms the lease with an ACK in frame 8. NetworkManager then applies the address to `eth0`.
+In frame 2, `pi-foo-01` broadcasts its Discover from `0.0.0.0`, because it doesn't have an IPv4 address on `eth0` yet. In frame 6, the server offers `10.10.0.1`. The Pi requests that offer in frame 7, and the server confirms the lease with an ACK in frame 8. NetworkManager then applies the address to `eth0`.
 
-All 4 steps of DORA share the same transaction ID, `0x3449fa25`, which makes it easier to follow individual exachanges even as they overlap with others.
+All four steps of DORA share the same transaction ID, `0x3449fa25`, which makes it easier to follow individual exchanges even as they overlap with others.
 
 #### Frame 10: a gratuitous shout (of ARP)
 
@@ -671,7 +616,7 @@ All 4 steps of DORA share the same transaction ID, `0x3449fa25`, which makes it 
 
 Less than a tenth of a second after the server acknowledges the lease, `pi-foo-01` announces it to the network.
 
-#### Frames 20-26 (minus 24): The ARP and ICMP/ping handshakes
+#### Frames 20–26 (minus 24): The ARP and ICMP/ping handshakes
 
 ```text
   20 |   18.210 | b8:27:eb:3a:e2:c8          | ff:ff:ff:ff:ff:ff          | ARP      | Who has 10.10.0.2? Tell 10.10.0.1
@@ -682,13 +627,15 @@ Less than a tenth of a second after the server acknowledges the lease, `pi-foo-0
   26 |   23.349 | b8:27:eb:3a:e2:c8          | b8:27:eb:7d:e8:ee          | ARP      | 10.10.0.1 is at b8:27:eb:3a:e2:c8
 ```
 
-About 18 seconds after starting the capture, I fire off a ping from one Pi to the next. Through ARP, it asks the network for who has `10.10.0.2`, gets an answer, caches it, fires off its ping, and then responds when `pi-foo-02` asks the same question back.
+About 18 seconds after starting the capture, I fire off a ping from one Pi to the next. Through ARP, it asks the network who has `10.10.0.2`, gets an answer, caches it, fires off its ping, and then responds when `pi-foo-02` asks the same question back.
 
 We're cookin'.
 
-Now, two fun oddities I want to point out amongs all these captures.
+Now, two fun oddities I want to point out among all these captures.
 
 ### Even the DHCP server uses ARP
+
+Back in [the server’s capture](evidence/captures/2026-09-09-e2e/lesson-02_dhcp-e2e_pi-foo-dhcp.pcapng), there’s something else going on.
 
 ```
   17 |   38.840 | 10.10.0.254                | 10.10.0.2                  | DHCP     | DHCP ACK      - Transaction ID 0x329ce6b
@@ -700,7 +647,7 @@ Now, two fun oddities I want to point out amongs all these captures.
   29 |   44.020 | b8:27:eb:7d:e8:ee          | b8:27:eb:ba:c7:ba          | ARP      | 10.10.0.2 is at b8:27:eb:7d:e8:ee
 ```
 
-In frames 17-18, you see `pi-foo-dhcp` ACK-ing and handing out two leases.
+In frames 17–18, you see `pi-foo-dhcp` ACK-ing and handing out two leases.
 
 Roughly 5 seconds later, it sends ARP requests, but unlike many of these requests we've seen already, these go directly to the MAC addresses of the Pis instead of the broadcast. They both answer with the IPs they've just been given.
 
@@ -708,9 +655,9 @@ This looks like Linux double-checking the ARP cache it already has. Handing out 
 
 Very cool.
 
-### The switch is a DHCP client, too.
+### The switch is a DHCP client, too
 
-I've neglected the switch a bit in this whole exercise, I haven't I? Well, it turns out the switch wants an IPv4 address for its management interface, even though it doesn't need one to do the job of passing Ethernet frames around. In many of the captures, it's repeatedly asking to keep `10.10.0.12`.
+I've neglected the switch a bit in this whole exercise, haven't I? Well, it turns out the switch wants an IPv4 address for its management interface, even though it doesn't need one to do the job of passing Ethernet frames around. In many of the captures, it's repeatedly asking to keep `10.10.0.12`.
 
 ```
    1 |    0.000 | 10.10.0.12                 | 255.255.255.255            | DHCP     | DHCP Request  - Transaction ID 0x3ddb
@@ -722,7 +669,7 @@ I've neglected the switch a bit in this whole exercise, I haven't I? Well, it tu
    7 |   30.019 | 10.10.0.12                 | 255.255.255.255            | DHCP     | DHCP Request  - Transaction ID 0x3de1
 ```
 
-An earlier version of my DHCP configuration had set dnsmasq's `dhcp-range` from `.1-.50`, which could explain where it got `.12` from. I've lost record of the original lease assignment, but this does definitively show that just because I reset all the Pis and their DHCP leases, I didn't reset _everything_ on the network.
+An earlier version of my DHCP configuration had set dnsmasq's `dhcp-range` from `.1-.50`, which could explain where it got `.12` from. I don't have a record of the original lease assignment, but this does definitively show that just because I reset all the Pis and their DHCP leases, I didn't reset _everything_ on the network.
 
 Time will tell whether I can figure out how to reset the switch, too.
 
@@ -745,7 +692,7 @@ For a time, I thought the switch would do this work for me. Turns out for two Pi
 
 The answer is actually a **DHCP server**. I now know much more tangibly that a DHCP server isn't some magical property of network hardware, but a program that runs on a machine with an address of its own. In this little internet, that's a $35 Pi running `dnsmasq` with a ten-address pool.
 
-What's become very clear to me now is that "it just works" is many frames, using many protocols, across many services. No single one of them carries the burden; only together, through much many questions asked and answers written down, does this intricate system work.
+What's become very clear to me now is that "it just works" is many frames, using many protocols, across many services. No single one of them carries the burden; only together, through all those questions asked and answers written down, does this intricate system work.
 
 And I can see it all happen in the packet capture _and_ the OLEDs. The little internet is starting to feel like a lot more than a tiny demo or silly art project.
 
@@ -759,13 +706,13 @@ But, for now, there are some more obvious questions to ask, ranging from
 practical to utterly ridiculous:
 
 - **What else can I visualize on the OLEDs?** Maybe what happens when two DHCP clients ask for the same IP address?
-- **How does the switch actually decide what port to send frames?** Now that the
+- **How does the switch actually decide which port to send frames to?** Now that the
   switch sits on `10.10.0.3`, I can answer that with port mirroring.
 - **What happens if I plug the switch into itself?** Endless recursion?
-- **What happens if there's two DHCP servers on the same local network?**
+- **What happens if there are two DHCP servers on the same local network?**
   Apparently, this is a real thing that happens on occasion and I'd love to know
   what the packet chatter looks like.
-- **How many feet of Ethernet cable before it fails?** Standard practice says
+- **How many feet of Ethernet cable before it fails?** I've heard that's around
   300 feet, but I have the perfect testbed in which to see _exactly_ where... or
   at least to the nearest multiple of 50 (feet).
 

@@ -14,12 +14,22 @@ retry. The log-follow and restart commands now name separate terminals.
 B07 now uses one consistent NM-managed client path; the historical two-address
 migration detour is removed. Client/server success tables use tsharkie's format
 with capture links. E2E excerpts are linked and Ethernet lease resets are scoped.
-Continue the accuracy/readability pass one fix at a time.
+Copyedit completed at Joel's request. Capture links now sit inside the prose
+introducing each excerpt; frame numbers remain in the unchanged packet rows.
+One note explains interface and relative-time conventions. All 45 fenced blocks
+are byte-for-byte unchanged by the copyedit, all 16 distinct capture links from
+the draft remain, and local Markdown links resolve. The stale opening status
+is replaced; production beat headings and video notes remain for publication.
+
+Next: review the edited prose, prepare the public layout and starting-state
+note, then verify the written path against the newly built image. In particular,
+check explicit activation of the manual eth profile in B02. No hardware steps
+were run and no new captures are claimed by this editorial pass.
 
 Joel decided to publish a new image with the diary. Image source now installs
 tsharkie and its display dependencies, alongside the already-configured dhclient
-backend. Manual installation/backend selection can become a baseline note in
-the diary. The new artifact still needs a build, fresh-boot verification, and
+backend. Manual installation/backend selection is now a short baseline note in
+the diary, and B07 includes an inline tshark inspection of the requested address. The new artifact still needs a build, fresh-boot verification, and
 release before publication; no build or release was performed here.
 Local validation passed: Bash syntax, the actual build staging block in a
 temporary directory, rootfs installation with identical contents and mode 755,
