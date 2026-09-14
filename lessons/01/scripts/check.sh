@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Preflight lesson 00 before running it. This script is intentionally read-only:
+# Preflight lesson 01 before running it. This script is intentionally read-only:
 # it checks tools, reachability, privileges, and current lab state, but it does
 # not create namespaces, change addresses, delete profiles, or prompt for SSH
 # passwords.

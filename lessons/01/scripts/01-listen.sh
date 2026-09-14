@@ -30,7 +30,7 @@ pause "Press Enter to bounce the link(s) and capture the burst on pi-a."
 
 # In ssh mode, bounce the neighbor in the background too, timed so its link comes up
 # *inside* pi-a's capture window: pi-a then hears pi-b wake up on the shared wire,
-# not just itself—the "some of these frames aren't even me" moment from the diary.
+# not just itself—the "some of these frames aren't even me" moment from the build log.
 # Best-effort: if pi-b can't be driven unattended (passworded sudo on a backgrounded
 # session), you simply get pi-a's own burst, same as before.
 BPID=

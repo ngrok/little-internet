@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared transport + presentation for the lesson 00 steps.
+# Shared transport + presentation for the lesson 01 steps.
 #
 # Each step hands a block of shell to node_a / node_b, which runs it AS ROOT on
 # that node. Pick a backend with MODE:

@@ -126,7 +126,7 @@ def body(ifnames):
     """The blue-body text: the first interface's MAC, plus one IPv4 line each.
 
     An interface with no address distinguishes "no cable" (down) from "no
-    lease yet" (no IPv4) — the difference lesson 00 is built on. With one
+    lease yet" (no IPv4) — the difference lesson 01 is built on. With one
     interface the line is just the address, full width; with several, each
     line carries its interface name.
     """

@@ -13,9 +13,9 @@ your own little internet and follow along.
 
 _And have some fun along the way._
 
-![Two Raspberry Pi 3s in red printed cases, screwed to a pine board and joined by a green Ethernet cable, each with an OLED showing its hostname, eth0 MAC, and IP addresses: pi-foo-01 at 10.10.0.1 and pi-foo-02 at 10.10.0.2](./photos/two-nodes.jpeg)
+![Three Raspberry Pis in green mounts on a wooden board, connected by green Ethernet cables to a TP-Link switch. Their OLEDs show the two clients at 10.10.0.1 and 10.10.0.2 and the DHCP server at 10.10.0.254.](./photos/little-internet.jpg)
 
-_Phase 1 as it stands: two nodes, one cable, each panel showing who it is._
+_Phase 1 as it stands: two clients, a DHCP server, and a switch, with each Pi's address on its OLED._
 
 ## Where this is going
 
@@ -35,7 +35,7 @@ three phases:
   advertise their reachability to one another. _Autonomous systems, BGP, path
   selection, convergence_, plus side quests like DNS, TLS, and Pi-hole.
 
-Each step along the way is a question I'm unpuzzling. The [diary](./diaries/)
+Each step along the way is a question I'm unpuzzling. The [build log](./build-log/)
 tells the story and the [lesson](./lessons) is the version you run yourself.
 Particularly tasty protocol deep-dives get peeled off to the
 [ngrok blog](https://ngrok.com/blog) and
@@ -44,7 +44,8 @@ whatever question hooks you:
 
 | #   | The question                            | Read the story                                | Run it yourself            | Watch it                                             |
 | --- | --------------------------------------- | --------------------------------------------- | -------------------------- | ---------------------------------------------------- |
-| 00  | Two Pis, one cable: can they just talk? | [Diary 00](./diaries/00_two-pis-one-cable.md) | [Lesson 00](./lessons/00/) | [Video](https://www.youtube.com/watch?v=XIlKS4TVt74) |
+| 01  | Two Pis, one cable: can they just talk? | [Build log 01](./build-log/01_two-pis-one-cable.md) | [Lesson 01](./lessons/01/) | [Video](https://www.youtube.com/watch?v=XIlKS4TVt74) |
+| 02  | Who hands out IP addresses on a local network? | [Build log 02](./build-log/02_who-hands-out-addresses.md) | — | — |
 
 ## Want to build your own little internet?
 
@@ -57,11 +58,11 @@ whatever question hooks you:
 3. Optionally, print a stand. Every release also has an STL for a
    [Pi 3 half-case with an integrated OLED stand](./hardware/pi3-oled-case/):
    the Pi drops in without screws and the display sits up where you can read it.
-4. Follow the lessons. Start with [`lesson 00`](./lessons/00/), "two Pis, one
+4. Follow the lessons. Start with [`lesson 01`](./lessons/01/), "two Pis, one
    cable: can they just talk?"
-5. Read the diaries for the story behind it all. They're the running build log
-   of putting this together, in the order each piece came to life. The
-   [table above](#where-this-is-going) pairs each diary with its lesson.
+5. Read the build log for the story behind it all, in the order each piece came
+   to life. The [table above](#where-this-is-going) pairs each entry with its
+   lesson.
 
 ## Repo layout
 
@@ -71,11 +72,11 @@ whatever question hooks you:
 ├── BOM.md        Bill of materials — every part, by phase, with vendors.
 ├── image/        pi-gen config that builds the Raspberry Pi OS image the
 │                 nodes run, plus instructions for building and flashing it.
-├── diaries/      Running build log of how the network came together, one
+├── build-log/    Running build log of how the network came together, one
 │                 prose file per session, in the order things happened.
 ├── lessons/      One directory per lesson: an explainer, the scripts to run
 │                 it yourself, and recorded packet captures. Start with
-│                 lessons/00.
+│                 lessons/01.
 ├── tools/        Workstation SSH reset, plus node tools: OLED smoke tests,
 │                 the boot-time status display, and the ARP-state viewer.
 ├── hardware/     Things you make: 3D-printable models for mounting the kit.
@@ -89,8 +90,8 @@ whatever question hooks you:
 
 Coding agents can teach from the docs, run the Linux virtual lab, or drive real
 Pis over SSH while you handle the cable and hardware. Point them at
-[`AGENTS.md`](./AGENTS.md) first; lesson 00 also has a machine-readable
-[`manifest.json`](./lessons/00/manifest.json) with beats, commands, expected
+[`AGENTS.md`](./AGENTS.md) first; lesson 01 also has a machine-readable
+[`manifest.json`](./lessons/01/manifest.json) with beats, commands, expected
 observations, and recovery steps.
 
 ## Contributing

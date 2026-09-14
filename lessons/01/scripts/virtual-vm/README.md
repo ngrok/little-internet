@@ -1,4 +1,4 @@
-# Lesson 00 — the VM lab: two machines, one bare cable
+# Lesson 01 — the VM lab: two machines, one bare cable
 
 This is the heavier virtual lab: two **separate Debian VMs** (their own kernels)
 joined by one **bare QEMU socket cable**, driven from **two terminals side by
@@ -137,5 +137,5 @@ sudo ip neigh flush dev eth0
 Two kernels and a real carrier close most of the gap, but a virtio NIC has **no
 PHY**, so link speed / duplex / autonegotiation aren't real (only the carrier
 up/down event is). And short frames likely aren't padded to Ethernet's 60-byte
-minimum, so the diary's 42-vs-60-byte "did I send or receive this?" tell may not
+minimum, so the build log's 42-vs-60-byte "did I send or receive this?" tell may not
 appear. Layer 1's physical texture is still the part you only fully feel on metal.

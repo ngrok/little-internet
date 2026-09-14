@@ -15,7 +15,7 @@ d8:3a:dd:4e:aa:10      ← eth0's MAC (the node's layer-2 identity), small
 
 It refreshes once a second, so a DHCP lease landing or a cable pull shows up
 live: the address line reads `(down)` with no cable, `(no IPv4)` while it
-waits for an address — the difference lesson 00 is built on. Only eth0 shows
+waits for an address — the difference lesson 01 is built on. Only eth0 shows
 by default; `--interfaces eth0 wlan0` adds a line with the Wi-Fi address (your
 SSH path) back.
 

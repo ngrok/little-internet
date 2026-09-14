@@ -3,7 +3,7 @@
 # Install the wlan0 management-isolation firewall. WiFi is the operator's
 # out-of-band management path (your SSH); the lessons run on the wired lab
 # network (eth0). Without this, two nodes on the same home WiFi can ping and SSH
-# each other out of the box, contaminating lesson 00 and blurring the
+# each other out of the box, contaminating lesson 01 and blurring the
 # management/data-plane split. This bakes in the isolation so it's true on every
 # card, every boot, with no per-card configuration.
 #

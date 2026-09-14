@@ -1,4 +1,4 @@
-# Diary 00: Two Pis, connected—can they just... talk?
+# Build log 01: Two Pis, connected—can they just... talk?
 
 "Talk" sounds so simple, but it requires concrete answers to three questions
 that both lack intuitive answers and require a deeper understanding of
@@ -11,9 +11,9 @@ networking fundamentals than you might expect.
 Let's learn _just as much as we need_ to answer those questions as we actually
 build our way to a working connection.
 
-This diary is also a video, if you'd rather watch the story unfold:
+This build log is also a video, if you'd rather watch the story unfold:
 
-[![Diary 00 as a video: two Pis, one cable, can they just talk?](https://img.youtube.com/vi/XIlKS4TVt74/maxresdefault.jpg)](https://www.youtube.com/watch?v=XIlKS4TVt74)
+[![Build log 01 as a video: two Pis, one cable, can they just talk?](https://img.youtube.com/vi/XIlKS4TVt74/maxresdefault.jpg)](https://www.youtube.com/watch?v=XIlKS4TVt74)
 
 ## BC: Before Connection
 
@@ -429,4 +429,4 @@ broadcast really does hit _everyone_, and the switch has to make a call it never
 had to make before: a frame comes in addressed to one specific MAC—which port
 does it send it out? How does it even know?
 
-That's lesson 01.
+That's lesson 02.
