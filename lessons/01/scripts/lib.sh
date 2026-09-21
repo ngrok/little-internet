@@ -10,7 +10,7 @@
 #   MODE=netns             drive the local namespace lab (see virtual/lab-up.sh).
 #
 # Point the SSH backend at your nodes with A_HOST / B_HOST.
-set -uo pipefail
+set -euo pipefail
 
 # MODE picks the backend. If you don't set it, autodetect: a namespace lab being up
 # (pi-a present under /run/netns) means you're virtual; otherwise assume real Pis
@@ -25,36 +25,34 @@ B_HOST="${B_HOST:-pi@pi-foo-02.local}"
 # 2201, pi-b on 2202, using the key the lab generated. MODE=vm drives those.
 VM_KEY="${VM_KEY:-$HOME/.little-internet/lab00-vm/id_ed25519}"
 
-# ---- presentation ----------------------------------------------------------
-# Colors only when stdout is a terminal and NO_COLOR is unset.
-if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
-  _B=$'\033[1m'; _C=$'\033[36m'; _Y=$'\033[33m'; _D=$'\033[2m'; _X=$'\033[0m'
-else
-  _B=; _C=; _Y=; _D=; _X=
-fi
+SCRIPTS="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPTS/../../shared/presentation.sh"
+RUN_ID="$(date -u +%Y%m%dT%H%M%SZ)-$$"
+LESSON_OUTPUT_DIR="${LESSON_OUTPUT_DIR:-$HOME/.little-internet/lesson01}"
+EVIDENCE=""
 
-# Every helper emits ONE leading blank line and hugs whatever follows, so any two
-# elements are separated by exactly one blank line and headers sit right atop
-# their output.
-# h TEXT — a section header: a blank line, then a bold-cyan marker.
-h() { printf '\n%s%s▸ %s%s\n' "$_B" "$_C" "$*" "$_X"; }
-# note — dimmed explanatory text read from stdin.
-note() { printf '\n'; while IFS= read -r l; do printf '%s%s%s\n' "$_D" "$l" "$_X"; done; }
-# eye — a yellow "what just happened" block read from stdin; shown AFTER the output
-# so it's a look-back at what you just saw, not a spoiler before it.
-eye() { printf '\n%swhat just happened%s\n' "$_B$_Y" "$_X"
-        while IFS= read -r l; do printf '%s    %s%s\n' "$_Y" "$l" "$_X"; done; }
-# pause MSG — bold prompt, then wait for Enter so you can read before anything
-# runs. When there's no terminal (the demo one-shot, CI), it prints and continues.
-pause() {
-  printf '\n%s%s%s\n' "$_B" "$*" "$_X"
-  [ -t 0 ] || return 0
-  printf '%s[press Enter]%s ' "$_D" "$_X"; read -r
+phase_cleanup() {
+  local status=$?
+  if [ "$status" -ne 0 ]; then
+    note 'This phase stopped. Correct the error above before continuing.'
+    if [ -n "${CAPTURE:-}" ]; then note "Partial pi-a capture: $CAPTURE"; fi
+  fi
 }
-
-# $STYLE — the h() definition with colors frozen in, to prepend to node blocks so
-# sub-headers printed on the node look identical to the controller's.
-STYLE="h(){ printf '\n${_B}${_C}▸ %s${_X}\n' \"\$*\"; }"
+begin() {
+  PHASE_TITLE="$1"
+  trap phase_cleanup EXIT
+  phase_banner "$1"
+  note "$2"
+}
+finish() {
+  review "$1" "$2"
+  if [ "${LESSON_RUNNER:-0}" = 1 ]; then
+    case "${3:-}" in 'Next: '*|'') ;; *) note "$3";; esac
+  else
+    if [ -n "$EVIDENCE" ]; then note "$EVIDENCE"; fi
+    if [ -n "${3:-}" ]; then note "$3"; fi
+  fi
+}
 
 # ---- transport -------------------------------------------------------------
 # _run TARGET BLOCK — run BLOCK as root on TARGET. For ssh the block is base64'd
@@ -68,7 +66,7 @@ _run() {
       # LogLevel=ERROR hides ssh's own chatter (the "Connection to X closed." line
       # that -t prints at session end) while still surfacing real errors and the
       # remote sudo prompt.
-      ssh -t -o LogLevel=ERROR "$1" "echo $b64 | base64 -d | sudo bash"
+      ssh -t -o LogLevel=ERROR "$1" "echo $b64 | base64 -d | sudo bash -e"
       ;;
     vm)
       # Same base64 SSH transport, but the VM nodes are on localhost ports with a
@@ -77,10 +75,10 @@ _run() {
       ssh -i "$VM_KEY" -p "$1" \
         -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
         -o SetEnv=LC_ALL=C.UTF-8 -o LogLevel=ERROR \
-        pi@127.0.0.1 "echo $b64 | base64 -d | sudo bash"
+        pi@127.0.0.1 "echo $b64 | base64 -d | sudo bash -e"
       ;;
     *)
-      printf '%s' "$2" | sudo ip netns exec "$1" bash
+      printf '%s' "$2" | sudo ip netns exec "$1" bash -e
       ;;
   esac
 }
@@ -91,8 +89,47 @@ case "$MODE" in
   *)   A_TGT="pi-a"; B_TGT="pi-b" ;;
 esac
 
-node_a() { _run "$A_TGT" "$1"; }
-node_b() { _run "$B_TGT" "$1"; }
+node_a() { terminal_output _run "$A_TGT" "$1"; }
+node_b() { terminal_output _run "$B_TGT" "$1"; }
+node() {
+  h "[pi-$1] $ $2"
+  "node_$1" "$2"
+}
+# Decode as the login user, without sudo or an allocated remote terminal. This
+# keeps authentication prompts and terminal escapes out of the saved packet rows.
+read_node_a() {
+  case "$MODE" in
+    ssh) ssh -T -o LogLevel=ERROR "$A_TGT" "$1" ;;
+    vm) ssh -T -i "$VM_KEY" -p "$A_TGT" \
+      -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+      -o SetEnv=LC_ALL=C.UTF-8 -o LogLevel=ERROR pi@127.0.0.1 "$1" ;;
+    *) sudo ip netns exec "$A_TGT" bash -ec "$1" ;;
+  esac
+}
+capture_show() {
+  local capture="$1" label="$2" file command status
+  mkdir -p "$LESSON_OUTPUT_DIR"
+  file="$LESSON_OUTPUT_DIR/$RUN_ID-$label.txt"
+  command="if command -v tshark >/dev/null 2>&1; then
+  tshark -n -r '$capture'
+else
+  tcpdump -n -e -r '$capture'
+fi"
+  h "pi-a packets · $label"
+  if read_node_a "$command" > "$file"; then status=0; else status=$?; fi
+  EVIDENCE="${EVIDENCE}pi-a capture: $capture
+Decoded rows: $file
+"
+  if [ "${LESSON_RUNNER:-0}" = 1 ]; then
+    printf '%s\n' "$PHASE_TITLE" "pi-a capture: $capture" "Decoded rows: $file" >> "$LESSON_RUN_INDEX"
+  fi
+  if [ "$status" -ne 0 ]; then
+    h "Failed: [pi-a] $ $command"
+    terminal_output cat "$file"
+    return "$status"
+  fi
+  page_rows "$file"
+}
 
 # baseline_block — shell (run as root on a node) that returns eth0 to its stock
 # resting state: a single DHCP, autoconnect wired profile (eth-dhcp) that never

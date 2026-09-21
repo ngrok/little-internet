@@ -1,13 +1,22 @@
-# Lesson 01 — the VM lab: two machines, one bare cable
+# Lesson 01 VM lab: two machines, one cable
 
-This is the heavier virtual lab: two **separate Debian VMs** (their own kernels)
-joined by one **bare QEMU socket cable**, driven from **two terminals side by
-side** so you can watch a frame leave one machine and arrive on the other. It
-sits alongside the lighter [`../virtual/`](../virtual) namespace lab.
+Run two Debian VMs, each with its own kernel, joined by a QEMU socket cable.
+Open two terminals to watch a frame leave one machine and arrive on the other.
+Toggle the carrier to inspect how the interface responds to a disconnected link.
 
-Use the namespace lab for an instant, zero-boot look at ARP. Use this one when
-you want two genuinely separate machines and — the payoff the namespace lab
-can't give you — a **Layer 1 carrier you can seat and unseat by hand**.
+The [namespace lab](../virtual/) starts faster and uses fewer resources. Use
+this VM lab to explore independent machines and controllable carrier events.
+
+For a paced walkthrough, run this from `lessons/01`:
+
+```bash
+./scripts/run.sh --vm
+```
+
+The runner starts the VMs, pauses at each observation, and stops the VMs when
+you finish or exit. It uses the same colors and think-then-reveal reviews as
+lesson 02. Follow the manual workflow below to keep the VMs running and drive
+the commands yourself.
 
 ## How it maps to the hardware
 
@@ -15,13 +24,13 @@ can't give you — a **Layer 1 carrier you can seat and unseat by hand**.
 |---|---|
 | a Raspberry Pi | a QEMU process (its own Linux kernel) |
 | the `eth0` Ethernet port | a virtio NIC renamed `eth0` |
-| the Ethernet cable | a QEMU `socket` netdev — pure L2, nothing in between |
+| the Ethernet cable | a QEMU `socket` netdev: a direct Ethernet link |
 | `wlan0` Wi-Fi you SSH over | a per-VM user-mode NAT (`ssh-a` / `ssh-b`) |
-| the image's Wi-Fi isolation | automatic — the two NATs can't reach each other |
+| the image's Wi-Fi isolation | automatic: the two NATs can't reach each other |
 | seating / pulling the cable | `./link.sh a on` / `off` (real carrier change) |
 
-The two nodes can reach each other **only** over the cable, exactly as the
-hardware image enforces — so anything you see on `eth0` really crossed the wire.
+The nodes reach each other over the lesson cable. Each also has a separate
+management interface for SSH; captures on `eth0` show the lesson traffic.
 
 ## Requirements
 
@@ -56,18 +65,18 @@ Open two panes. Left is pi-a, right is pi-b.
 ./ssh-a                              ./ssh-b
 ```
 
-**Beat 1 — is there a wire?** On pi-a: `ip link show eth0` (expect `LOWER_UP` —
+**Step 1: inspect the link.** On pi-a: `ip link show eth0` (expect `LOWER_UP`;
 the cable is seated). From a third pane on the Mac, `./link.sh a off`, then look
 again: `NO-CARRIER`. Bring it back with `./link.sh a on`.
 
-**Beat 3 — the wire has no identity.** On pi-a:
+**Step 3: inspect the address and route.** On pi-a:
 
 ```bash
 ip -4 addr show eth0        # no inet — blank
 ping -c1 -W1 10.10.0.2      # leaks out the mgmt NAT, 0 received (like wlan0 on a Pi)
 ```
 
-**Beat 4 — ARP makes the introduction.** Leave a capture running on the right,
+**Steps 4–5: assign addresses, then watch ARP.** Leave a capture running on the right,
 then address both ends and ping from the left:
 
 ```bash
@@ -89,9 +98,10 @@ IP 10.10.0.1 > 10.10.0.2: ICMP echo request
 IP 10.10.0.2 > 10.10.0.1: ICMP echo reply
 ```
 
-Note `seq 2` is faster than `seq 1` — that's the ARP cache. Check it with
-`ip neigh show dev eth0` on pi-a (expect `10.10.0.2 ... REACHABLE`), and note the
-`b8:27:eb` Pi vendor prefix, reproduced here on purpose.
+Compare the two echo sequences. The second can reuse the cached MAC address,
+though scheduling and network delays mean it isn't always faster. Inspect the
+cache with `ip neigh show dev eth0` on pi-a. The `b8:27:eb` Pi vendor prefix
+is assigned deliberately to these virtual interfaces.
 
 ## Or watch it on the dashboard
 
@@ -102,12 +112,13 @@ black-and-white view of both nodes in your browser:
 ./dashboard.sh         # serves http://127.0.0.1:8099 and opens it
 ```
 
-- **pi-a and pi-b side by side**: link state (`LINK UP` / `NO CARRIER`), the
-  `eth0` address, and the ARP cache, with each neighbor's state color-coded
-  (`REACHABLE` green, `STALE`/`DELAY` amber, `FAILED` red).
-- **Each node's serial console**, following the newest lines.
-- **The wire**: every frame crossing `eth0`, streamed via `tshark` and
-  color-coded (ARP amber, ICMP request green, ICMP reply cyan).
+The dashboard shows:
+
+- Both nodes' link state, `eth0` address, and ARP cache. Neighbor states use
+  green for `REACHABLE`, amber for `STALE`/`DELAY`, and red for `FAILED`.
+- Each node's serial console, following the newest lines.
+- Frames crossing `eth0`, decoded by `tshark`. ARP is amber, ICMP requests
+  are green, and ICMP replies are cyan.
 
 Panels refresh once a second with sticky auto-scroll: pinned to the newest
 line, but you can scroll up to read without it snapping back. It pairs well
@@ -134,8 +145,8 @@ sudo ip neigh flush dev eth0
 
 ## What still doesn't transfer
 
-Two kernels and a real carrier close most of the gap, but a virtio NIC has **no
-PHY**, so link speed / duplex / autonegotiation aren't real (only the carrier
-up/down event is). And short frames likely aren't padded to Ethernet's 60-byte
-minimum, so the build log's 42-vs-60-byte "did I send or receive this?" tell may not
-appear. Layer 1's physical texture is still the part you only fully feel on metal.
+A virtio network interface has no physical Ethernet transceiver (PHY).
+QEMU changes its carrier state, but it doesn't negotiate physical speed or
+duplex. Virtual frames also lack the hardware padding behavior that produces
+the build log's 42-versus-60-byte ARP comparison. Use real hardware to observe
+those details.

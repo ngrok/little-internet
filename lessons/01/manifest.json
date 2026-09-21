@@ -55,7 +55,7 @@
     "no_color": true,
     "safe_first_step": "Read README.md, build-log/01_two-pis-one-cable.md, and lessons/01/README.md before running scripts.",
     "walkthrough_intent": "Requests to walk through, teach, or do the lesson are tutoring requests, not requests to test the scripts.",
-    "pacing": "Run one beat or conceptual checkpoint at a time and wait for the learner before advancing.",
+    "pacing": "Introduce a reading guide before evidence, pause for observation before interpreting, and close each phase with a review question: Enter reveals the answer, then Enter advances.",
     "evidence_policy": [
       "Show the exact command before running it and explain what it is intended to reveal.",
       "Expose the relevant raw output; a tool summary such as 'Ran 4 shell commands' is not sufficient evidence.",
@@ -66,7 +66,7 @@
       "Separate direct observations from inferences and explain output that differs from expectations.",
       "Prefer provided beat scripts over improvised SSH, capture, or link-control commands."
     ],
-    "full_runner_policy": "Use scripts/run.sh only for an explicitly requested unattended demonstration, full run, or functional test; use individual beat scripts for tutoring.",
+    "full_runner_policy": "Recommend the paced run.sh terminal walkthrough. Agents with an interactive terminal may advance one checkpoint at a time; otherwise use individual scripts and conversation pacing. Reserve --auto for explicitly unattended virtual demonstrations or development tests. Hardware requires physical cable handoffs.",
     "ask_before": [
       "Running hardware scripts against A_HOST/B_HOST.",
       "Deleting NetworkManager profiles with scripts/reset.sh.",
@@ -90,8 +90,8 @@
   },
   "beats": [
     {
-      "id": "00-link",
-      "script": "scripts/00-link.sh",
+      "id": "01-link",
+      "script": "scripts/01-link.sh",
       "question": "Is there even a wire?",
       "concept": "Layer 1: carrier and autonegotiation.",
       "mode": "hardware_or_vm",
@@ -102,13 +102,14 @@
         "ethtool reports Link detected: yes, speed, and duplex after the cable is seated (hardware only; a virtio NIC has no PHY)."
       ],
       "common_failures": [
-        "The namespace lab skips this beat (veth has no physical layer); the VM lab runs it with a controllable virtio carrier.",
+        "The namespace lab shows an already-connected virtual link; use VMs for controllable carrier events or hardware for physical negotiation.",
         "If LOWER_UP never appears, check both cable ends, power, and the interface name."
-      ]
+      ],
+      "checkpoint": "What does LOWER_UP prove, and what has it not tested yet?"
     },
     {
-      "id": "01-listen",
-      "script": "scripts/01-listen.sh",
+      "id": "02-listen",
+      "script": "scripts/02-listen.sh",
       "question": "Are frames flowing before we configure anything?",
       "concept": "Layer 2: link-up chatter, broadcast, multicast, and local discovery.",
       "mode": "hardware_or_virtual",
@@ -121,11 +122,12 @@
       "common_failures": [
         "If tshark is missing, scripts fall back to tcpdump output.",
         "If no frames appear, confirm both ends of eth0 are up."
-      ]
+      ],
+      "checkpoint": "Do frames on the link prove that 10.10.0.2 is reachable?"
     },
     {
-      "id": "02-no-address",
-      "script": "scripts/02-no-address.sh",
+      "id": "03-no-address",
+      "script": "scripts/03-no-address.sh",
       "question": "Where did the failed ping go?",
       "concept": "Layer 3 identity: a live wire is not automatically a route.",
       "mode": "hardware_or_virtual",
@@ -136,11 +138,12 @@
       ],
       "common_failures": [
         "If eth0 already has 10.10.0.x, run reset or recreate the virtual lab."
-      ]
+      ],
+      "checkpoint": "Why can a live Ethernet link still be missing from this IPv4 route?"
     },
     {
-      "id": "03-address",
-      "script": "scripts/03-address.sh",
+      "id": "04-address",
+      "script": "scripts/04-address.sh",
       "question": "What changes when the wire has IPv4 identities?",
       "concept": "Assigning addresses creates a connected route on eth0.",
       "mode": "hardware_or_virtual",
@@ -151,11 +154,12 @@
       ],
       "common_failures": [
         "NetworkManager may reject duplicate connection names if the lesson was already run; use scripts/reset.sh on hardware or recreate the virtual lab."
-      ]
+      ],
+      "checkpoint": "What changed in the route, and what still needs a test?"
     },
     {
-      "id": "04-arp",
-      "script": "scripts/04-arp.sh",
+      "id": "05-arp",
+      "script": "scripts/05-arp.sh",
       "question": "How does an IP address become a frame on the wire?",
       "concept": "ARP maps the peer IPv4 address to its MAC address, then the ICMP echo can leave.",
       "mode": "hardware_or_virtual",
@@ -168,7 +172,8 @@
       "common_failures": [
         "If tcpdump cannot capture, check root privileges on the target node.",
         "If ping fails after addressing, verify both nodes have eth0 addresses in 10.10.0.0/24."
-      ]
+      ],
+      "checkpoint": "What did the link, IPv4 addresses, and ARP each contribute to the ping?"
     }
   ]
 }

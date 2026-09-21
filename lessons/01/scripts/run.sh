@@ -10,20 +10,32 @@
 # --virtual needs Linux + root + the virtual/ deps (tcpdump, ping). On macOS or
 # Windows, run that inside a Linux VM. --vm needs QEMU (brew install qemu). See
 # lessons/01/README.md.
-set -uo pipefail
+set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 
 VIRTUAL=; VM=
-case "${1:-}" in
-  "")        ;;
-  --virtual) VIRTUAL=1 ;;
-  --vm)      VM=1 ;;
-  *)         echo "usage: run.sh [--virtual|--vm]" >&2; exit 2 ;;
-esac
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --virtual) VIRTUAL=1 ;;
+    --vm) VM=1 ;;
+    --auto) export LESSON_AUTO=1 ;;
+    *) echo 'usage: run.sh [--virtual|--vm] [--auto]' >&2; exit 2 ;;
+  esac
+  shift
+done
+if [ -n "$VIRTUAL" ] && [ -n "$VM" ]; then
+  echo 'Choose either --virtual or --vm.' >&2
+  exit 2
+fi
+# Physical actions still require a person, even in an unattended invocation.
+if [ "${LESSON_AUTO:-0}" = 1 ] && [ -z "$VIRTUAL$VM" ]; then
+  echo '--auto requires --virtual or --vm; hardware needs cable handoffs.' >&2
+  exit 2
+fi
 
-# 00-link is hardware-only on a real PHY; it self-skips under netns and runs the
-# carrier beat under the VM lab (whose virtio NIC has a controllable carrier).
-BEATS=(00-link 01-listen 02-no-address 03-address 04-arp)
+# Phase 01 shows physical negotiation on hardware, carrier events in VMs, and
+# the already-connected link in namespaces.
+BEATS=(01-link 02-listen 03-no-address 04-address 05-arp)
 
 if [ -n "$VM" ]; then
   "$HERE/virtual-vm/lab-down.sh" >/dev/null 2>&1 || true
@@ -39,20 +51,30 @@ elif [ -n "$VIRTUAL" ]; then
   trap 'sudo "$HERE/virtual/lab-down.sh" >/dev/null 2>&1 || true' EXIT
 fi
 
-for i in "${!BEATS[@]}"; do
-  [ "$i" -gt 0 ] && printf '\n────────────────────────────────────────────────────\n'
-  "$HERE/${BEATS[$i]}.sh"
+source "$HERE/lib.sh"
+export MODE LESSON_OUTPUT_DIR
+export LESSON_RUNNER=1
+mkdir -p "$LESSON_OUTPUT_DIR"
+export LESSON_RUN_INDEX="$LESSON_OUTPUT_DIR/run-$RUN_ID.txt"
+printf 'Lesson 01 evidence from this run\n' > "$LESSON_RUN_INDEX"
+# Keep the existing backend teardown trap and add the evidence index to it.
+runner_cleanup() {
+  local status=$?
+  if [ -n "$VM" ]; then "$HERE/virtual-vm/lab-down.sh" >/dev/null 2>&1 || true; fi
+  if [ -n "$VIRTUAL" ]; then sudo "$HERE/virtual/lab-down.sh" >/dev/null 2>&1 || true; fi
+  note "Capture paths and decoded rows for this run: $LESSON_RUN_INDEX"
+  return "$status"
+}
+trap runner_cleanup EXIT
+for step in "${BEATS[@]}"; do
+  run_script "$HERE/$step.sh"
 done
 
 # Virtual finale: the lab's still up, so offer the live dashboard before teardown.
 # Only interactively — a non-tty run (CI) just falls through to the EXIT trap.
-if [ -n "$VIRTUAL" ] && [ -t 1 ]; then
-  printf '\n────────────────────────────────────────────────────\n\n'
-  printf 'The lab is still up. Want to watch the ARP cache react live?\n'
-  printf 'A dashboard opens with pi-a and pi-b side by side and a shell on pi-a to\n'
-  printf 'poke them: ping from the bottom pane and watch both caches move.\n'
-  printf '(Ctrl-b then d exits the dashboard.)\n\n'
-  printf 'Press Enter to open it, or Ctrl-C to finish here. '
-  read -r
+if [ -n "$VIRTUAL" ] && [ -t 0 ] && [ -t 1 ] && [ "${LESSON_AUTO:-0}" != 1 ]; then
+  note 'The lab is still up. The dashboard shows both ARP caches beside a shell
+on pi-a. Send a ping there to watch the caches change. Ctrl-b, then d exits.'
+  pause 'Press Enter to open the dashboard, or Ctrl-C to finish here.'
   sudo env ORCHESTRATED=1 "$HERE/virtual/watch.sh"
 fi
