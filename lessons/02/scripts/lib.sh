@@ -9,46 +9,8 @@ CAPTURE_NODES=""
 LOCKED=false
 DECODE_ID=0
 
-# Color identifies a role: phases, commands, questions, prose, or raw output.
-# SSH does not inherit a terminal; apply output styling on the workstation.
-if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
-  _B=$'\033[1m'; _C=$'\033[36m'; _M=$'\033[35m'; _Y=$'\033[93m'
-  # Explicit RGB white: ANSI bright white (97) can be gray in terminal themes.
-  _W=$'\033[38;2;255;255;255m'; _G=$'\033[90m'; _X=$'\033[0m'
-else
-  _B=; _C=; _M=; _Y=; _W=; _G=; _X=
-fi
+source "$SCRIPTS/../../shared/presentation.sh"
 TRANSCRIPT="$LAB_HOME/transcripts/$RUN_ID.log"
-# Bash otherwise reads a script file incrementally across learner pauses. Load
-# the whole phase first so editing that file cannot shift its next read offset.
-# Preserve $0 for the phase's relative source paths, and preserve its arguments.
-run_script() {
-  local script="$1" body
-  shift
-  body=$(cat "$script") || return $?
-  bash -c "$body" "$script" "$@"
-}
-say() { printf '\n%s%s%s\n' "$_W" "$*" "$_X"; }
-h() { printf '\n%s%s▸ %s%s\n' "$_B" "$_C" "$*" "$_X"; }
-phase_banner() {
-  local rule='================================================================'
-  printf '\n\n%s%s%s\n  %s\n%s%s\n' "$_B" "$_M" "$rule" "$*" "$rule" "$_X"
-}
-note() { say "$*"; }
-eye() { printf '\n%swhat just happened%s\n%s%s%s\n' "$_B$_W" "$_X" "$_W" "$*" "$_X"; }
-pause() {
-  printf '\n%s%s%s\n' "$_B$_Y" "$*" "$_X"
-  if [ -t 0 ] && [ "${LESSON_AUTO:-0}" != 1 ]; then
-    read -r -p '[press Enter] ' _
-  fi
-}
-terminal_output() {
-  local status
-  printf '%s' "$_G"
-  if "$@"; then status=0; else status=$?; fi
-  printf '%s' "$_X"
-  return "$status"
-}
 node() {
   local n="$1" block="$2"
   h "[pi-$n] $ $block"
@@ -75,10 +37,7 @@ setup() {
   return "$status"
 }
 finish() {
-  pause "$1"$'\nThink it through, then press Enter to reveal the answer.'
-  note "$2"
-  pause 'Ready to leave this phase?'
-  printf '\n%s%sPhase %s complete.%s\n' "$_B" "$_M" "${PHASE_TITLE%% — *}" "$_X"
+  review "$1" "$2"
   if [ "${LESSON_RUNNER:-0}" = 1 ]; then
     {
       printf '\n%s\n' "$PHASE_TITLE"
@@ -156,7 +115,7 @@ capture_stop() {
 # Page verbatim decoded rows, without dropping or rewriting any of them. Eight
 # rows leave room for wrapping, the heading, and a question in a typical terminal.
 packet_rows() {
-  local n="$1" command="$2" label="$3" file display_file total first last
+  local n="$1" command="$2" label="$3" file display_file
   DECODE_ID=$((DECODE_ID + 1))
   file="$CAPTURE_DIR/$CAPTURE_NAME-$n-$label-$DECODE_ID.txt"
   mkdir -p "$CAPTURE_DIR" "$LAB_HOME/transcripts"
@@ -167,30 +126,20 @@ packet_rows() {
     terminal_output cat "$file"
     return 1
   fi
-  total=$(awk 'END {print NR}' "$file")
-  if [ "$total" -eq 0 ]; then
-    say '(No packets matched this filter.)'
-    return
-  fi
   display_file="$file"
   if [ "$label" = fields ]; then
     display_file="${file%.txt}-table.txt"
     dhcp_table < "$file" > "$display_file"
   fi
-  first=1
-  while [ "$first" -le "$total" ]; do
-    last=$((first + 7))
-    [ "$last" -le "$total" ] || last="$total"
-    if [ "$label" = fields ]; then
-      terminal_output printf '%5s  %-11s  %-12s  %-15s  %s\n' \
-        Frame Transaction Message 'Requested (50)' yiaddr
-    fi
-    terminal_output sed -n "${first},${last}p" "$display_file"
-    if [ "$last" -lt "$total" ]; then
-      pause "Rows ${first}–${last} of $total. Inspect these before the next page."
-    fi
-    first=$((last + 1))
-  done
+  if [ "$label" = fields ]; then
+    page_rows "$display_file" dhcp_header
+  else
+    page_rows "$display_file"
+  fi
+}
+dhcp_header() {
+  printf '%5s  %-11s  %-12s  %-15s  %s\n' \
+    Frame Transaction Message 'Requested (50)' yiaddr
 }
 dhcp_table() {
   # Keep the raw tshark fields file; this is its aligned display companion.

@@ -39,17 +39,15 @@ For an agent-led walkthrough:
    Continue only when they answer or explicitly say to move on. "Next" advances
    one conceptual checkpoint, not the rest of the lab.
 
-For lesson 02, recommend the paced `scripts/run.sh` terminal walkthrough.
+For either lesson, recommend the paced `scripts/run.sh` terminal walkthrough.
 An agent with an interactive terminal can drive that runner, advancing only
 one checkpoint when the learner is ready. If the tool cannot retain an
 interactive terminal, use individual scripts and supply pacing in the
-conversation; a noninteractive runner skips prompts. Use `--auto` only for an
-explicitly unattended demonstration or development test.
-
-For lesson 01, use `scripts/run.sh` when the user explicitly wants an unattended
-demonstration, smoke test, or full run; use individual beat scripts for tutoring.
-In either lesson, pause between conceptual checkpoints rather than compressing
-an entire script into a single conclusion.
+conversation; a noninteractive runner skips prompts. Pause between conceptual
+checkpoints rather than compressing an entire script into a single conclusion.
+Use `--auto` only for an explicitly unattended demonstration or development
+test. Lesson 01 accepts it only with a virtual backend; hardware still requires
+physical cable handoffs.
 
 Do not manufacture a dramatic result. If the output differs from the manifest,
 show the difference and investigate it with the learner. If a command fails,
@@ -84,7 +82,8 @@ it.
 - VM lab (preferred without hardware): use the lesson's `scripts/virtual-vm/`
   workflow on macOS or Linux/WSL2. Each node has its own kernel and management
   SSH connection. Explain that virtual carrier events are not physical PHY or
-  speed negotiation. Create the lab, then run individual beat scripts.
+  speed negotiation. Teach one conceptual checkpoint at a time, using the
+  paced runner in an interactive terminal or individual scripts otherwise.
 - Legacy namespace lab: lesson 01 still supports Linux network namespaces.
   Lesson 02 uses VMs only; do not substitute the namespace path.
 - Hardware lab: drive two real Pis over SSH. Confirm the user has two nodes

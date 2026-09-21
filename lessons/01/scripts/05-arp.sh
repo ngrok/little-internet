@@ -1,62 +1,41 @@
 #!/usr/bin/env bash
-# Watch ARP make the introduction. Ping the peer (it works now that both nodes have
-# addresses), then flush the cache and run it again in slow motion to catch the
-# who-has/is-at that had to happen before the first echo could leave.
 source "$(dirname "$0")/lib.sh"
-
-note <<'EOF'
-Both nodes now have IPv4 addresses. Try the same ping that failed before
-you assigned them.
-EOF
-
-pause "Press Enter to ping pi-b again."
-
-node_a "$STYLE"'
-h "ping -c2 10.10.0.2"
-ping -c2 10.10.0.2 || true'
-
-note <<'EOF'
-Look for an echo reply. It shows the peer is reachable by its IPv4 address.
-Ethernet also needs a destination MAC address. Clear pi-a's neighbor cache
-and repeat the ping with a capture running to see how ARP finds that MAC.
-EOF
-
-pause "Press Enter to flush the cache and capture the introduction."
-
-node_a "$STYLE"'
-h "neighbor cache before"; ip neigh show dev eth0
-ip neigh flush dev eth0
-rm -f /tmp/first-arp.pcap
-tcpdump -i eth0 -n -e -U "arp or icmp" -w /tmp/first-arp.pcap 2>/dev/null & CAP=$!
-sleep 1; ping -c2 10.10.0.2 || true; sleep 2
-kill -INT $CAP 2>/dev/null; wait $CAP 2>/dev/null
-h "neighbor cache after (expect 10.10.0.2 ... REACHABLE)"; ip neigh show dev eth0
-h "the exchange, frame by frame"
-if command -v tshark >/dev/null 2>&1; then
-  # COLORTERM inline: the ssh transport runs this via non-login sudo bash, which
-  # never sources /etc/profile.d, so tshark --color stays blank without it.
-  COLORTERM=truecolor tshark -n -r /tmp/first-arp.pcap --color 2>/dev/null
-else
-  echo "(tshark not found—showing tcpdump; frame length first, trailing length is the L2 payload)"
-  tcpdump -n -e -t -r /tmp/first-arp.pcap 2>/dev/null
-fi'
-
-eye <<'EOF'
-"Who has 10.10.0.2?" goes to the broadcast destination ff:ff:ff:ff:ff:ff.
-The "is at" reply supplies the peer's MAC address.
-Follow those rows to the ICMP echo request and reply.
-Compare seq 2: it can reuse the cached MAC without another ARP lookup.
-EOF
-
-pause "Press Enter when you've had a look."
-
-note <<'EOF'
-The link came up, frames crossed it, and assigning IPv4 addresses gave the
-nodes a route to each other. ARP supplied the MAC address needed to deliver
-the first ping. Each part answered a different piece of "can they talk?"
-
-With two nodes on one cable, a broadcast has only one neighbor to reach.
-Add a third node and a switch, and the distinction matters: a broadcast
-reaches everyone, while a known unicast destination belongs on one port.
-In lesson 02, test what the switch does and who assigns IPv4 addresses.
-EOF
+begin '05 — How does IPv4 find the Ethernet destination?' \
+  'Both nodes have IPv4 addresses and a route over eth0. Test the ping again,
+then inspect how the sender finds the peer’s Ethernet address.'
+pause 'Will the same destination answer now that both ends have addresses?'
+node a 'ping -I eth0 -c2 -W2 10.10.0.2'
+note 'The ping received a reply. The peer is reachable over eth0 using its
+IPv4 address. Ethernet also needs a destination MAC address. Clear the
+neighbor cache and record another ping to watch that lookup happen.'
+pause 'Check the received count and packet loss. Ready to record the lookup?'
+node a 'ip neigh show dev eth0'
+CAPTURE="/tmp/little-internet-01-$RUN_ID-arp.pcap"
+h '[pi-a] $ ping -I eth0 -c2 -W2 10.10.0.2 (recording ARP and ICMP)'
+node_a "ip neigh flush dev eth0
+tcpdump -i eth0 -n -e -U 'arp or icmp' -w '$CAPTURE' 2>'$CAPTURE.log' & CAP=\$!
+trap 'kill -INT \$CAP 2>/dev/null || true' EXIT
+sleep 1
+if ! kill -0 \$CAP 2>/dev/null; then cat '$CAPTURE.log' >&2; exit 1; fi
+ping -I eth0 -c2 -W2 10.10.0.2
+sleep 2
+kill -INT \$CAP
+wait \$CAP || true
+trap - EXIT
+chmod a+r '$CAPTURE'"
+note 'ARP, the Address Resolution Protocol, maps an IPv4 address to a MAC.
+Look for “Who has 10.10.0.2?” sent to ff:ff:ff:ff:ff:ff (everyone),
+then the “is at” reply. ICMP Echo rows are the ping requests and replies.'
+pause 'Which packet supplies the MAC before the first Echo request?'
+capture_show "$CAPTURE" arp
+pause 'What MAC is in the reply? Does seq=2 need another lookup?'
+eye 'The “is at” reply supplies the peer’s MAC. The first Echo can then use
+that Ethernet destination. The second can reuse the cached mapping;
+its timing also depends on scheduling, so it is not always faster.'
+pause 'Did pi-a keep the mapping? Compare the cache with the ARP reply.'
+node a 'ip neigh show dev eth0'
+finish 'What did the link, IPv4 addresses, and ARP each contribute to the ping?' \
+  'The link carried frames. Assigning IPv4 addresses created a route over
+eth0. ARP supplied the peer’s MAC so Ethernet could deliver the ping.
+Next, lesson 02 adds a switch and asks who can assign addresses for you.' \
+  'Continue with lesson 02: lessons/02/README.md'

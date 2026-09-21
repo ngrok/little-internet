@@ -1,62 +1,53 @@
 #!/usr/bin/env bash
-# Is there even a wire? Layer 1, before and after you seat the cable.
-#
 # Hardware shows physical negotiation; the VM lab shows QEMU carrier events.
-# The namespace lab skips this step because it has no cable control.
 source "$(dirname "$0")/lib.sh"
+begin '01 — Is there a live link?' \
+  'Start with the Ethernet link. Inspect its state before and after connection,
+before assigning either machine an IPv4 address.'
 
 if [ "$MODE" = netns ]; then
-  note <<'EOF'
-The namespace lab has no cable control or physical Ethernet transceiver (PHY).
-Use the VM lab for carrier events or hardware for speed negotiation.
-EOF
+  note 'The namespace lab has no cable control or physical Ethernet transceiver
+(PHY). Its virtual interfaces are already connected. Inspect their link state.'
+  node a 'ip -br link show eth0'
+  finish 'Does this virtual link show how physical Ethernet negotiates a connection?' \
+    'No. The namespace lab supplies a connected virtual pair. Use the VM lab
+for controllable carrier events, or hardware for speed and duplex negotiation.
+Next, inspect the frames that appear when an interface comes up.' \
+    'Next: ./scripts/02-listen.sh'
   exit 0
 fi
 
 if [ "$MODE" = vm ]; then
-  LINK="$(dirname "$0")/virtual-vm/link.sh"
-  note <<'EOF'
-QEMU controls this virtual interface's carrier state. There is no physical
-Ethernet transceiver (PHY), so speed and duplex aren't negotiated.
-The lab starts with the virtual cable disconnected. Connect it and look for
-NO-CARRIER to change to LOWER_UP on pi-a's eth0.
-EOF
-  PROBE="$STYLE"'
-h "ip link show eth0"; ip link show eth0
-h "carrier (1 up, 0 down)"; cat /sys/class/net/eth0/carrier 2>/dev/null || echo "(down)"'
-  pause "The cable is unseated. Press Enter to read pi-a's link (expect NO-CARRIER, carrier 0)."
-  node_a "$PROBE"
-  pause "Now seat the cable. Press Enter (runs link.sh a on)."
-  "$LINK" a on
+  LINK="$SCRIPTS/virtual-vm/link.sh"
+  note 'QEMU controls carrier, the signal that a link is available. The virtual
+interface has no physical transceiver, so speed and duplex are not negotiated.'
+  pause 'Ready to disconnect the virtual cable and inspect pi-a’s link?'
+  terminal_output "$LINK" a off
+  node a 'ip -br link show eth0'
+  pause 'Find NO-CARRIER. What should change when you reconnect?'
+  terminal_output "$LINK" a on
   sleep 2
-  node_a "$PROBE"
-  eye <<'EOF'
-carrier 0 -> 1, and eth0 flips NO-CARRIER -> LOWER_UP
-QEMU changed the carrier state; the virtual interface has no physical speed negotiation
-EOF
-  pause "Press Enter when you've had a look."
-  exit 0
+  node a 'ip -br link show eth0'
+  pause 'Did NO-CARRIER change to LOWER_UP?'
+  eye 'LOWER_UP means the interface reports a live link. Here, QEMU supplied
+that carrier event. No physical speed negotiation took place.'
+else
+  note 'In ip output, LOWER_UP describes a live link. In ethtool, compare
+Link detected, Speed, and Duplex before and after seating the cable.'
+  pause 'Unplug the cable on pi-a, then press Enter to inspect the disconnected port.'
+  node a 'ip -br link show eth0'
+  node a 'ethtool eth0 | grep -E "Speed:|Duplex:|Link detected:"'
+  pause 'Seat the cable on both ends, wait about three seconds, then press Enter.'
+  node a 'ip -br link show eth0'
+  node a 'ethtool eth0 | grep -E "Speed:|Duplex:|Link detected:"'
+  pause 'Which fields changed? Did the hardware report a speed and duplex?'
+  eye 'LOWER_UP and Link detected: yes identify the live link. Speed and Duplex
+show what the two Ethernet interfaces negotiated. Follow your reported values;
+they depend on the hardware and cable.'
 fi
 
-note <<'EOF'
-Read pi-a's link state with the cable unplugged, then with both ends connected.
-Watch the carrier, speed, and duplex fields. The Ethernet hardware negotiates
-the link before you assign an IP address.
-EOF
-
-PROBE="$STYLE"'
-h "ip link show eth0"; ip link show eth0
-h "ethtool eth0"; ethtool eth0'
-
-pause "UNPLUG the cable on pi-a, then press Enter (expect NO-CARRIER)."
-node_a "$PROBE"
-pause "Now seat the cable on BOTH ends, wait ~3s, then press Enter (expect LOWER_UP)."
-node_a "$PROBE"
-
-eye <<'EOF'
-NO-CARRIER -> LOWER_UP, and "Link detected: no -> yes"
-Speed/Duplex flipping from Unknown! to 100Mb/s / Full
-a "Link partner advertised" block shows up after link-up—autonegotiation, made visible
-EOF
-
-pause "Press Enter when you've had a look."
+finish 'What does LOWER_UP prove, and what has it not tested yet?' \
+  'It proves the interface reports a live link. You have not yet tested
+which frames cross it or whether an IPv4 ping can reach the other machine.
+Next, capture the traffic that appears when the link comes up.' \
+  'Next: ./scripts/02-listen.sh'

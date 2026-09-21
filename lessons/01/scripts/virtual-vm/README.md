@@ -7,6 +7,17 @@ Toggle the carrier to inspect how the interface responds to a disconnected link.
 The [namespace lab](../virtual/) starts faster and uses fewer resources. Use
 this VM lab to explore independent machines and controllable carrier events.
 
+For a paced walkthrough, run this from `lessons/01`:
+
+```bash
+./scripts/run.sh --vm
+```
+
+The runner starts the VMs, pauses at each observation, and stops the VMs when
+you finish or exit. It uses the same colors and think-then-reveal reviews as
+lesson 02. Follow the manual workflow below to keep the VMs running and drive
+the commands yourself.
+
 ## How it maps to the hardware
 
 | Physical bench | This lab |

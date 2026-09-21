@@ -82,6 +82,48 @@ sudo ./scripts/run.sh --virtual
 Network namespaces require Linux. On macOS, run this path inside a Linux VM;
 on Windows, use WSL2.
 
+### Pacing and color
+
+Use `./scripts/run.sh` for hardware, `./scripts/run.sh --vm` for VMs, or
+`sudo ./scripts/run.sh --virtual` for namespaces. Each phase starts with a
+magenta banner, introduces a question, and pauses while you inspect the
+output. Reading guides appear before packet tables. Explanations follow an
+observation question, so you have time to interpret the evidence yourself.
+
+Each phase ends with a review: think through your answer, press Enter to
+reveal the explanation, then press Enter again to advance. The runner moves
+between phases automatically. Individual scripts print the next command.
+
+Both lessons use the same colors: white explanations, gray command output
+and packet rows, teal command headings, bright yellow questions, and magenta
+phase boundaries. `NO_COLOR=1` disables color; redirected output is plain text.
+Packet tables pause every eight rows and retain every decoded row.
+
+The link phase shows only the `ip` link summary and the relevant `ethtool`
+fields. Run `ethtool eth0` in a node shell for the complete device report.
+On hardware, the script still waits for you to unplug and reconnect the cable.
+SSH and sudo prompts remain visible.
+
+Link-up and ARP captures stay on pi-a under `/tmp/little-internet-01-*.pcap`.
+Decoded rows are also saved on your workstation in
+`~/.little-internet/lesson01/`; set `LESSON_OUTPUT_DIR` to change that directory.
+The runner prints one evidence index at the end, including on failure.
+Copy guest captures before deleting a guest disk; guest `/tmp` files may also
+disappear on reboot. The workstation's decoded rows remain.
+
+For an unattended virtual demonstration, add `--auto`:
+
+```bash
+./scripts/run.sh --vm --auto
+sudo ./scripts/run.sh --virtual --auto
+```
+
+Hardware requires the cable handoffs and does not accept `--auto`. Without an
+interactive terminal, ordinary reading prompts are skipped; an agent must
+supply the pacing in the conversation. The runner stops on a failed phase.
+Each phase is loaded before it starts, so editing a paused script takes effect
+on its next launch. Virtual runners still create and stop their labs as before.
+
 ### Inspect the recorded captures
 
 Inspect the recorded captures without running a lab. Compare the same
@@ -123,10 +165,11 @@ source and destination addresses, protocols, and summaries yourself. If the
 capture is too long, the agent should label any excerpt and tell you what it
 left out—not silently replace the capture with its conclusions.
 
-For an interactive walkthrough, the agent should use the individual step
-scripts rather than batch-running `scripts/run.sh`. The full runner is handy for
-an unattended demonstration or functional check, but a coding agent's job here
-is to provide the pacing and instruction that a shell script cannot.
+An agent with an interactive terminal can drive the runner one checkpoint at
+a time. It must wait for your answer or physical action before advancing.
+Use individual scripts when the tool cannot keep an interactive terminal open,
+and supply the pacing in the conversation. `--auto` is for an explicitly
+unattended virtual demonstration or development test.
 
 #### What you can't see with virtualization
 
@@ -138,3 +181,14 @@ in each guest; it can differ from the Pis' mDNS and DHCP traffic.
 The namespace lab has no cable control and uses randomly assigned MAC
 addresses. The VM lab adds controllable carrier events and deliberately assigns
 the Pi vendor prefix, `b8:27:eb`, to its virtual Ethernet interfaces.
+
+## Developer checks
+
+```bash
+python3 -m unittest discover -s lessons/01/tests -v  # from the repo root
+python3 -m unittest discover -s lessons/02/tests -v
+```
+
+The presentation checks use simulated transports and real terminal prompts.
+They do not connect to Pis, change namespaces, or start VMs. Both lessons share
+`lessons/shared/presentation.sh` for colors, packet paging, and review pacing.
