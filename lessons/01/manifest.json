@@ -90,8 +90,8 @@
   },
   "beats": [
     {
-      "id": "00-link",
-      "script": "scripts/00-link.sh",
+      "id": "01-link",
+      "script": "scripts/01-link.sh",
       "question": "Is there even a wire?",
       "concept": "Layer 1: carrier and autonegotiation.",
       "mode": "hardware_or_vm",
@@ -107,8 +107,8 @@
       ]
     },
     {
-      "id": "01-listen",
-      "script": "scripts/01-listen.sh",
+      "id": "02-listen",
+      "script": "scripts/02-listen.sh",
       "question": "Are frames flowing before we configure anything?",
       "concept": "Layer 2: link-up chatter, broadcast, multicast, and local discovery.",
       "mode": "hardware_or_virtual",
@@ -124,8 +124,8 @@
       ]
     },
     {
-      "id": "02-no-address",
-      "script": "scripts/02-no-address.sh",
+      "id": "03-no-address",
+      "script": "scripts/03-no-address.sh",
       "question": "Where did the failed ping go?",
       "concept": "Layer 3 identity: a live wire is not automatically a route.",
       "mode": "hardware_or_virtual",
@@ -139,8 +139,8 @@
       ]
     },
     {
-      "id": "03-address",
-      "script": "scripts/03-address.sh",
+      "id": "04-address",
+      "script": "scripts/04-address.sh",
       "question": "What changes when the wire has IPv4 identities?",
       "concept": "Assigning addresses creates a connected route on eth0.",
       "mode": "hardware_or_virtual",
@@ -154,8 +154,8 @@
       ]
     },
     {
-      "id": "04-arp",
-      "script": "scripts/04-arp.sh",
+      "id": "05-arp",
+      "script": "scripts/05-arp.sh",
       "question": "How does an IP address become a frame on the wire?",
       "concept": "ARP maps the peer IPv4 address to its MAC address, then the ICMP echo can leave.",
       "mode": "hardware_or_virtual",

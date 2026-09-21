@@ -22,10 +22,9 @@ EOF
 }
 
 note <<'EOF'
-So, hand the wire an identity—the piece that was missing. This gives both nodes an
-IPv4 address in one go. Then watch the same "ip route get" that betrayed you a
-moment ago: the instant eth0 has an address, the routing table can finally see the
-cable as a path. pi-a becomes 10.10.0.1, pi-b becomes 10.10.0.2.
+Assign 10.10.0.1/24 to pi-a and 10.10.0.2/24 to pi-b. Each address creates a
+connected route for this subnet. Run "ip route get" again and compare its dev
+and src fields with the previous result.
 EOF
 
 pause "Press Enter to assign 10.10.0.1 to pi-a and 10.10.0.2 to pi-b."
@@ -38,9 +37,9 @@ node_b "$STYLE
 $(addr_for 10.10.0.2 10.10.0.1)"
 
 eye <<'EOF'
-each node accepts its address with no error
-"ip route get" to the peer now resolves to dev eth0—the wire just became reachable
-the src shown is the address you just assigned
+Check that each address assignment succeeded.
+The route to the peer should now use dev eth0.
+The src field should match the address you assigned to that node.
 EOF
 
 pause "Press Enter when you've had a look."

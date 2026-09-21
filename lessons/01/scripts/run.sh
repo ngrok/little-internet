@@ -21,9 +21,9 @@ case "${1:-}" in
   *)         echo "usage: run.sh [--virtual|--vm]" >&2; exit 2 ;;
 esac
 
-# 00-link is hardware-only on a real PHY; it self-skips under netns and runs the
+# 01-link is hardware-only on a real PHY; it self-skips under netns and runs the
 # carrier beat under the VM lab (whose virtio NIC has a controllable carrier).
-BEATS=(00-link 01-listen 02-no-address 03-address 04-arp)
+BEATS=(01-link 02-listen 03-no-address 04-address 05-arp)
 
 if [ -n "$VM" ]; then
   "$HERE/virtual-vm/lab-down.sh" >/dev/null 2>&1 || true

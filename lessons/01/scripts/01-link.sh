@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Is there even a wire? Layer 1, before and after you seat the cable.
 #
-# HARDWARE ONLY. A virtual veth pair has no PHY, so there is no carrier
-# handshake, no autonegotiation, and no Speed/Duplex to read. Layer 1 is the one
-# layer you have to feel on real hardware.
+# Hardware shows physical negotiation; the VM lab shows QEMU carrier events.
+# The namespace lab skips this step because it has no cable control.
 source "$(dirname "$0")/lib.sh"
 
 if [ "$MODE" = netns ]; then
   note <<'EOF'
-Layer 1 is hardware-only—a veth has no PHY, so there's nothing to show here.
+The namespace lab has no cable control or physical Ethernet transceiver (PHY).
+Use the VM lab for carrier events or hardware for speed negotiation.
 EOF
   exit 0
 fi
@@ -16,11 +16,10 @@ fi
 if [ "$MODE" = vm ]; then
   LINK="$(dirname "$0")/virtual-vm/link.sh"
   note <<'EOF'
-Layer 1 on the VM lab: a virtio NIC has no PHY, so there's no Speed or Duplex to
-read, but its carrier is real and QEMU controls it. The lab starts with the cable
-unseated, so pi-a's eth0 is a dead wire. Seat it and watch the link come alive:
-NO-CARRIER to LOWER_UP, the transition a physical cable shows. This is the one beat
-the namespace lab can't do at all.
+QEMU controls this virtual interface's carrier state. There is no physical
+Ethernet transceiver (PHY), so speed and duplex aren't negotiated.
+The lab starts with the virtual cable disconnected. Connect it and look for
+NO-CARRIER to change to LOWER_UP on pi-a's eth0.
 EOF
   PROBE="$STYLE"'
 h "ip link show eth0"; ip link show eth0
@@ -33,17 +32,16 @@ h "carrier (1 up, 0 down)"; cat /sys/class/net/eth0/carrier 2>/dev/null || echo 
   node_a "$PROBE"
   eye <<'EOF'
 carrier 0 -> 1, and eth0 flips NO-CARRIER -> LOWER_UP
-no Speed, Duplex, or autonegotiation: a virtio NIC has no PHY, only the carrier is real
+QEMU changed the carrier state; the virtual interface has no physical speed negotiation
 EOF
   pause "Press Enter when you've had a look."
   exit 0
 fi
 
 note <<'EOF'
-First question, before anything fancy: Is there even a wire? You'll read pi-a's
-lowest layer twice. When unplugged, it's dead. Seat the cable on both ends, look 
-again, and notice you never configure a thing: a wire either has a heartbeat or 
-it doesn't.
+Read pi-a's link state with the cable unplugged, then with both ends connected.
+Watch the carrier, speed, and duplex fields. The Ethernet hardware negotiates
+the link before you assign an IP address.
 EOF
 
 PROBE="$STYLE"'

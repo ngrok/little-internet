@@ -1,20 +1,14 @@
 #!/usr/bin/env bash
-# They're already talking, you just weren't listening: bounce pi-a's link, capture
-# the link-up burst, then try the naive ping that "obviously" works (it doesn't).
+# Capture the traffic at link-up, then test IPv4 reachability before addressing.
 source "$(dirname "$0")/lib.sh"
 
 note <<'EOF'
-This is the one that got me. There's a live wire but no addresses, nothing 
-configured, so the link should sit there silent until you tell it to do 
-something. It doesn't. 
+The wire already carries traffic, even though you haven't assigned IPv4
+addresses. Disconnect and reconnect the interface to capture that first burst.
 
-Bounce pi-a's link to replay the moment of connection and watch: the instant it comes up,
-the Pi hands itself an identity, shouts its own name, and goes hunting for a server
-that isn't there. You asked for none of it. And look closely—some of these frames
-aren't even pi-a. The other Pi is already on the wire, talking too.
-
-(It looks different every run: a free-for-all of independent processes, not a
-script. Watch for the kinds of frames below, not an exact transcript.)
+Look for IPv6 neighbor discovery and, on the Pis, hostname announcements and
+DHCP requests. Compare the sources: pi-a can hear its neighbor as well as itself.
+The mix and timing depend on each node's services, so follow your actual rows.
 EOF
 
 # Both nodes need their stock DHCP baseline so the bounce reproduces the FULL burst
@@ -58,19 +52,19 @@ fi'
 true
 
 eye <<'EOF'
-ICMP6 "neighbor solicitation, who has fe80::..."  DAD: claiming its own IPv6 address
-"multicast listener report"                       joining IPv6 groups
-"router solicitation" to ff02::2                  hunting for a router (no reply comes)
+Neighbor solicitation from :: checks whether an IPv6 address is already in use.
+Multicast listener reports announce membership in IPv6 multicast groups.
+Router solicitation to ff02::2 asks for an IPv6 router.
 
-On real Pis you'll also see MDNS (the node shouting its own hostname) and DHCP
-Discover (begging for an address), both of which go unanswered.
+On the Pis, also look for mDNS hostname announcements and DHCP Discover.
+This two-node network has no router or DHCP server to answer those requests.
 EOF
 
 pause "Press Enter when you've had a look."
 
 note <<'EOF'
-Frames are flying both directions now. So the two can obviously ping each
-other... right? Let's just try, before we configure a single thing.
+The capture shows frames crossing the link. Now try an IPv4 ping before
+assigning addresses. This tests reachability using the address you type.
 EOF
 
 pause "Press Enter to ping pi-b from pi-a."
@@ -80,8 +74,8 @@ h "ping -c1 10.10.0.2"
 ping -c1 -W1 10.10.0.2 || true'
 
 note <<'EOF'
-Fie. A live wire, frames flowing both ways, and the ping still drops. So
-where did that packet even go? That's the next step.
+If the ping failed, the link alone wasn't enough. Next, inspect the route
+to find out where the kernel tried to send it.
 EOF
 
 pause "Press Enter to find out."

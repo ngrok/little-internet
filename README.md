@@ -1,17 +1,13 @@
 # The little internet
 
-A hardware-based, reproducible **little internet** for learning how networking
-actually works.
+Build a **little internet** and watch networking happen, one packet at a time.
 
-Networking is one of the most global and durable technologies you'll ever touch.
-Its fundamentals are going nowhere, and when you make all those invisible layers
-of the internet visible and intuitive to you, you become a better developer.
+Start with two Raspberry Pis and an Ethernet cable. Add a switch, hand out
+addresses, and work toward connecting separate networks. Each lesson pairs a
+question with commands you run and packets you inspect.
 
-Everything here is meant to be **reproduced**. The bill of materials, the OS
-image tooling, and the lesson scripts all live in this repo so you can build
-your own little internet and follow along.
-
-_And have some fun along the way._
+The parts list, OS image tools, and lesson scripts are all here. Build the
+hardware or use the VM labs to follow along.
 
 ![Three Raspberry Pis in green mounts on a wooden board, connected by green Ethernet cables to a TP-Link switch. Their OLEDs show the two clients at 10.10.0.1 and 10.10.0.2 and the DHCP server at 10.10.0.254.](./photos/little-internet.jpg)
 
@@ -35,19 +31,18 @@ three phases:
   advertise their reachability to one another. _Autonomous systems, BGP, path
   selection, convergence_, plus side quests like DNS, TLS, and Pi-hole.
 
-Each step along the way is a question I'm unpuzzling. The [build log](./build-log/)
-tells the story and the [lesson](./lessons) is the version you run yourself.
-Particularly tasty protocol deep-dives get peeled off to the
-[ngrok blog](https://ngrok.com/blog) and
-[YouTube](https://www.youtube.com/@ngrokHQ). Read them in order, or jump to
-whatever question hooks you:
+Each step starts with a question I'm trying to answer. The [build log](./build-log/)
+tells the story; the [lessons](./lessons) let you run the experiments yourself.
+I also explore individual protocols on the [ngrok blog](https://ngrok.com/blog)
+and [YouTube](https://www.youtube.com/@ngrokHQ). Follow the sequence or start
+with the question that interests you:
 
 | #   | The question                            | Read the story                                | Run it yourself            | Watch it                                             |
 | --- | --------------------------------------- | --------------------------------------------- | -------------------------- | ---------------------------------------------------- |
 | 01  | Two Pis, one cable: can they just talk? | [Build log 01](./build-log/01_two-pis-one-cable.md) | [Lesson 01](./lessons/01/) | [Video](https://www.youtube.com/watch?v=XIlKS4TVt74) |
-| 02  | Who hands out IP addresses on a local network? | [Build log 02](./build-log/02_who-hands-out-addresses.md) | — | — |
+| 02  | Who hands out IP addresses on a local network? | [Build log 02](./build-log/02_who-hands-out-addresses.md) | [Lesson 02](./lessons/02/) | — |
 
-## Want to build your own little internet?
+## Build your own little internet
 
 1. Gather the hardware. See [`BOM.md`](./BOM.md) for the full parts list by
    phase.
@@ -63,6 +58,10 @@ whatever question hooks you:
 5. Read the build log for the story behind it all, in the order each piece came
    to life. The [table above](#where-this-is-going) pairs each entry with its
    lesson.
+
+No hardware? [Lesson 02](./lessons/02/) boots three Debian VMs with SSH and all
+the networking tools installed. [Lesson 01](./lessons/01/scripts/virtual-vm/)
+also has a two-VM path.
 
 ## Repo layout
 
@@ -88,27 +87,19 @@ whatever question hooks you:
 
 ## Using a coding agent
 
-Coding agents can teach from the docs, run the Linux virtual lab, or drive real
+Coding agents can teach from the docs, run the VM labs, or drive real
 Pis over SSH while you handle the cable and hardware. Point them at
-[`AGENTS.md`](./AGENTS.md) first; lesson 01 also has a machine-readable
-[`manifest.json`](./lessons/01/manifest.json) with beats, commands, expected
-observations, and recovery steps.
+[`AGENTS.md`](./AGENTS.md) first. Both [lesson 01](./lessons/01/manifest.json)
+and [lesson 02](./lessons/02/manifest.json) have manifests with commands,
+expected observations, and recovery steps.
 
 ## Contributing
 
-Want to help? Open an issue or email me at joel@ngrok.com.
+Open an issue or email me at joel@ngrok.com. I'd especially welcome help with:
 
-A few directions I'd especially love help with:
-
-- **Virtualization.** This is the big one. I build on real hardware and base
-  everything on the reality of the hardware, but plenty of people won't want to
-  buy the kit (or spend the money) and should still be able to learn what
-  everyone else is learning. How do we virtualize the little internet (VMs,
-  containers, network namespaces, whatever fits) without losing the things that
-  make the hardware version click?
-- **Agent accessibility.** How do we make these lessons work alongside coding
-  agents? Maybe that's agent skills built around each lesson that help you
-  understand the material, or maybe it's something else entirely. Open to ideas.
-- **The learning experience.** I could use advice on making this sticky and
-  tangible: other modes of learning, other ways of teaching, anything that helps
-  the ideas stick.
+- Making the virtual labs reproduce more of what the hardware teaches, so
+  readers can learn without buying the kit.
+- Helping coding agents guide learners through the evidence and wait for their
+  questions before advancing.
+- Testing the lessons with learners and finding clearer ways to explain what
+  the packets show.

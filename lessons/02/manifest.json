@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "lesson": {
+    "id": "02",
+    "title": "Who hands out IP addresses?",
+    "summary": "Three VMs on a learning Ethernet switch: manual identity, DHCP, preferences, and automatic reconnection."
+  },
+  "primary_docs": {
+    "story": "../../build-log/02_who-hands-out-addresses.md",
+    "runbook": "README.md",
+    "scripts": "scripts/",
+    "recorded_evidence": "../../build-log/captures/02-dhcp/manifest.json"
+  },
+  "modes": {
+    "vm": {
+      "description": "Three independent Debian VMs driven over SSH, with a userspace learning switch.",
+      "setup": "./scripts/virtual-vm/lab-up.sh",
+      "check_host": "./scripts/check.sh --host",
+      "check": "./scripts/check.sh",
+      "run": "./scripts/run.sh",
+      "unattended": "./scripts/run.sh --auto",
+      "reset": "./scripts/reset.sh",
+      "cleanup": "./scripts/virtual-vm/lab-down.sh",
+      "requirements": [
+        "QEMU",
+        "Bash",
+        "Python 3",
+        "SSH",
+        "curl",
+        "hdiutil or xorriso or genisoimage",
+        "macOS or Linux (including WSL2)",
+        "3 GB free RAM",
+        "Internet for first boot"
+      ],
+      "environment": [
+        "LAB_HOME",
+        "WIRE_PORT",
+        "CAPTURE_DIR",
+        "NO_COLOR",
+        "LESSON_VERBOSE",
+        "LESSON_AUTO"
+      ],
+      "default_state_directory": "~/.little-internet/lab02-vm",
+      "ssh": {
+        "a": "./scripts/virtual-vm/ssh-a",
+        "b": "./scripts/virtual-vm/ssh-b",
+        "dhcp": "./scripts/virtual-vm/ssh-dhcp"
+      },
+      "limitations": [
+        "No physical PHY, autonegotiation, lights, or frame-padding guarantee.",
+        "Switch implements MAC learning/forwarding, not TP-Link management, VLANs, or STP.",
+        "Synthetic Pi MAC prefixes.",
+        "No hardware or namespace backend for lesson 02."
+      ],
+      "starting_state": "run.sh inspects lesson state before phase 01. If reset is needed, its terminal prompt accepts Enter to reset and continue; --auto resets without prompting. Captures are preserved. Failed inspection or reset stops the runner.",
+      "resume": "./scripts/run.sh --from 04"
+    },
+    "read_only": {
+      "description": "Use published build log 02 and its hardware captures; distinguish recorded evidence from live VM observations.",
+      "run": null
+    }
+  },
+  "agent_defaults": {
+    "safe_first_step": "Read root AGENTS.md, build log 02, lesson README, and this manifest; establish VM or read-only mode.",
+    "walkthrough_intent": "Recommend the paced run.sh terminal walkthrough. Teach one conceptual checkpoint at a time, waiting for the learner before advancing.",
+    "pacing": "Each beat has multiple short checkpoints. Before each capture, explain the vocabulary and name the fields or messages to follow. Show commands and raw evidence, let the learner inspect it, then return to the same observation question before interpreting. Non-TTY prompts do not supply pacing; pause in the conversation between observations. Close each phase with a review question, pause before revealing its answer, then pause again before advancing. Acknowledge successful observations before introducing the next investigation.",
+    "evidence_policy": [
+      "Present verbatim decoded packet tables or labeled contiguous excerpts in fenced blocks before interpreting.",
+      "Preserve frame numbers, timestamps, MACs, IPs, transaction IDs, errors, and capture paths.",
+      "Use actual leases rather than assuming pool allocation order.",
+      "Show unexpected results and investigate; never manufacture DORA, an allocation change, or a conflict.",
+      "Default views name their node and filter; packet tables page every eight rows. All three captures and decoded views remain on disk. Routine setup is logged under LAB_HOME/transcripts; LESSON_VERBOSE=1 shows it inline. Errors remain visible."
+    ],
+    "full_runner_policy": "Prefer run.sh in an interactive terminal for the normal walkthrough. Agents may drive it checkpoint by checkpoint. Use individual scripts for repeats or tools without a persistent interactive terminal; supply conversation pacing. Reserve --auto for explicitly unattended demonstrations or development tests.",
+    "recovery": [
+      {
+        "situation": "Repeat an interrupted phase and continue; earlier phases already completed and current VM state is retained.",
+        "command": "./scripts/run.sh --from 04 (replace 04 with the interrupted phase, 02 through 07; phase 01 uses normal reset checks)"
+      },
+      {
+        "situation": "Restart lesson on running VMs; deletes lesson profiles/preferences/leases only.",
+        "command": "./scripts/reset.sh"
+      },
+      {
+        "situation": "Stop VMs and switch, preserving disks and host captures.",
+        "command": "./scripts/virtual-vm/lab-down.sh"
+      },
+      {
+        "situation": "First boot package installation failed; after fixing access, recreate dedicated guests.",
+        "command": "./scripts/virtual-vm/lab-down.sh --wipe"
+      },
+      {
+        "situation": "Killed controller left lock/capture units.",
+        "command": "Follow README.md interrupted-capture recovery after verifying no beat is running."
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "01-switch",
+      "script": "scripts/01-switch.sh",
+      "question": "Does the switch assign addresses?",
+      "mode": "vm",
+      "preconditions": [
+        "Three connected VMs, dnsmasq stopped, clients have no IPv4 address."
+      ],
+      "expected_observations": [
+        "LOWER_UP on eth0.",
+        "DHCP Discover appears on other nodes, with no Offer during the capture.",
+        "NetworkManager activation fails and no IPv4 address is assigned."
+      ],
+      "checkpoint": "Does a live switch connection also give a client an IPv4 identity?",
+      "next": "./scripts/02-manual.sh",
+      "common_failures": [
+        "Run scripts/check.sh and inspect the actual output/capture.",
+        "Run scripts/reset.sh only when intentionally restarting the lesson."
+      ]
+    },
+    {
+      "id": "02-manual",
+      "script": "scripts/02-manual.sh",
+      "question": "Can the switch carry a ping when we supply identities?",
+      "mode": "vm",
+      "preconditions": [
+        "01-switch completed."
+      ],
+      "expected_observations": [
+        "Manual addresses .1 and .2 create a connected eth0 route.",
+        "ARP request/reply precedes ICMP echo request/reply.",
+        "The third node normally sees broadcast ARP, not learned client unicast."
+      ],
+      "checkpoint": "The ping works, but which part of this setup still needed a person?",
+      "next": "./scripts/03-server.sh",
+      "common_failures": [
+        "Run scripts/check.sh and inspect the actual output/capture.",
+        "Run scripts/reset.sh only when intentionally restarting the lesson."
+      ]
+    },
+    {
+      "id": "03-server",
+      "script": "scripts/03-server.sh",
+      "question": "What does a DHCP server need?",
+      "mode": "vm",
+      "preconditions": [
+        "02-manual completed."
+      ],
+      "expected_observations": [
+        "Client manual profiles are deleted.",
+        "Server eth0 has 10.10.0.254/24, outside its .1-.10 pool.",
+        "dnsmasq listens on eth0 with 12h leases and no gateway/DNS options."
+      ],
+      "checkpoint": "Why give the server .254 when its client pool is .1 through .10?",
+      "next": "./scripts/04-dora.sh",
+      "common_failures": [
+        "Run scripts/check.sh and inspect the actual output/capture.",
+        "Run scripts/reset.sh only when intentionally restarting the lesson."
+      ]
+    },
+    {
+      "id": "04-dora",
+      "script": "scripts/04-dora.sh",
+      "question": "How does an addressless client get an identity?",
+      "mode": "vm",
+      "preconditions": [
+        "03-server completed and dnsmasq active."
+      ],
+      "expected_observations": [
+        "Discover, Offer, Request, ACK share a transaction ID.",
+        "Offered addresses agree with guest interfaces and server lease records.",
+        "Addresses and ARP probes may vary; allocation order is not guaranteed."
+      ],
+      "checkpoint": "What changed after ACK, and how did you check that it took effect?",
+      "next": "./scripts/05-ping.sh",
+      "common_failures": [
+        "Run scripts/check.sh and inspect the actual output/capture.",
+        "Run scripts/reset.sh only when intentionally restarting the lesson."
+      ]
+    },
+    {
+      "id": "05-ping",
+      "script": "scripts/05-ping.sh",
+      "question": "What remains for ARP after DHCP?",
+      "mode": "vm",
+      "preconditions": [
+        "Both clients have leases in the lab pool."
+      ],
+      "expected_observations": [
+        "Ping uses the actual peer lease via eth0.",
+        "ARP resolves a MAC before the first echo.",
+        "Client unicast traffic is normally absent from the server capture."
+      ],
+      "checkpoint": "Did the DHCP server relay this ping? Which evidence supports your answer?",
+      "next": "./scripts/06-preference.sh",
+      "common_failures": [
+        "Run scripts/check.sh and inspect the actual output/capture.",
+        "Run scripts/reset.sh only when intentionally restarting the lesson."
+      ]
+    },
+    {
+      "id": "06-preference",
+      "script": "scripts/06-preference.sh",
+      "question": "Can a client ask for its preferred address?",
+      "mode": "vm",
+      "preconditions": [
+        "Both clients have active DHCP leases."
+      ],
+      "expected_observations": [
+        "Each client is stopped before its real server binding is released.",
+        "Option 50 in Discover contains .1 or .2.",
+        "Offer and ACK expose the server decision, which can differ from the preference."
+      ],
+      "checkpoint": "Why might a client keep its old address if you only edit the preference?",
+      "next": "./scripts/07-reconnect.sh",
+      "common_failures": [
+        "Run scripts/check.sh and inspect the actual output/capture.",
+        "Run scripts/reset.sh only when intentionally restarting the lesson."
+      ]
+    },
+    {
+      "id": "07-reconnect",
+      "script": "scripts/07-reconnect.sh",
+      "question": "Can the network assemble itself?",
+      "mode": "vm",
+      "preconditions": [
+        "06-preference completed."
+      ],
+      "expected_observations": [
+        "Carrier is toggled through QMP; client profiles autoconnect.",
+        "Fresh client acquisition occurs while server lease records are retained.",
+        "ARP and successful ICMP follow acquisition."
+      ],
+      "checkpoint": "Which packet or field would you point to as evidence for each job?",
+      "next": null,
+      "common_failures": [
+        "Run scripts/check.sh and inspect the actual output/capture.",
+        "Run scripts/reset.sh only when intentionally restarting the lesson."
+      ]
+    }
+  ]
+}

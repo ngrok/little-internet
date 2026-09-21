@@ -68,9 +68,9 @@ echo "Lab up:  $A  <--veth(eth0)-->  $B   (link up, no IPv4 yet)"
 if [ -z "${QUIET:-}" ]; then
   echo
   echo "Drive the steps against this lab from lessons/01 (they auto-detect it):"
-  echo "  ./scripts/02-no-address.sh    # the ping fails, no identity"
-  echo "  ./scripts/03-address.sh       # give each node an identity"
-  echo "  ./scripts/04-arp.sh           # the ARP introduction"
+  echo "  ./scripts/03-no-address.sh    # the ping fails, no identity"
+  echo "  ./scripts/04-address.sh       # give each node an identity"
+  echo "  ./scripts/05-arp.sh           # the ARP introduction"
   echo "  ./scripts/virtual/watch.sh    # live two-pane dashboard"
   echo
   echo "Tear down with: sudo ./lab-down.sh"

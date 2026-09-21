@@ -39,11 +39,17 @@ For an agent-led walkthrough:
    Continue only when they answer or explicitly say to move on. "Next" advances
    one conceptual checkpoint, not the rest of the lab.
 
-Use `scripts/run.sh` when a user explicitly wants an unattended demonstration,
-smoke test, or full run. During tutoring, run the individual beat scripts so the
-agent/user conversation—not a noninteractive shell—is responsible for pacing.
-If a beat has multiple conceptual checkpoints, pause between them rather than
-compressing the entire script into a single conclusion.
+For lesson 02, recommend the paced `scripts/run.sh` terminal walkthrough.
+An agent with an interactive terminal can drive that runner, advancing only
+one checkpoint when the learner is ready. If the tool cannot retain an
+interactive terminal, use individual scripts and supply pacing in the
+conversation; a noninteractive runner skips prompts. Use `--auto` only for an
+explicitly unattended demonstration or development test.
+
+For lesson 01, use `scripts/run.sh` when the user explicitly wants an unattended
+demonstration, smoke test, or full run; use individual beat scripts for tutoring.
+In either lesson, pause between conceptual checkpoints rather than compressing
+an entire script into a single conclusion.
 
 Do not manufacture a dramatic result. If the output differs from the manifest,
 show the difference and investigate it with the learner. If a command fails,
@@ -75,11 +81,12 @@ it.
 
 - Read-only tutoring: use the build log, lesson README, and manifest to explain the
   lesson without running commands. This works from any machine.
-- Virtual lab: run lesson 01 in Linux with network namespaces. This is the best
-  runnable mode when there is no hardware. Explain its Layer 1 limitations
-  before beginning. For tutoring, create the lab and run individual beat
-  scripts; reserve `sudo env NO_COLOR=1 ./scripts/run.sh --virtual` for a full
-  demonstration or test.
+- VM lab (preferred without hardware): use the lesson's `scripts/virtual-vm/`
+  workflow on macOS or Linux/WSL2. Each node has its own kernel and management
+  SSH connection. Explain that virtual carrier events are not physical PHY or
+  speed negotiation. Create the lab, then run individual beat scripts.
+- Legacy namespace lab: lesson 01 still supports Linux network namespaces.
+  Lesson 02 uses VMs only; do not substitute the namespace path.
 - Hardware lab: drive two real Pis over SSH. Confirm the user has two nodes
   flashed with `image/`, an Ethernet cable between their `eth0` ports, and SSH
   access over Wi-Fi before running scripts.
@@ -141,5 +148,17 @@ The lesson answers three questions:
 - Layer 3: `ping 10.10.0.2` fails until both ends receive IPv4 identities on
   `eth0`; then ARP maps the typed IP address to the peer's MAC address.
 
-If the virtual lab is unavailable on macOS or Windows, tell the user to run it
-inside a Linux VM or use read-only tutoring mode.
+Lesson 02 has its own [runbook](lessons/02/README.md) and
+[manifest](lessons/02/manifest.json). Read them and
+`build-log/02_who-hands-out-addresses.md` before operating it. Its default backend
+is three VMs, not hardware: two clients and a DHCP server on a learning switch.
+Use `scripts/check.sh --host`, then `scripts/virtual-vm/lab-up.sh`, then the
+paced `scripts/run.sh` in an interactive terminal. Preserve packet rows and use
+actual lease addresses. Individual `01-switch.sh` through `07-reconnect.sh`
+scripts are available for repeats and tools without an interactive terminal.
+Use `scripts/run.sh --auto` for an explicitly unattended demonstration or
+development smoke test. No physical
+handoffs are needed for that VM workflow.
+
+If the VM prerequisites are unavailable, use read-only tutoring. On Windows,
+run the VM tooling inside WSL2.
