@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+source "$(dirname "$0")/common.sh"
+exec ssh "${ssh_opts[@]}" -p "$(ssh_port a)" pi@127.0.0.1 "$@"

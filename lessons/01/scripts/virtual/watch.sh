@@ -10,7 +10,7 @@
 #
 # Recreates the spatial, glanceable feel the OLEDs give on hardware. Needs Linux,
 # root, and tmux, with the lab already up. Address the nodes first (run
-# 03-address.sh, MODE=netns) if you want pings to land.
+# 04-address.sh, MODE=netns) if you want pings to land.
 #
 #   sudo ./lab-up.sh
 #   sudo ./watch.sh        # you land in the bottom shell; Ctrl-b d to detach

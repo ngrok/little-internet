@@ -10,11 +10,10 @@ EOF
 fi
 
 note <<'EOF'
-Returning eth0 on both nodes to its stock resting state: a single DHCP, autoconnect
-profile and no address. That's a "blank wire" in the sense the lesson means—nothing
-*you* configured—but it still chatters the instant the link comes up, exactly like a
-freshly imaged Pi. This is what makes the whole thing re-runnable: reset, start from
-the top, and beat 2 fires for real again instead of sitting silent.
+Reset eth0 on both nodes to one DHCP profile with autoconnect enabled.
+On this serverless link, DHCP requests go unanswered and eth0 stays without
+an IPv4 address. The link-up traffic is still there to inspect when you
+repeat the lesson.
 EOF
 
 pause "Press Enter to reset eth0 to the stock DHCP baseline on both nodes."
