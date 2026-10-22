@@ -19,6 +19,10 @@ Grab the latest `.img.xz` from the **[Releases page](../../releases/latest)**.
 It's attached to each release as a plain download, and you don't need to
 decompress it.
 
+**Using v0.6.0 (2026-09-11)?** That Raspberry Pi OS Bookworm image predates
+the `ca-certificates` fix. Follow [the package-update step](#5-update-packages)
+after boot, including on nodes you've already set up. Reflashing isn't required.
+
 ### 2. Flash the card
 
 **With Raspberry Pi Imager (recommended):**
@@ -114,6 +118,29 @@ file in place so you can fix it and reboot.
 > The image ships with user `pi` / password `little-internet`. Fine for a closed
 > lab; change the password for anything exposed.
 
+### 5. Update packages
+
+On each Pi, in its SSH session, run the following with internet access (the
+management Wi-Fi connection allows this):
+
+```bash
+sudo apt update
+sudo apt upgrade
+dpkg-query -W -f='${Version}\n' ca-certificates
+```
+
+For the Bookworm image, verify that the printed `ca-certificates` version is
+`20250419~deb12u2` or later. This is the fixed version listed by
+[Debian's security tracker](https://security-tracker.debian.org/tracker/source-package/ca-certificates).
+The v0.6.0 download is a snapshot from before this fix; updating the repository
+documentation does not update the packages inside that image.
+
+If the installed version is still older, check `apt policy ca-certificates`
+and any errors from `apt update`. Make sure the node's configured repositories
+include Bookworm security updates and offer the fixed version, then retry the
+upgrade. If the package was kept back, upgrade it explicitly with
+`sudo apt install --only-upgrade ca-certificates` and check the version again.
+
 ---
 
 ## Building the image yourself
@@ -205,6 +232,7 @@ image/
     │   ├── 06-run.sh             Installs the on-demand ARP-state OLED viewer into ~/arp-oled (staged from tools/arp-oled by build.sh).
     │   ├── 07-run.sh             Installs + enables the boot-time OLED status display, little-internet-oled.service (staged from tools/status-oled by build.sh).
     │   ├── 08-run.sh             Installs tsharkie on PATH (staged from tools/tsharkie by build.sh).
+    │   ├── 09-run.sh             Updates ca-certificates and verifies the fixed Bookworm version.
     │   └── files/                NM backend config, eth-dhcp.nmconnection, little-internet-oled.service, and staged tools.
     ├── 01-firstboot-config/      First-boot hostname + Wi-Fi provisioner for flashed (released) images.
     │   ├── 00-run.sh             Installs the provisioner script, service, and boot-partition template.

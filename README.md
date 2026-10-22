@@ -55,6 +55,8 @@ whatever question hooks you:
    Either way, see [`image/`](./image/) for getting the Raspberry Pi OS image
    (built with [pi-gen](https://github.com/RPi-Distro/pi-gen)) and flashing it
    to your microSD cards.
+   If you use v0.6.0 (2026-09-11), [update packages after boot](./image/README.md#5-update-packages)
+   to get the Bookworm `ca-certificates` fix; that image predates it.
 3. Optionally, print a stand. Every release also has an STL for a
    [Pi 3 half-case with an integrated OLED stand](./hardware/pi3-oled-case/):
    the Pi drops in without screws and the display sits up where you can read it.
