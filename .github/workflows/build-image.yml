@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.1.0
         with:
           # Full history + tags so build.sh's `git describe` can resolve the
           # image version label (a clean tag like v0.3.1 on a release build,
@@ -91,7 +91,7 @@ jobs:
           echo "name=$(basename "$img")" >> "$GITHUB_OUTPUT"
 
       - name: Upload image as a workflow artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: ${{ steps.image.outputs.name }}
           path: ${{ steps.image.outputs.path }}
@@ -101,7 +101,7 @@ jobs:
 
       - name: Attach image to the Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v3.0.4
         with:
           files: ${{ steps.image.outputs.path }}
           fail_on_unmatched_files: true

@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Check out the repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v6.1.0
 
       # xvfb because OpenSCAD still wants a display to initialise, even for a
       # headless CGAL render that never draws anything.
@@ -78,7 +78,7 @@ jobs:
           done
 
       - name: Upload the STLs as a workflow artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: pi3-oled-case-stl
           path: stl/*.stl
@@ -89,7 +89,7 @@ jobs:
       # for the joint; they stay in the workflow artifact for iterating.
       - name: Attach the STL to the Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@v3.0.4
         with:
           files: stl/pi3-oled-case.stl
           fail_on_unmatched_files: true
